@@ -1,15 +1,15 @@
-# Plan del tema de Windows
+# Windows Theme Plan
 
-**Especificación** [spec.md](spec.md)
+**Specification** [spec.md](spec.md)
 
-## Contexto técnico y constitución
+## Technical Context and Constitution
 
-WinForms .NET 10 proporciona la apariencia nativa de Windows 11. La preferencia se lee antes de crear controles. El cambio de tema se aplica al siguiente proceso para mantener activas las sesiones durante el uso normal.
+WinForms on .NET 10 provides native Windows 11 styling. Read the preference before creating controls. Apply theme changes on the next launch to keep sessions active during normal use.
 
-## Diseño y verificación
+## Design and Verification
 
-- Aplicar el modo Sistema después de inicializar WinForms y antes de crear la ventana o el icono.
-- Adaptar la paleta del visor y el contraste de las referencias de calibración IR a la apariencia del proceso. Usar los colores del sistema en alto contraste.
-- Renderizar la ventana y el visor en ambos temas en un proceso de prueba. Mantener la apariencia clásica en Windows 10.
+- Apply System color mode after initializing WinForms and before creating the window or notification-area icon.
+- Adapt the viewer palette and IR calibration target contrast to the process theme. Use system colors in high-contrast mode.
+- Render the window and viewer in both themes in a test process. Retain classic styling on Windows 10.
 
-[Modo de color de Windows Forms](https://learn.microsoft.com/dotnet/api/system.windows.forms.application.setcolormode?view=windowsdesktop-10.0)
+[Windows Forms color mode](https://learn.microsoft.com/dotnet/api/system.windows.forms.application.setcolormode?view=windowsdesktop-10.0)

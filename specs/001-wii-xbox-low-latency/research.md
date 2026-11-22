@@ -1,37 +1,38 @@
-# Investigación y decisiones
+# Research and Decisions
 
-Fecha: 2026-11-22. Estado: decisiones aplicadas con validación parcial.
+**Date** 2026-11-22  
+**Status** Decisions implemented with partial validation.
 
-## Runtime e interfaz
+## Runtime and UI
 
-La publicación usa WinForms y .NET 10 LTS. El paquete incluye el entorno de ejecución para poder abrir Wii2Xbox sin instalar el SDK. [Política de soporte de .NET](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core)
+The published app uses WinForms and .NET 10 LTS. The package includes the runtime so Wii2Xbox can run without the SDK. [NET support policy](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core)
 
-Alternativas: WPF aporta composición visual pero no reduce latencia del transporte; C++ puede reducir control del runtime, pero se considerará solo si el perfilado demuestra que el runtime impide cumplir el presupuesto. La latencia no se deduce del lenguaje.
+WPF offers visual composition without reducing transport latency. C++ may offer more runtime control. Consider it only if profiling shows that the runtime prevents meeting the budget. Measure latency rather than inferring it from the programming language.
 
-## Emulación Xbox
+## Xbox Emulation
 
-Wii2Xbox usa ViGEmBus y sus bindings .NET para la salida Xbox 360. El paquete integra el instalador firmado 1.22.0 y su licencia BSD de tres cláusulas. La aceptación en versiones de Windows y juegos se registra por combinación. [Publicación 1.22.0](https://github.com/nefarius/ViGEmBus/releases/tag/v1.22.0) · [Licencia](https://github.com/nefarius/ViGEmBus/blob/v1.22.0/LICENSE) · [Fin de soporte](https://docs.nefarius.at/projects/ViGEm/End-of-Life/)
+Wii2Xbox uses ViGEmBus and its .NET bindings for Xbox 360 output. The package embeds the signed 1.22.0 installer and includes its three-clause BSD license. Record acceptance separately for each Windows version and game combination. [1.22.0 release](https://github.com/nefarius/ViGEmBus/releases/tag/v1.22.0) · [License](https://github.com/nefarius/ViGEmBus/blob/v1.22.0/LICENSE) · [End of support](https://docs.nefarius.at/projects/ViGEm/End-of-Life/)
 
-La publicación recupera la versión fijada y verifica SHA-256 y Authenticode. En ejecución, la app instala desde el recurso incluido con los argumentos `/exenoui /qn /norestart` del manifiesto WinGet y la elevación de Windows tras la acción del usuario. La interfaz de salida permite evaluar otro backend si la matriz revela incompatibilidades. [Manifiesto WinGet](https://github.com/microsoft/winget-pkgs/blob/master/manifests/v/ViGEm/ViGEmBus/1.22.0/ViGEm.ViGEmBus.installer.yaml)
+Publishing fetches the pinned version and verifies its SHA-256 and Authenticode signature. At runtime, the app installs from the embedded resource with `/exenoui /qn /norestart` from the WinGet manifest and requests Windows elevation after a user action. The output interface allows another backend to be evaluated if the matrix reveals incompatibilities. [WinGet manifest](https://github.com/microsoft/winget-pkgs/blob/master/manifests/v/ViGEm/ViGEmBus/1.22.0/ViGEm.ViGEmBus.installer.yaml)
 
-## Transporte
+## Transport
 
-[HidSharp](https://github.com/IntergatedCircuits/HidSharp) es candidato para enumerar/leer HID. Su selección no demuestra por sí sola que cada modelo Wii acepte las mismas escrituras. Validar el código fuente y probar transporte Windows real para RVL-CNT-01 y RVL-CNT-01-TR. Comparar modo básico por cambios frente a informes continuos: estos últimos ayudan a detectar silencio pero pueden aumentar tráfico radio. No se fija «1000 Hz» ni se cambia el polling de un dispositivo que no lo admite.
+[HidSharp](https://github.com/IntergatedCircuits/HidSharp) is a candidate for HID enumeration and reading. Validate the source and test real Windows transport with RVL-CNT-01 and RVL-CNT-01-TR to determine which writes each model accepts. Compare change-only basic reporting against continuous reports. Continuous reports help detect silence but may increase radio traffic. Avoid presuming a 1,000 Hz rate or changing polling for a device that does not support it.
 
-Referencia primaria de interoperabilidad: código y documentación de [HID-Wiimote](https://github.com/jloehr/HID-Wiimote), también archivado. Usar como referencia de protocolo, no requisito de instalar un segundo driver. Nunchuk exige identificación, inicialización, manejo de cifrado y calibración; un bloque de seis bytes no basta para afirmar soporte.
+The archived [HID-Wiimote source and documentation](https://github.com/jloehr/HID-Wiimote) are the primary interoperability reference. Use them as a protocol reference. Nunchuk support requires identification, initialization, encryption handling, and calibration. A six-byte block alone is insufficient evidence of support.
 
-## Observación de salida
+## Output Observation
 
-[XInput](https://learn.microsoft.com/en-us/windows/win32/xinput/xinput-game-controller-apis-portal) permite al juego/observador leer estados. No es un mecanismo de inyección ni una cola de todos los eventos. El observador independiente documenta frecuencia de lectura y aliasing. Medición local no incluye tiempo transcurrido antes de que la lectura vuelva al proceso, radio ni tiempo hasta renderizado del juego.
+Games and observers use [XInput](https://learn.microsoft.com/en-us/windows/win32/xinput/xinput-game-controller-apis-portal) to read states. Design observations around sampled states. The independent observer records read frequency and aliasing. Local measurement excludes time before the read returns to the process, radio latency, and time to game rendering.
 
-ControllerTest recibe los estados a través de la API Gamepad del navegador. En Windows, Chromium contempla capturadores basados en Windows.Gaming.Input y GameInput. La diferencia observada en el equipo de referencia se documenta en [aceptación](acceptance.md). [Código de Chromium](https://chromium.googlesource.com/chromium/src/+/lkgr/device/gamepad/gamepad_platform_data_fetcher.h) · [ControllerTest](https://controllertest.io/)
+ControllerTest receives states through the browser Gamepad API. On Windows, Chromium has data fetchers based on Windows.Gaming.Input and GameInput. The result seen on the reference machine is documented in [acceptance](acceptance.md). [Chromium source](https://chromium.googlesource.com/chromium/src/+/lkgr/device/gamepad/gamepad_platform_data_fetcher.h) · [ControllerTest](https://controllertest.io/)
 
-## Incertidumbres que deben resolverse
+## Open Questions
 
-1. Instalación del backend firmado en Windows reales objetivo y efectos de otras salidas XInput.
-2. Asociación y método de escritura HID por modelo/adaptador; método de cancelación que cumpla ≤5 s.
-3. Identificación/calibración fiable del Nunchuk y retirada en caliente.
-4. Política de buffer/cadencia óptima bajo 1/4 mandos y radio compartida.
-5. Distribución real de latencia y coste de instrumentación; elegir ajustes con ensayos equivalentes.
+1. Installation of the signed backend on target Windows systems and the effect of other XInput outputs.
+2. Pairing, the HID write method by model and adapter, and cancellation within 5 seconds.
+3. Reliable Nunchuk identification, calibration, and hot removal.
+4. Optimal buffering and report timing for one and four controllers sharing a radio.
+5. Actual latency distribution and instrumentation overhead. Choose settings based on equivalent trials.
 
-Los resultados con hardware y los límites de cada prueba figuran en [aceptación](acceptance.md).
+See [acceptance](acceptance.md) for hardware results and the limits of each test.

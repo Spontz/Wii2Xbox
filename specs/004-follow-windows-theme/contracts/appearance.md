@@ -1,3 +1,3 @@
-# Contrato de apariencia
+# Appearance Contract
 
-En Windows 11, la ventana y sus controles usan la apariencia para aplicaciones de Windows. El visor conserva formas y etiquetas en claro y oscuro. El modo de contraste alto usa colores del sistema. Salir de Wii2Xbox y volver a abrirlo aplica una preferencia cambiada.
+On Windows 11, the window and its controls follow the Windows app theme. The viewer preserves shapes and labels in light and dark modes. High-contrast mode uses system colors. Exiting and reopening Wii2Xbox applies a changed preference.

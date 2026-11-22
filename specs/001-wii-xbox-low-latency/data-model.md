@@ -1,29 +1,29 @@
-# Modelo de datos y ciclo de vida
+# Data Model and Lifecycle
 
 ## PhysicalController
 
-`Id` estable cuando transporte lo permita; `DevicePath` efímero; modelo; radio; capacidades; accesorio identificado; último informe válido monotónico; estado. No usar índice de lista como identidad. Si la identidad cambia, no asociar automáticamente perfiles de otro mando.
+Stable `Id` when the transport permits it, ephemeral `DevicePath`, model, radio, capabilities, identified accessory, monotonic timestamp of the last valid report, and state. Use a device identifier for identity. If the identity changes, avoid automatically assigning profiles from another controller.
 
 ## ControllerSession
 
-`SessionId`, `PhysicalId`, salida propia, perfil snapshot, estado, generación de conexión, diagnóstico acotado y cancelación. Restricciones: una sesión no finalizada por físico, una propietaria por salida, máximo cuatro activas y nunca dos lectores del mismo dispositivo.
+`SessionId`, `PhysicalId`, owned output, profile snapshot, state, connection generation, bounded diagnostics, and cancellation. Each physical controller has at most one unfinished session, each output has one owner, and up to four sessions can be active. A device has at most one reader.
 
-Estados: Discovered → Connecting → Configuring → Active → Stopping → Disconnected. Fallo de cualquier etapa → limpieza → Faulted. Reintento crea nueva generación y no reutiliza callbacks de una anterior. Limpieza idempotente, incluso tras apertura parcial o lectura bloqueada.
+States: Discovered → Connecting → Configuring → Active → Stopping → Disconnected. Failure at any stage → cleanup → Faulted. A retry creates a new generation and ignores callbacks from previous generations. Cleanup is idempotent, including after a partial open or a blocked read.
 
 ## WiiState / XboxState
 
-Wii: conjunto de botones, orientación del perfil, accesorio válido, stick calibrado C/Z cuando corresponda y secuencia local. Xbox: máscara de botones, dos pares de ejes con signo y dos gatillos 0–255. Los componentes no usados siempre quedan neutrales. Informes desconocidos/truncados no actualizan botones y no cuentan como datos válidos para el watchdog.
+Wii state contains the button set, profile orientation, valid accessory, calibrated stick and C/Z when applicable, and a local sequence number. Xbox state contains a button mask, two pairs of signed axes, and two triggers ranging from 0 to 255. Unused components remain neutral. Unknown or truncated reports leave button state unchanged and do not count as valid watchdog data.
 
 ## ProfileDocument v1
 
-`schemaVersion: 1`, `id`, `name`, orientación `horizontal|upright`, asignaciones fuente→destino, calibración centro/mínimo/máximo por eje Nunchuk y zona muerta. Fuentes/destinos de catálogo cerrado. Varias fuentes al mismo destino se combinan OR; liberar una no libera el destino si otra sigue activa. Direcciones opuestas se neutralizan. Valores fuera de rango, calibración degenerada y versión desconocida se rechazan antes de aplicar.
+`schemaVersion: 1`, `id`, `name`, `horizontal|upright` orientation, source-to-target mappings, and per-axis Nunchuk center/minimum/maximum calibration and dead zone. Sources and targets come from closed catalogs. Multiple sources for one target are combined with OR. Releasing one leaves the target active while another is active. Opposite directions neutralize each other. Reject out-of-range values, degenerate calibration, and unknown versions before applying the profile.
 
-Guardado temporal y reemplazo atómico, conservando perfil válido. Migraciones explícitas. El tipo Profile exploratorio de Input.cs aún no implementa este contrato completo.
+Save to a temporary file and replace atomically, preserving the valid profile. Migrations are explicit. The exploratory Profile type in Input.cs does not yet implement the full contract.
 
 ## ConfigurationDocument v1
 
-Perfiles conocidos y última asociación físico→perfil; preferencias UI; diagnóstico habilitado. No persistir estado pulsado ni índice virtual garantizado. Archivos locales en directorio del usuario.
+Known profiles, the last physical-controller-to-profile association, UI preferences, and whether diagnostics are enabled. Do not persist pressed state or assume a guaranteed virtual index. Store files in the user's local directory.
 
 ## PerformanceRun
 
-Versión/build, SO/runtime, CPU, radio, mandos/accesorios, backend/driver, juego si aplica, modo de informes, condiciones, duración, calentamiento, tamaño de muestra, frecuencia del observador, incertidumbre, pérdidas, p50/p95/p99/max. Tipos separados `software-processing`, `virtual-observed`, `physical-to-response`. Muestras en microsegundos o ticks con frecuencia declarada. No combinar métricas incompatibles.
+Version and build, OS and runtime, CPU, radio, controllers and accessories, backend and driver, game if applicable, report mode, conditions, duration, warm-up, sample size, observer frequency, uncertainty, losses, and p50/p95/p99/max. Keep `software-processing`, `virtual-observed`, and `physical-to-response` as separate types. Record samples in microseconds or ticks with a declared frequency. Keep incompatible metrics separate.

@@ -1,5 +1,5 @@
-# Contrato de interfaz
+# UI Contract
 
-La lista muestra **Mando**, **Xbox**, **Estado**, **Perfil** y **Salida**. Clic en una celda **Salida** o **F4** en la fila seleccionada abre las opciones del mando. El cambio se aplica a esa fila. Debajo aparece la ilustración de un Wii Remote horizontal con el extremo infrarrojo a la izquierda. Una marca numérica sobre un botón indica que lo pulsan dos o más mandos.
+The list shows **Mando** (Controller), **Xbox**, **Estado** (Status), **Perfil** (Profile), and **Salida** (Output). Clicking an **Salida** cell or pressing **F4** on the selected row opens that controller's options. Changes apply to that row. Below the list is a horizontal Wii Remote illustration with the infrared end on the left. A number over a button indicates that two or more controllers are pressing it.
 
-Los cuatro LED indicados en la ilustración se iluminan en azul cuando el jugador correspondiente pulsa un botón. Se prioriza la ranura Xbox real. Los mandos sin ranura ocupan los indicadores que estén libres.
+The four LEDs in the illustration light blue when the corresponding player presses a button. Actual Xbox slots take priority. Controllers without a slot use the available indicators.

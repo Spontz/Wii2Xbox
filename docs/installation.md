@@ -1,16 +1,16 @@
-# Instalar Wii2Xbox
+# Install Wii2Xbox
 
-- **ZIP portable**. Extrae `Wii2Xbox-win-x64.zip` en una carpeta y abre `Wii2Xbox.exe`. Conserva juntos el ejecutable y sus archivos.
-- **Instalador MSI**. Abre `Wii2Xbox-win-x64.msi` y, cuando termine, busca **Wii2Xbox** en Inicio. Para actualizar o desinstalar, elige **Salir** en el icono del área de notificación. Desinstala desde **Configuración → Aplicaciones → Aplicaciones instaladas → Wii2Xbox**. Los perfiles y ViGEmBus se conservan.
+- **Portable ZIP**. Extract `Wii2Xbox-win-x64.zip` to a folder and run `Wii2Xbox.exe`. Keep the executable and its files together.
+- **MSI installer**. Open `Wii2Xbox-win-x64.msi`, then find **Wii2Xbox** in Start. Before updating or uninstalling, select **Salir** (Exit) from the notification-area icon. Uninstall from **Settings → Apps → Installed apps → Wii2Xbox**. User profiles and ViGEmBus are retained.
 
-Ambos paquetes incluyen .NET y se ejecutan como usuario normal en Windows x64. Para descubrir mandos, activa Bluetooth Classic y usa **Añadir mando…**.
+Both packages include .NET and run as a standard user on Windows x64. Turn on Bluetooth Classic and use **Añadir mando…** (Add controller…) to discover controllers.
 
-**Xbox** y **Xbox y ratón IR** requieren ViGEmBus. Wii2Xbox integra el instalador firmado 1.22.0 y puede ejecutarlo sin conexión a Internet. El modo **Ratón IR** funciona sin ese controlador. [Publicación del mantenedor](https://github.com/nefarius/ViGEmBus/releases/tag/v1.22.0) · [Fin del soporte](https://docs.nefarius.at/projects/ViGEm/End-of-Life/)
+**Xbox** and **Xbox y ratón IR** (Xbox and IR mouse) require ViGEmBus. Wii2Xbox embeds the signed 1.22.0 installer and can run it offline. **Ratón IR** (IR mouse) works without this driver. [Maintainer's release](https://github.com/nefarius/ViGEmBus/releases/tag/v1.22.0) · [End of support](https://docs.nefarius.at/projects/ViGEm/End-of-Life/)
 
-## Comprobar el controlador virtual
+## Check the Virtual Driver
 
-Wii2Xbox comprueba el controlador al abrir la ventana. Si aparece **Instalar controlador Xbox**, pulsa el botón y autoriza la instalación en el aviso de Windows. Wii2Xbox comprobará el resultado al terminar. Si la app indica que debes reiniciar, reinicia Windows y vuelve a abrirla.
+Wii2Xbox checks the driver when it opens. If **Instalar controlador Xbox** (Install Xbox driver) appears, select it and authorize installation in the Windows prompt. Wii2Xbox checks the result when installation finishes. If the app requests a restart, restart Windows and reopen it.
 
-Cuando Wii2Xbox muestre una ranura en la columna **Xbox**, abre el panel de mandos de Windows con `joy.cpl`. Selecciona el mando virtual y abre **Propiedades** para comprobar sus botones y ejes.
+When Wii2Xbox shows a slot in the **Xbox** column, open the Windows Game Controllers panel with `joy.cpl`. Select the virtual controller and choose **Properties** to check its buttons and axes.
 
-Los dos paquetes incluyen `LICENSE`, `NOTICE` y los avisos de ViGEmBus, HidSharp, ViGEm.NET, ViGEmClient y .NET en `licenses`.
+Both packages include `LICENSE`, `NOTICE`, and the ViGEmBus, HidSharp, ViGEm.NET, ViGEmClient, and .NET notices in `licenses`.

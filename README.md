@@ -1,62 +1,59 @@
 # Wii2Xbox
 
-Aplicación Windows en desarrollo para conectar hasta cuatro Wii Remote por Bluetooth y utilizarlos como mandos Xbox 360/XInput independientes. Prioridad: minimizar demora añadida y variabilidad, con mediciones verificables.
+A Windows app that connects up to four Wii Remotes over Bluetooth and lets you use them as independent Xbox 360/XInput controllers. Designed for minimal latency.
 
-## Estado
+## Downloads
 
-Wii2Xbox enumera Wii Remote asociados en Windows y dirige cada sesión activa a una salida Xbox 360 mediante ViGEmBus. Admite hasta cuatro sesiones y perfiles por mando. La primera prueba física sigue pendiente.
+- [MSI installer](https://github.com/Spontz/Wii2Xbox/releases/tag/v1.0.0-installer)
+- [Portable ZIP](https://github.com/Spontz/Wii2Xbox/releases/tag/v1.0.0-portable)
 
-- [Especificación completa](specs/001-wii-xbox-low-latency/spec.md)
-- [Plan técnico](specs/001-wii-xbox-low-latency/plan.md)
-- [Desarrollo y tareas](specs/001-wii-xbox-low-latency/tasks.md)
-- [Ejecución en segundo plano y arranque con Windows](specs/002-background-startup/spec.md)
-- [Visor de botones Wii Remote](specs/003-wii-button-viewer/spec.md)
-- [Tema de Windows](specs/004-follow-windows-theme/spec.md)
-- [Distribución portable y MSI](specs/005-portable-msi-distribution/spec.md)
-- [Guía de desarrollo](specs/001-wii-xbox-low-latency/quickstart.md)
-- [Constitución](.specify/memory/constitution.md)
+## Project Documentation
 
-El objetivo inicial de procesamiento es p95 ≤1 ms y p99 ≤2 ms. Es un criterio pendiente de aceptación; no representa la latencia Bluetooth ni la respuesta de un juego.
+Wii2Xbox lists Wii Remotes paired with Windows and sends input from each active session to an Xbox 360 output through ViGEmBus. It supports up to four sessions and per-controller profiles.
 
-La versión para Windows incluye el instalador firmado de ViGEmBus 1.22.0. [Aviso de fin de soporte del mantenedor](https://docs.nefarius.at/projects/ViGEm/End-of-Life/)
+- [Full specification](specs/001-wii-xbox-low-latency/spec.md)
+- [Technical plan](specs/001-wii-xbox-low-latency/plan.md)
+- [Development tasks](specs/001-wii-xbox-low-latency/tasks.md)
+- [Background operation and Windows startup](specs/002-background-startup/spec.md)
+- [Wii Remote button viewer](specs/003-wii-button-viewer/spec.md)
+- [Windows theme](specs/004-follow-windows-theme/spec.md)
+- [Portable ZIP and MSI distribution](specs/005-portable-msi-distribution/spec.md)
+- [Development quickstart](specs/001-wii-xbox-low-latency/quickstart.md)
+- [Constitution](.specify/memory/constitution.md)
 
-## Probar la conversión
+The Windows packages include the signed ViGEmBus 1.22.0 installer. [Maintainer's end-of-life notice](https://docs.nefarius.at/projects/ViGEm/End-of-Life/)
 
-Consulta la [guía de instalación](docs/installation.md) para verificar ViGEmBus y probar la entrada.
+## Use Your Wii Remote as an Xbox Controller
 
-1. Abre Wii2Xbox. Si aparece **Instalar controlador Xbox**, púlsalo y autoriza la instalación en Windows.
-2. Pulsa **Añadir mando…**. La ventana busca automáticamente hasta que la cierras. Pon el Wii Remote en sincronización con SYNC o 1+2. Cuando aparezca, selecciónalo, elige los botones que has usado y pulsa **Asociar seleccionado**.
-3. Wii2Xbox activa automáticamente los mandos disponibles en modo **Xbox**. La columna **Xbox** y el LED del Wii Remote muestran la ranura que asigna Windows.
-4. Comprueba la entrada en un juego compatible con XInput o en el panel de mandos de Windows.
+See the [installation guide](docs/installation.md) for setup and input checks.
 
-Tras perder Bluetooth o reanudar Windows, Wii2Xbox intenta recuperar cada mando activo hasta cuatro veces. Si se agotan los reintentos, vuelve a encender el mando para que Windows lo detecte. Windows puede asignar otra ranura Xbox al reconectar.
+1. Open Wii2Xbox. If **Instalar controlador Xbox** (Install Xbox driver) appears, select it and authorize the installation in Windows.
+2. Select **Añadir mando…** (Add controller…). The window searches until you close it. Put your Wii Remote into sync mode with SYNC or 1+2. When it appears, select it, choose the buttons you used, and select **Asociar seleccionado** (Pair selected).
+3. Wii2Xbox automatically activates available controllers in **Xbox** mode. The **Xbox** column and the Wii Remote LED show the slot assigned by Windows.
+4. Check input in an XInput-compatible game or in the Windows Game Controllers panel.
 
-Al cerrar la ventana, Wii2Xbox sigue funcionando en el área de notificación. Abre el icono para volver a la ventana o elige **Salir** para liberar los mandos. Marca **Arrancar al iniciar Windows** si quieres que Wii2Xbox arranque en segundo plano cada vez que inicies sesión.
+After Bluetooth disconnects or Windows resumes, Wii2Xbox tries to recover each active controller up to four times. If it runs out of retries, switch the controller on again so Windows can detect it. Windows may assign a different Xbox slot when the controller reconnects.
 
-Debajo de la lista, el Wii Remote horizontal ilumina los botones físicos de todos los mandos que están enviando entrada. Un número sobre un botón indica cuántos mandos lo han pulsado a la vez. En Windows 11, Wii2Xbox usa el tema de aplicaciones de Windows al arrancar.
+Closing the window keeps Wii2Xbox running in the notification area. Open its icon to restore the window or select **Salir** (Exit) to release the controllers. Enable **Arrancar al iniciar Windows** (Start with Windows) to run Wii2Xbox in the background whenever you sign in.
 
-Para cambiar la salida, abre el menú **Salida** en la fila de ese mando. Puedes elegir **Xbox**, **Ratón IR** o **Xbox y ratón IR**.
+The horizontal Wii Remote below the list lights up buttons from all controllers sending input. A number over a button indicates how many controllers are pressing it at once. On Windows 11, Wii2Xbox follows the Windows app theme at startup.
 
-Consulta la [guía de solución de problemas](docs/troubleshooting.md) y el [protocolo de validación con mandos físicos](docs/hardware-validation.md).
+To change a controller's output, open **Salida** (Output) in its row. Choose **Xbox**, **Ratón IR** (IR mouse), or **Xbox y ratón IR** (Xbox and IR mouse).
 
-Selecciona un mando y pulsa **Perfil…** para elegir orientación, reasignar sus botones e importar o exportar un perfil JSON. **Guardar** identifica el mando por su dirección Bluetooth cuando Windows la expone, o por su ruta HID como alternativa. Si hay una sesión activa, el cambio se aplica al recibir el siguiente informe de entrada.
+See the [troubleshooting guide](docs/troubleshooting.md) and [physical controller test protocol](docs/hardware-validation.md).
 
-Al conectar un Nunchuk reconocido, su stick controla el stick izquierdo de Xbox y C/Z usan las asignaciones del perfil. **Zona muerta** ajusta la tolerancia alrededor del centro. La carpeta `profiles` incluye ejemplos para Wii Remote horizontal y Wii Remote con Nunchuk.
+Select a controller and choose **Perfil…** (Profile…) to set its orientation, remap buttons, or import or export a JSON profile. **Guardar** (Save) identifies the controller by its Bluetooth address when available and falls back to its HID path. Active sessions apply the change on the next input report.
 
-## Usar la barra de Wii como ratón
+With a recognized Nunchuk connected, its stick controls the Xbox left stick and C/Z follow the profile mappings. **Zona muerta** (Dead zone) adjusts the tolerance around the center. The `profiles` folder contains example profiles for horizontal Wii Remote and Wii Remote with Nunchuk.
 
-1. Centra la barra IR cerca de la pantalla principal y aliméntala con su fuente compatible. Una barra original puede seguir conectada a una Wii encendida. Las barras USB y a pilas se alimentan según su modelo.
-2. Selecciona el Wii Remote y elige **Ratón IR** o **Xbox y ratón IR**. El cambio se aplica a ese mando. Para usar solo el ratón puedes prescindir de ViGEmBus.
-3. Sostén el mando en vertical y apunta a la pantalla. El mando necesita ver los dos extremos de la barra. **A** hace clic izquierdo y **B** hace clic derecho. Para liberar el ratón, cambia la salida del mando a **Xbox**.
+## Use the Wii Sensor Bar as a Mouse
 
-La barra aporta luz infrarroja. Se conecta por Bluetooth el Wii Remote, que lleva la cámara. Solo una sesión controla el cursor a la vez. Para ajustar la posición de la barra o la distancia, pulsa **Calibrar IR…** o **Alt+C** con el modo ratón activo. Apunta a cada cruz de la pantalla principal y pulsa **A**. El ajuste se guarda con el perfil del mando. **Esc** cancela y **R** restaura los valores de fábrica.
+1. Center the IR bar near your primary display and power it with a compatible source. You can leave an original bar connected to a powered-on Wii. Power USB or battery models as directed by their manufacturer.
+2. Select the Wii Remote and choose **Ratón IR** (IR mouse) or **Xbox y ratón IR** (Xbox and IR mouse). The change applies to that controller. IR mouse-only mode works without ViGEmBus.
+3. Hold the Wii Remote upright and point it at the display. It needs a clear view of both ends of the bar. **A** left-clicks and **B** right-clicks. To release mouse control, change the controller's output to **Xbox**.
 
-La asociación se ha comprobado hasta la búsqueda con un adaptador real. El Nunchuk y el ratón IR se han probado con informes simulados. Quedan las pruebas con hardware real y las mediciones en juegos.
+The sensor bar emits infrared light. The Wii Remote contains the camera and connects over Bluetooth. One session can control the cursor at a time. To adjust for the bar's position or your distance from the display, select **Calibrar IR…** (Calibrate IR…) or press **Alt+C** with mouse mode active. Aim at each crosshair on the primary display and press **A**. The calibration is saved with the controller profile. **Esc** cancels and **R** resets to factory settings.
 
-## Generar los paquetes
+## License
 
-En Windows, con el SDK de `global.json`, ejecuta `./scripts/package.ps1 -Version 1.0.0`. Genera `artifacts/Wii2Xbox-win-x64.zip` y `artifacts/Wii2Xbox-win-x64.msi` desde la misma compilación. El proyecto del MSI restaura WiX desde NuGet. Usa `scripts/test.ps1` para ejecutar las pruebas.
-
-## Licencia
-
-El código de Wii2Xbox se distribuye bajo [Apache-2.0](LICENSE). La atribución a Iván Fernández figura en [NOTICE](NOTICE). Los avisos de componentes de terceros se entregan en la carpeta `licenses` de ambos paquetes.
+Wii2Xbox source code is licensed under [Apache-2.0](LICENSE). [NOTICE](NOTICE) credits Iván Fernández. Both packages include third-party notices in the `licenses` folder.

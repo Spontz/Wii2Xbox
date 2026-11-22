@@ -1,5 +1,5 @@
-# Datos del visor
+# Viewer Data
 
-- **Botones físicos de sesión**. Máscara Wii mantenida y hora monotónica de la última pulsación de cada botón. Los informes válidos actualizan la máscara.
-- **Entrada visible**. Botón mantenido o pulsado en los últimos 120 ms. Cada sesión activa contribuye como máximo una vez por botón.
-- **Vista agregada**. Contador por cada botón en el esquema. Cuando se retira una sesión, su estado deja de participar.
+- **Physical session buttons**. A mask of held Wii buttons and the monotonic timestamp of the last press of each button. Valid reports update the mask.
+- **Visible input**. A button held or pressed within the last 120 ms. Each active session contributes at most once per button.
+- **Combined view**. A count for each button in the illustration. When a session is removed, its state stops contributing.

@@ -1,18 +1,18 @@
-# Plan: ejecución en segundo plano y arranque con Windows
+# Background Operation and Windows Startup Plan
 
-**Especificación** [spec.md](spec.md)
+**Specification** [spec.md](spec.md)
 
-## Diseño técnico
+## Technical Design
 
-- `Program.cs` mantiene el bucle de mensajes sin exigir una ventana visible. Un mutex y un evento con alcance de sesión coordinan lanzamientos simultáneos y permiten restaurar la instancia existente.
-- `MainForm.cs` conserva el mismo ciclo de detección y conversión al ocultarse. Un icono del área de notificación ofrece **Abrir Wii2Xbox** y **Salir**. La salida usa la neutralización y cierre de sesiones existentes.
-- `StartupRegistration.cs` registra o elimina una única entrada de inicio en la cuenta actual. El comando apunta al ejecutable con la ruta entre comillas y el argumento `--background`.
-- El motor se inicializa una vez, con la ventana visible u oculta. Los avisos de controlador se reflejan en la ventana y se solicitan en el área de notificación si está oculta.
+- `Program.cs` keeps the message loop running without requiring a visible window. A session-scoped mutex and event coordinate concurrent launches and restore the existing instance.
+- `MainForm.cs` keeps the same detection and conversion loop running while hidden. A notification-area icon offers **Abrir Wii2Xbox** (Open Wii2Xbox) and **Salir** (Exit). Exiting uses the existing session neutralization and shutdown logic.
+- `StartupRegistration.cs` adds or removes one startup entry for the current account. The command quotes the executable path and adds the `--background` argument.
+- The engine initializes once whether the window starts visible or hidden. Driver notices are shown in the window and requested through the notification area while the window is hidden.
 
-El proceso usa la sesión interactiva para el ratón IR, la interfaz y el icono. El inicio de sesión de la cuenta es el punto en el que Windows ejecuta una entrada de inicio de usuario. [Servicios interactivos de Windows](https://learn.microsoft.com/en-us/windows/win32/services/interactive-services) · [Claves de Run y RunOnce](https://learn.microsoft.com/en-us/windows/win32/setupapi/run-and-runonce-registry-keys)
+The process uses the interactive session for the IR mouse, UI, and notification-area icon. Windows runs a per-user startup entry when the account signs in. [Windows interactive services](https://learn.microsoft.com/en-us/windows/win32/services/interactive-services) · [Run and RunOnce registry keys](https://learn.microsoft.com/en-us/windows/win32/setupapi/run-and-runonce-registry-keys)
 
-## Verificación
+## Verification
 
-- Compilar Release, verificar el paquete con el instalador de ViGEmBus integrado y ejecutar la suite.
-- Comprobar el ciclo abrir, ocultar, restaurar y salir en un proceso controlado, con una sesión instrumentada y sin modificar el arranque del equipo.
-- Comprobar el lanzamiento oculto y la reapertura desde un segundo proceso. Reservar la validación de inicio de sesión y la prueba con un Wii Remote y un juego para la aceptación física.
+- Build Release, verify the package with the embedded ViGEmBus installer, and run the test suite.
+- Check the open, hide, restore, and exit cycle in a controlled process with an instrumented session, without changing machine startup.
+- Check hidden startup and reopening from a second process. Verify real sign-in and use with a Wii Remote in a game during physical acceptance.

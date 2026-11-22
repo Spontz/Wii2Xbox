@@ -1,6 +1,6 @@
-# Validación de la especificación 005
+# Specification 005 Validation
 
-- [x] Los escenarios cubren el uso portable, la instalación, la desinstalación y la redistribución.
-- [x] La aceptación distingue la comparación de archivos de las pruebas en Windows sin SDK.
-- [x] La licencia, el titular de la atribución y los avisos de terceros tienen requisitos explícitos.
-- [x] Los casos límite cubren el cierre en segundo plano, perfiles, arranque y controlador compartido.
+- [x] The scenarios cover portable use, installation, uninstallation, and redistribution.
+- [x] The acceptance criteria distinguish file comparison from tests on Windows without the SDK.
+- [x] The license, attribution holder, and third-party notices have explicit requirements.
+- [x] The edge cases cover background operation, profiles, automatic startup, and the shared driver.

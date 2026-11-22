@@ -1,31 +1,31 @@
-# Especificación del tema de Windows
+# Windows Theme Specification
 
-**Creada** 2026-11-22
+**Created** 2026-11-22
 
-[Plan](plan.md) · [Tareas y evidencia](tasks.md)
+[Plan](plan.md) · [Tasks and evidence](tasks.md)
 
-## Escenarios y pruebas de usuario
+## User Scenarios and Tests
 
-### US1. Usar la apariencia de Windows (P1)
+### US1. Follow Windows appearance (P1)
 
-Como usuario, quiero que Wii2Xbox se abra con el tema que elegí para las aplicaciones en Windows.
+As a user, I want Wii2Xbox to open with the theme I chose for Windows apps.
 
-1. Con el tema claro, al abrir Wii2Xbox la ventana y los diálogos se muestran en claro.
-2. Con el tema oscuro en Windows 11, al abrir Wii2Xbox la ventana, los diálogos y el visor se muestran en oscuro.
-3. Al cambiar la apariencia de Windows, salir de Wii2Xbox y volver a abrirlo aplica la nueva preferencia.
+1. With the light theme selected, opening Wii2Xbox displays the window and dialogs in light mode.
+2. With the dark theme selected on Windows 11, opening Wii2Xbox displays the window, dialogs, and viewer in dark mode.
+3. After changing the Windows theme, exiting and relaunching Wii2Xbox applies the new preference.
 
-### Casos límite
+### Edge Cases
 
-- El arranque desde el inicio de sesión y la reapertura desde el icono usan el mismo tema que el proceso.
-- En Windows 10 y en configuraciones de contraste alto se conserva la apariencia que proporcionan los controles de Windows.
+- Startup at sign-in and reopening from the notification-area icon use the existing process theme.
+- On Windows 10 and with high contrast enabled, Windows controls retain the appearance provided by the system.
 
-## Requisitos
+## Requirements
 
-- **FR-001**. Leer la preferencia de apariencia para aplicaciones al iniciar el proceso.
-- **FR-002**. Aplicar esa apariencia a la ventana, los diálogos y menús. El visor conserva un contraste fácil de distinguir entre botones en reposo y pulsados.
-- **FR-003**. Mantener el arranque manual y en segundo plano con el mismo criterio de apariencia.
+- **FR-001**. Read the application appearance preference when the process starts.
+- **FR-002**. Apply that appearance to the window, dialogs, and menus. Keep idle and pressed buttons easy to distinguish in the viewer.
+- **FR-003**. Apply the same appearance rules for manual and background launches.
 
-## Criterios de éxito
+## Success Criteria
 
-- **SC-001**. En Windows 11, la ventana y sus diálogos siguen la preferencia del sistema al arrancar en claro y en oscuro.
-- **SC-002**. Las etiquetas y los botones pulsados del visor se distinguen en los dos temas. La configuración de alto contraste conserva sus colores del sistema.
+- **SC-001**. On Windows 11, the window and dialogs follow the system preference when launched in light and dark modes.
+- **SC-002**. Viewer labels and pressed buttons are distinguishable in both themes. High-contrast mode retains its system colors.

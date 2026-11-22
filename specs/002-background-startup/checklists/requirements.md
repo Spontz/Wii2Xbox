@@ -1,12 +1,12 @@
-# Lista de calidad: ejecución en segundo plano y arranque con Windows
+# Background Operation and Windows Startup Quality Checklist
 
-**Fecha** 2026-11-22  
-**Especificación** [spec.md](../spec.md)
+**Date** 2026-11-22  
+**Specification** [spec.md](../spec.md)
 
-- [x] Los escenarios distinguen cerrar la ventana, volver a abrirla y salir del programa.
-- [x] El arranque se habilita y revierte por cuenta de Windows. El estado inicial queda explícito.
-- [x] Se definen el arranque oculto, los avisos del controlador y la gestión de lanzamientos duplicados.
-- [x] Los requisitos son comprobables mediante el proceso, la ventana, el inicio de sesión y la salida Xbox.
-- [x] La especificación describe el comportamiento. El plan explica los mecanismos de Windows.
+- [x] The scenarios distinguish closing the window, reopening it, and exiting the app.
+- [x] Startup can be enabled and reversed per Windows account. The initial state is explicit.
+- [x] Hidden startup, driver notices, and duplicate launches are defined.
+- [x] The requirements can be verified using the process, window, sign-in, and Xbox output.
+- [x] The specification describes behavior. The plan explains the Windows mechanisms.
 
-La evidencia de ejecución y los ensayos pendientes se registran en [tareas](../tasks.md).
+Execution evidence and pending tests are recorded in [tasks](../tasks.md).

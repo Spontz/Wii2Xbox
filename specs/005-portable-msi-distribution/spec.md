@@ -1,47 +1,47 @@
-# Distribución portable y MSI de Wii2Xbox
+# Wii2Xbox Portable ZIP and MSI Distribution
 
-**Fecha** 2026-11-22  
-**Estado** En validación
+**Date** 2026-11-22  
+**Status** In validation
 
-## Escenarios y pruebas
+## Scenarios and Tests
 
-### P1. Ejecutar Wii2Xbox desde el ZIP portable
+### P1. Run Wii2Xbox from the portable ZIP
 
-Como jugador, quiero extraer el ZIP y abrir Wii2Xbox desde la carpeta que elija.
+As a player, I want to extract the ZIP and run Wii2Xbox from a folder of my choice.
 
-1. En Windows x64 sin SDK, al extraer el ZIP y ejecutar `Wii2Xbox.exe`, se abre la aplicación sin registrar un producto instalado.
-2. Al salir de Wii2Xbox, puedo mover o borrar la carpeta extraída.
+1. On Windows x64 without the SDK, extracting the ZIP and running `Wii2Xbox.exe` opens the app without registering an installed product.
+2. After I exit Wii2Xbox, I can move or delete the extracted folder.
 
-### P1. Instalar y desinstalar con Windows Installer
+### P1. Install and uninstall with Windows Installer
 
-Como jugador, quiero ejecutar un MSI, abrir Wii2Xbox desde Inicio y desinstalarlo desde Aplicaciones instaladas.
+As a player, I want to run an MSI, open Wii2Xbox from Start, and uninstall it from Installed apps.
 
-1. Una instalación correcta crea el acceso directo, registra la aplicación para el usuario e instala el mismo contenido que incluye el ZIP en la carpeta local de programas del usuario.
-2. Tras elegir **Salir** en el icono de notificación y desinstalar Wii2Xbox, Windows retira el registro del producto, el acceso directo, los archivos instalados y el arranque automático de esa instalación. Los perfiles guardados y el controlador ViGEmBus compartido se conservan.
+1. A successful installation creates the Start shortcut, registers the app for the current user, and installs the same files as the ZIP in the user's local programs folder.
+2. After selecting **Salir** (Exit) from the notification-area icon and uninstalling Wii2Xbox, Windows removes the product registration, shortcut, installed files, and startup entry for that installation. Saved profiles and the shared ViGEmBus driver remain available.
 
-### P1. Recibir los dos paquetes con atribución
+### P1. Receive both packages with attribution
 
-Como responsable de una release, quiero generar y comprobar los dos formatos desde una sola compilación, con la licencia y los créditos del proyecto en cada uno.
+As a release maintainer, I want to build and verify both formats from a single build, with the project license and credits in each.
 
-1. El empaquetado genera `Wii2Xbox-win-x64.zip` y `Wii2Xbox-win-x64.msi` para la misma versión.
-2. Al extraer el ZIP o instalar el MSI puedo leer `LICENSE`, `NOTICE` y los avisos de terceros en la carpeta de la aplicación.
+1. Packaging produces `Wii2Xbox-win-x64.zip` and `Wii2Xbox-win-x64.msi` for the same version.
+2. After extracting the ZIP or installing the MSI, I can read `LICENSE`, `NOTICE`, and the third-party notices in the app folder.
 
-### Casos límite
+### Edge Cases
 
-- Si ViGEmBus falta en un equipo limpio, Wii2Xbox mantiene su flujo de instalación explícita del controlador para la salida Xbox. El empaquetado conserva el instalador oficial incluido en la aplicación.
-- La versión portable y la instalada pueden estar presentes en el mismo equipo. El arranque automático sigue siendo opcional, y desinstalar el MSI conserva cualquier entrada de inicio de la versión portable.
-- Cuando Wii2Xbox esté en segundo plano, el usuario puede cerrarlo por completo desde el área de notificación antes de actualizar o desinstalar.
+- When ViGEmBus is absent on a clean PC, Wii2Xbox continues to offer explicit installation of the driver for Xbox output. Both packages include the official installer embedded in the app.
+- The portable and installed distributions can coexist. Automatic startup stays optional. Uninstalling the MSI preserves any startup entry for the portable copy.
+- When Wii2Xbox is running in the background, the user can exit completely from the notification area before updating or uninstalling.
 
-## Requisitos funcionales
+## Functional Requirements
 
-- **FR-001**. Cada release para Windows x64 debe generar un ZIP portable y un MSI por usuario desde los mismos archivos de una compilación Release autocontenida.
-- **FR-002**. El MSI debe poder instalarse, actualizarse a una versión posterior y desinstalarse mediante Windows Installer. Debe crear un acceso directo en Inicio y una entrada en Aplicaciones instaladas.
-- **FR-003**. La desinstalación debe retirar los recursos del MSI y conservar los perfiles de usuario, el ZIP extraído y los controladores compartidos.
-- **FR-004**. El código propio de Wii2Xbox se distribuye bajo **Apache-2.0**. Ambos paquetes deben incluir `LICENSE` y `NOTICE` con la atribución a **Iván Fernández**, además de los avisos de componentes de terceros. Las condiciones de redistribución y conservación de avisos se rigen por el §4. [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
-- **FR-005**. Las instrucciones deben explicar cómo generar ambos artefactos, usar el ZIP y desinstalar el MSI.
+- **FR-001**. Each Windows x64 release must generate a portable ZIP and a per-user MSI from the same self-contained Release build.
+- **FR-002**. The MSI must support installation, upgrades to later versions, and uninstallation through Windows Installer. It must create a Start shortcut and an entry in Installed apps.
+- **FR-003**. Uninstallation must remove the resources owned by the MSI and preserve user profiles, the extracted portable copy, and shared drivers.
+- **FR-004**. Wii2Xbox's own code is licensed under **Apache-2.0**. Both packages must include `LICENSE` and `NOTICE` with attribution to **Iván Fernández**, along with notices for third-party components. Section 4 governs redistribution and retention of notices. [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
+- **FR-005**. The instructions must explain how to generate both artifacts, run the portable ZIP, and uninstall the MSI.
 
-## Criterios de éxito
+## Success Criteria
 
-- **SC-001**. Una ejecución del empaquetado genera los dos artefactos. Todos los archivos de la aplicación y de licencias coinciden por ruta relativa y SHA-256 entre el ZIP y la extracción administrativa del MSI.
-- **SC-002**. En Windows x64 sin SDK, el ZIP extraído arranca. El MSI se instala, abre desde Inicio y se desinstala con éxito, conservando perfiles y controlador.
-- **SC-003**. Una actualización a una versión superior mantiene una sola entrada en Aplicaciones instaladas y conserva el arranque automático cuando el usuario lo haya activado.
+- **SC-001**. A single packaging run produces both artifacts. All application and license files have the same relative paths and SHA-256 hashes in the ZIP and the administrative extraction of the MSI.
+- **SC-002**. On Windows x64 without the SDK, the extracted ZIP launches. The MSI installs, launches from Start, and uninstalls successfully, preserving profiles and the driver.
+- **SC-003**. Upgrading to a later version leaves one entry in Installed apps and retains automatic startup if the user enabled it.

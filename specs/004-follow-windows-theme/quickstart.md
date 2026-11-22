@@ -1,3 +1,3 @@
-# Probar el tema
+# Test the Theme
 
-En Windows 11, configura el modo de aplicaciones en claro y abre Wii2Xbox. Cierra completamente la app con **Salir** desde el icono. Repite en oscuro. Comprueba la tabla, el visor y el diálogo **Añadir mando…** en cada caso.
+In Windows 11, set the app mode to light and open Wii2Xbox. Exit completely by selecting **Salir** (Exit) from the notification-area icon. Repeat in dark mode. Check the table, the viewer, and the **Añadir mando…** (Add controller…) dialog in each case.

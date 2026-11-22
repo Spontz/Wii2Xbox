@@ -1,52 +1,52 @@
-# Especificación: ejecución en segundo plano y arranque con Windows
+# Background Operation and Windows Startup Specification
 
-**Creada** 2026-11-22  
-**Alcance** Wii2Xbox para Windows 10/11 x64  
-**Funcionalidad base** [Conversión Wii a Xbox](../001-wii-xbox-low-latency/spec.md)
+**Created** 2026-11-22  
+**Scope** Wii2Xbox for Windows 10/11 x64  
+**Base feature** [Wii-to-Xbox conversion](../001-wii-xbox-low-latency/spec.md)
 
-## Escenarios y pruebas de usuario
+## User Scenarios and Tests
 
-### US1. Mantener activos los mandos al cerrar la ventana (P1)
+### US1. Keep controllers active after closing the window (P1)
 
-Como jugador, quiero quitar la ventana del escritorio y seguir usando los mandos.
+As a player, I want to remove the window from my desktop and keep using my controllers.
 
-**Prueba independiente**. Con una sesión activa, cierra la ventana, comprueba la entrada en un juego y vuelve a abrir Wii2Xbox desde el icono del área de notificación.
+**Independent test**. With an active session, close the window, check input in a game, and reopen Wii2Xbox from the notification-area icon.
 
-1. Al cerrar la ventana, desaparece del escritorio y el proceso sigue funcionando con las mismas sesiones.
-2. **Abrir Wii2Xbox** en el icono o abrir de nuevo la aplicación restaura la misma ventana.
-3. **Salir** en el icono termina la aplicación, neutraliza las entradas y libera las salidas. Cerrar sesión o apagar Windows también termina el programa.
+1. Closing the window removes it from the desktop. The process keeps running with the same sessions.
+2. Choosing **Abrir Wii2Xbox** (Open Wii2Xbox) from the icon or launching the app again restores the same window.
+3. Choosing **Salir** (Exit) from the icon stops the app, neutralizes input, and releases its outputs. Signing out or shutting down Windows also stops the app.
 
-### US2. Arrancar al iniciar Windows (P1)
+### US2. Start with Windows (P1)
 
-Como jugador, quiero poder iniciar Wii2Xbox con mi sesión de Windows y tener los mandos disponibles sin abrirlo a mano.
+As a player, I want Wii2Xbox to start at Windows sign-in and make my controllers available without opening the app manually.
 
-**Prueba independiente**. Marca **Arrancar al iniciar Windows**, vuelve a iniciar sesión y comprueba que aparece el icono sin mostrarse la ventana. Desmarca la casilla y repite el inicio de sesión.
+**Independent test**. Enable **Arrancar al iniciar Windows** (Start with Windows), sign in again, and verify that the icon appears while the window remains hidden. Clear the checkbox and sign in again.
 
-1. La casilla empieza desmarcada en una cuenta nueva. Cambiarla aplica la preferencia al siguiente inicio de sesión.
-2. Con la casilla marcada, la aplicación arranca oculta, comprueba el controlador Xbox y busca los Wii Remote disponibles.
-3. Con la casilla desmarcada, Windows deja de iniciar Wii2Xbox automáticamente.
+1. The checkbox starts cleared on a new account. A change applies at the next sign-in.
+2. When enabled, the app starts hidden, checks the Xbox driver, and searches for available Wii Remotes.
+3. When disabled, Windows stops launching Wii2Xbox automatically.
 
-### Casos límite
+### Edge Cases
 
-- Un segundo arranque manual debe restaurar la ventana de la instancia en ejecución. Un segundo arranque automático conserva oculto el proceso que ya esté en segundo plano.
-- Si el controlador Xbox falla al arrancar en segundo plano, la aplicación solicita una notificación y mantiene la explicación disponible al abrir la ventana.
-- Si Windows deniega un cambio de inicio, Wii2Xbox conserva el estado anterior de la casilla y muestra el error.
+- A second manual launch must restore the running instance's window. A second automatic launch leaves an existing background instance hidden.
+- If the Xbox driver fails during background startup, the app requests a notification and keeps the explanation available in the window.
+- If Windows denies a startup setting change, Wii2Xbox keeps the previous checkbox state and shows the error.
 
-## Requisitos
+## Requirements
 
-- **FR-001**. Mantener detección, entradas y reconexión de mandos al ocultar la ventana.
-- **FR-002**. Ofrecer **Abrir Wii2Xbox** y **Salir** desde el área de notificación. La salida explícita libera las entradas y las salidas.
-- **FR-003**. Limitar la ejecución a una instancia por sesión de Windows y reutilizar su ventana al abrir la aplicación de nuevo.
-- **FR-004**. Mantener **Arrancar al iniciar Windows** desactivado por defecto. Guardar y aplicar la preferencia solo para la cuenta que la cambió, sin elevar la aplicación.
-- **FR-005**. Arrancar en segundo plano al iniciar sesión si está habilitado, con las mismas comprobaciones y el mismo comportamiento de detección que al abrir la aplicación manualmente.
+- **FR-001**. Keep controller detection, input, and reconnection active while the window is hidden.
+- **FR-002**. Offer **Abrir Wii2Xbox** (Open Wii2Xbox) and **Salir** (Exit) from the notification area. Explicitly exiting releases inputs and outputs.
+- **FR-003**. Allow one instance per Windows session and reuse its window when the app is reopened.
+- **FR-004**. Keep **Arrancar al iniciar Windows** (Start with Windows) disabled by default. Save and apply the preference only for the account that changed it, without elevating the app.
+- **FR-005**. When enabled, start in the background at sign-in with the same checks and detection behavior as a manual launch.
 
-## Criterios de éxito
+## Success Criteria
 
-- **SC-001**. Tras cerrar y volver a abrir la ventana en tres intentos, se conserva el mismo proceso y las sesiones activas reciben entrada sin reasignar ranuras.
-- **SC-002**. Un segundo arranque manual restaura la ventana. **Salir** elimina el icono y termina el proceso en condiciones normales en hasta tres segundos.
-- **SC-003**. Tras dos inicios de sesión, uno con la casilla marcada y otro tras desmarcarla, Wii2Xbox arranca solo en el primero. Su ventana permanece oculta hasta que el usuario la abre.
+- **SC-001**. After closing and reopening the window three times, the same process and sessions remain active and receive input without slot reassignment.
+- **SC-002**. A second manual launch restores the window. In normal conditions, **Salir** (Exit) removes the icon and stops the process within three seconds.
+- **SC-003**. Across two sign-ins, one with the checkbox enabled and one after disabling it, Wii2Xbox starts only on the first. Its window remains hidden until the user opens it.
 
-## Supuestos
+## Assumptions
 
-- El programa residente pertenece a la sesión interactiva del usuario, donde Windows presenta la ventana, el icono y el cursor. El arranque automático ocurre al iniciar sesión.
-- La ruta del ejecutable se fija al marcar la opción. Si se mueve Wii2Xbox a otra carpeta, se puede actualizar desmarcando y volviendo a marcar la casilla.
+- The background process belongs to the user's interactive session, where Windows presents the window, icon, and cursor. Automatic startup occurs at sign-in.
+- Enabling the option records the executable path. If Wii2Xbox moves to another folder, clear and reselect the checkbox to update it.

@@ -1,5 +1,5 @@
-# Lista de calidad del tema
+# Windows Theme Quality Checklist
 
-- [x] Se define la preferencia de Windows, el momento de aplicación y el alcance de versiones.
-- [x] Se cubren la ventana, el visor, los diálogos y el arranque en segundo plano.
-- [x] Se pueden comprobar el aspecto y el contraste con pruebas reproducibles.
+- [x] The Windows preference, when it is applied, and supported versions are defined.
+- [x] The window, viewer, dialogs, and background startup are covered.
+- [x] Appearance and contrast have reproducible tests.

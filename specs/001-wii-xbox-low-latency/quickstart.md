@@ -1,39 +1,38 @@
-# Guía de desarrollo y aceptación
+# Development and Acceptance Quickstart
 
-Estado de instalación, hardware y compatibilidad en [aceptación](acceptance.md).
+See [acceptance](acceptance.md) for installation, hardware, and compatibility status.
 
-## Herramientas
+## Tools
 
-PowerShell, Git y SDK 10.0.404 fijado en `global.json`. El SDK local de desarrollo está en `%LOCALAPPDATA%/Wii2Xbox/dotnet10`.
+PowerShell, Git, and SDK 10.0.404 pinned in `global.json`. The local development SDK is in `%LOCALAPPDATA%/Wii2Xbox/dotnet10`.
 
-## Flujo Spec Kit
+## Spec Kit Workflow
 
-Configuración `.specify/init-options.json`, integración Codex en `.agents/skills`, feature activa en `.specify/feature.json`. Spec: `spec.md`; decisiones: `plan.md`/`research.md`; tareas: `tasks.md`. Ejecutar comprobación desde raíz:
+Configuration is in `.specify/init-options.json`, the Codex integration is in `.agents/skills`, and the active feature is in `.specify/feature.json`. See `spec.md` for requirements, `plan.md` and `research.md` for decisions, and `tasks.md` for tasks. Run this check from the repository root.
 
 ```powershell
 & ./.specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks
 ```
 
-## Compilar, probar y empaquetar
+## Build, Test, and Package
 
 ```powershell
 $wiiSdk = "$env:LOCALAPPDATA/Wii2Xbox/dotnet10/dotnet.exe"
 & ./scripts/build.ps1 -Dotnet $wiiSdk
 & ./scripts/test.ps1 -Dotnet $wiiSdk
-& ./scripts/publish.ps1 -Dotnet $wiiSdk
-Compress-Archive -Path artifacts/win-x64/* -DestinationPath artifacts/Wii2Xbox-win-x64.zip -Force
+& ./scripts/package.ps1 -Dotnet $wiiSdk -Version 1.0.0
 ```
 
-La publicación valida e incrusta el instalador firmado. Para pruebas de XInput desde el repositorio, ejecuta `./scripts/test-native.ps1 -Dotnet $wiiSdk`. El observador y sus informes se generan en `artifacts/native-test-…`.
+Packaging creates the portable ZIP and MSI from one Release build and validates and embeds the signed driver installer. For XInput tests from the repository, run `./scripts/test-native.ps1 -Dotnet $wiiSdk`. The observer and its reports are generated in `artifacts/native-test-…`.
 
-## Ensayo real al implementar
+## Real Hardware Test
 
-1. Extraer el ZIP en un Windows sin SDK ni controlador, desconectar Internet y abrir Wii2Xbox. Pulsar **Instalar controlador Xbox**, autorizar la instalación y reiniciar si procede.
-2. Conectar radio compatible y Wii; comprobar modelo/identidad y entrada HID real.
-3. Comprobar que el mando se activa automáticamente y verificar sus botones y ejes en `joy.cpl` o en un juego XInput. Comprobar que el LED coincide con la columna **Xbox**, también con otra ranura ocupada. Registrar la detección web aparte.
-4. Repetir con cuatro mandos y probar desconexión con entrada sostenida, cancelación, suspensión y reconexión.
-5. Verificar perfiles, Nunchuk/calibración/retirada en caliente.
-6. Ejecutar la matriz de rendimiento del plan y registrar SC-001–SC-012 con evidencia.
-7. Repetir la instalación cancelando el aviso de Windows. Confirmar el mensaje y que **Ratón IR** sigue disponible.
+1. Extract the ZIP on Windows without the SDK or driver, disconnect the Internet, and open Wii2Xbox. Choose **Instalar controlador Xbox** (Install Xbox driver), authorize the installation, and restart if required.
+2. Connect a compatible radio and Wii Remote. Verify the model, identity, and real HID input.
+3. Verify automatic activation and test buttons and axes in `joy.cpl` or an XInput game. Check that the LED matches the **Xbox** column, including with another slot occupied. Record browser detection separately.
+4. Repeat with four controllers and test disconnection while holding input, cancellation, sleep, and reconnection.
+5. Verify profiles, Nunchuk calibration, and hot removal.
+6. Run the plan's performance matrix and record evidence for SC-001–SC-012.
+7. Repeat installation and cancel the Windows prompt. Verify the message and that **Ratón IR** (IR mouse) remains available.
 
-No introducir métricas simuladas en la matriz física. Si falta hardware o driver, registrar pendiente y continuar pruebas independientes que sí pueden ejecutarse.
+Keep simulated measurements out of the physical test matrix. If hardware or the driver is unavailable, record the pending item and continue with independent tests that can run.

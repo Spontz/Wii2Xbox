@@ -1,14 +1,13 @@
-# Conexión Bluetooth
+# Bluetooth Connection
 
-- Si Windows no encuentra un adaptador Bluetooth Classic, comprueba que Bluetooth esté activado, que el adaptador aparezca en el Administrador de dispositivos y que su controlador esté instalado.
-- Si la lista está vacía, pulsa SYNC junto a las pilas y espera mientras parpadean las luces. El asistente sigue buscando mientras está abierto. Para usar 1+2, selecciona ese método antes de asociar.
-- El asistente asocia Wii Remote que se anuncian como `Nintendo RVL-CNT-01` o `Nintendo RVL-CNT-01-TR`. Otros modelos Wii reconocibles aparecen como **no compatible**, incluida la Balance Board. El nombre puede coincidir en algunos mandos de terceros. Su funcionamiento queda por verificar. [Nombres de dispositivos en XWiimote](https://xwiimote.github.io/xwiimote/index.html)
-- Si la asociación falla, vuelve a poner el mando en sincronización y elige el método correspondiente antes de asociarlo.
-- Tras asociar el mando, la aplicación espera a que Windows publique su interfaz HID y lo muestra automáticamente. Si puede cotejar la dirección Bluetooth, selecciona el mando y muestra sus cuatro últimos dígitos. Si tarda en aparecer, comprueba que siga encendido.
-- Si el juego carece de entrada, activa Xbox para ese mando y verifica que el controlador ViGEmBus esté instalado. Comprueba la salida en el panel de mandos con `joy.cpl`. Los mandos Xbox conectados al PC comparten las ranuras del sistema.
-- Si XInput muestra correctamente el mando pero un juego no lo acepta, revisa la configuración de mandos y la compatibilidad con dispositivos virtuales que documente ese juego. La prueba de XInput verifica Windows. La aceptación de cada juego se registra por separado.
+- If Windows cannot find a Bluetooth Classic adapter, check that Bluetooth is on, the adapter appears in Device Manager, and its driver is installed.
+- If the list is empty, press SYNC next to the batteries and wait while the LEDs flash. The wizard continues searching while open. To use 1+2, select that method before pairing.
+- The wizard pairs Wii Remotes that advertise as `Nintendo RVL-CNT-01` or `Nintendo RVL-CNT-01-TR`. Other recognized Wii devices, including the Balance Board, appear as **no compatible** (unsupported). Some third-party controllers may advertise the same name. [XWiimote device names](https://xwiimote.github.io/xwiimote/index.html)
+- If pairing fails, put the controller back in sync mode and select the corresponding method before trying again.
+- After pairing, the app waits for Windows to expose the HID interface and automatically lists the controller. If it can match the Bluetooth address, it selects the controller and shows the last four digits. If it takes a while to appear, check that the controller is still on.
+- If the game receives no input, select Xbox output for that controller and check that ViGEmBus is installed. Check its output with `joy.cpl`. Xbox controllers already connected to the PC share the same system slots.
+- If XInput sees the controller and the game does not, check the game's controller settings and its documented support for virtual devices. Record Windows XInput results and individual game results separately.
 
-## Comprobar la salida Xbox
+## Check Xbox Output
 
-La columna **Xbox** muestra la ranura que Windows asigna al Wii Remote. Para comprobar los botones y ejes, abre `joy.cpl`, selecciona el mando virtual y pulsa **Propiedades**.
-
+The **Xbox** column shows the slot Windows assigned to the Wii Remote. To check the buttons and axes, open `joy.cpl`, select the virtual controller, and choose **Properties**.

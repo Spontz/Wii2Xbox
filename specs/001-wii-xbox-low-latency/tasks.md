@@ -1,116 +1,116 @@
-# Tasks: Wii2Xbox con latencia mínima
+# Tasks: Low-Latency Wii2Xbox
 
 **Input**: [spec.md](spec.md), [plan.md](plan.md), [research.md](research.md), [data-model.md](data-model.md), [contracts/pipeline.md](contracts/pipeline.md).
 
-Formato: ID, historia y archivo concreto. `[x]` indica que la tarea tiene evidencia. Las comprobaciones físicas restantes figuran en [aceptación](acceptance.md).
+Each task lists its ID, story, and relevant file. `[x]` indicates that the task has evidence. See [acceptance](acceptance.md) for remaining physical checks.
 
 ## Phase 1: Setup
 
-- [x] T001 Inicializar Spec Kit 1.1.3 con integración Codex y PowerShell en `.specify/` y `.agents/skills/`.
-- [x] T002 Establecer constitución, spec completa, checklist y feature activa en `.specify/memory/constitution.md`, `.specify/feature.json` y `specs/001-wii-xbox-low-latency/`.
-- [x] T003 Crear y verificar esqueleto desktop, exclusiones de compilados y guía raíz en `src/Wii2Xbox/`, `.gitignore` y `README.md`; build Release correcto, 0 errores/avisos (2026-11-22). No acredita conversión funcional.
-- [x] T004 Migrar a .NET 10 LTS, fijar SDK y dependencias. Compilación Release verificada.
-- [x] T005 Crear proyecto de pruebas y scripts reproducibles build/test. Once casos aprobados.
+- [x] T001 Initialize Spec Kit 1.1.3 with Codex and PowerShell integration in `.specify/` and `.agents/skills/`.
+- [x] T002 Establish the constitution, full specification, checklist, and active feature in `.specify/memory/constitution.md`, `.specify/feature.json`, and `specs/001-wii-xbox-low-latency/`.
+- [x] T003 Create and verify the desktop scaffold, build-output exclusions, and root guide in `src/Wii2Xbox/`, `.gitignore`, and `README.md`. Release build passed with zero errors and warnings on 2026-11-22. This verifies the scaffold.
+- [x] T004 Migrate to .NET 10 LTS and pin SDK and dependencies. Verified the Release build.
+- [x] T005 Create the test project and reproducible build and test scripts. Eleven cases passed.
 
-## Phase 2: Foundational — gate de viabilidad
+## Phase 2: Foundation and Feasibility
 
-- [ ] T006 Probar backend firmado en Windows objetivo, revisar licencia/mantenimiento y decidir adopción o sustitución en `specs/001-wii-xbox-low-latency/research.md` y `docs/compatibility.md` (FR-017).
-- [x] T007 Definir transporte HID, salida Xbox y sesión en `HidTransport.cs`, `XboxOutput.cs` y `ControllerSession.cs`. Las pruebas de sesión ejercitan los mismos contratos con transportes simulados.
-- [ ] T008 Implementar identidad estable, filtrado de modelos y catálogo de capacidades en `src/Wii2Xbox/HidTransport.cs` (FR-003/021).
-- [ ] T009 Introducir estados y errores tipados con limpieza idempotente en `src/Wii2Xbox/ControllerSession.cs` (FR-011).
-- [ ] T010 Crear fixtures reales/referenciados de informes, ACK, errores y truncados en `tests/Wii2Xbox.Tests/ProtocolTests.cs`; no interpretar respuestas de control como entrada (FR-006).
+- [ ] T006 Test the signed backend on target Windows, review licensing and maintenance, and decide whether to adopt or replace it in `specs/001-wii-xbox-low-latency/research.md` and `docs/compatibility.md` (FR-017).
+- [x] T007 Define HID transport, Xbox output, and session in `HidTransport.cs`, `XboxOutput.cs`, and `ControllerSession.cs`. Session tests exercise the same contracts with simulated transports.
+- [ ] T008 Implement stable identity, model filtering, and the capability catalog in `src/Wii2Xbox/HidTransport.cs` (FR-003/021).
+- [ ] T009 Introduce typed states and errors with idempotent cleanup in `src/Wii2Xbox/ControllerSession.cs` (FR-011).
+- [ ] T010 Create real or referenced report, ACK, error, and truncation fixtures in `tests/Wii2Xbox.Tests/ProtocolTests.cs`. Keep control responses separate from input (FR-006).
 
-## Phase 3: US1 — un mando real, respuesta inmediata (P1)
+## Phase 3: US1 — Immediate Response with One Real Controller (P1)
 
-**Checkpoint**: Un Wii real controla un juego mediante una salida, con liberación al detener.
+**Checkpoint**: One real Wii Remote controls a game through one output, which releases on stop.
 
-- [ ] T011 [US1] Completar parser validado por ID/longitud/bits en `src/Wii2Xbox/Input.cs`; probar combinaciones/sensores en `tests/Wii2Xbox.Tests/ProtocolTests.cs` (FR-006).
-- [ ] T012 [US1] Abrir/configurar Wii, negociar modos y validar ACK con lectura cancelable en `src/Wii2Xbox/HidTransport.cs` (FR-007).
-- [x] T013 [US1] Enviar estado completo, consultar ranura real y explicar errores de dependencia en `XboxOutput.cs`. Comprobado con una y cuatro salidas XInput (FR-004/005/017).
-- [x] T014 [US1] Implementar lector→mapeo→submit sin espera de UI y distinguir descartes en `ControllerSession.cs`. Evidencia sintética y de salida real en el informe de rendimiento (FR-013/014).
-- [ ] T015 [US1] Implementar neutralización ante stop/error/inicio parcial; cierre desbloquea lectura en `src/Wii2Xbox/ControllerSession.cs` y pruebas `SessionTests.cs` (FR-011, SC-008).
-- [ ] T016 [US1] Mostrar lista, conectar/detener, estado real y entrada en snapshots en `src/Wii2Xbox/MainForm.cs` (FR-001/005).
-- [ ] T017 [US1] Ensayo físico de todos los botones, primer juego y stop sostenido; registrar evidencia en `docs/compatibility.md` (SC-001/009).
+- [ ] T011 [US1] Complete parsing with ID, length, and bit validation in `src/Wii2Xbox/Input.cs`. Test combinations and sensors in `tests/Wii2Xbox.Tests/ProtocolTests.cs` (FR-006).
+- [ ] T012 [US1] Open and configure the Wii Remote, negotiate modes, and validate ACK with cancellable reads in `src/Wii2Xbox/HidTransport.cs` (FR-007).
+- [x] T013 [US1] Submit complete state, query the actual slot, and explain dependency errors in `XboxOutput.cs`. Verified with one and four XInput outputs (FR-004/005/017).
+- [x] T014 [US1] Implement reader → mapping → submission without waiting for the UI and distinguish dropped reports in `ControllerSession.cs`. The performance record contains synthetic and real-output evidence (FR-013/014).
+- [ ] T015 [US1] Neutralize on stop, failure, or partial startup. Closing unblocks reads in `src/Wii2Xbox/ControllerSession.cs` and `SessionTests.cs` (FR-011, SC-008).
+- [ ] T016 [US1] Show the list, connect and stop actions, actual status, and input snapshots in `src/Wii2Xbox/MainForm.cs` (FR-001/005).
+- [ ] T017 [US1] Physically test all buttons, the first game, and stopping with held input. Record evidence in `docs/compatibility.md` (SC-001/009).
 
-## Phase 4: US3 — hasta cuatro sesiones independientes (P1)
+## Phase 4: US3 — Up to Four Independent Sessions (P1)
 
-**Depends on**: US1 y control de ciclo de vida.
+**Depends on**: US1 and lifecycle control.
 
-- [ ] T018 [US3] Implementar exclusión por identidad, capacidad y propiedad de salida en `src/Wii2Xbox/SessionManager.cs` (FR-003/004/005).
-- [x] T019 [US3] Mostrar hasta cuatro sesiones y la ranura Xbox asignada por Windows en `src/Wii2Xbox/MainForm.cs` (FR-005).
-- [ ] T020 [US3] Probar 100.000 transiciones, colisiones de inicio, fallos aislados y 100 ciclos en `tests/Wii2Xbox.Tests/MultiControllerTests.cs` (SC-002/004).
-- [ ] T021 [US3] Ensayar cuatro mandos 60 minutos, quinto mando y controles Xbox ajenos en `docs/compatibility.md` (SC-002).
+- [ ] T018 [US3] Implement identity-based exclusivity, capacity, and output ownership in `src/Wii2Xbox/SessionManager.cs` (FR-003/004/005).
+- [x] T019 [US3] Display up to four sessions and the Xbox slot assigned by Windows in `src/Wii2Xbox/MainForm.cs` (FR-005).
+- [ ] T020 [US3] Test 100,000 transitions, concurrent starts, isolated failures, and 100 cycles in `tests/Wii2Xbox.Tests/MultiControllerTests.cs` (SC-002/004).
+- [ ] T021 [US3] Test four controllers for 60 minutes, a fifth controller, and unrelated Xbox controllers in `docs/compatibility.md` (SC-002).
 
-## Phase 5: US2 — Bluetooth guiado y recuperación (P1)
+## Phase 5: US2 — Guided Bluetooth and Recovery (P1)
 
-**Independent test**: Descubrir/asociar mando nuevo, cancelar y recuperar uno conocido sin duplicados.
+**Independent test**: Discover and pair a new controller, cancel discovery, and recover a known controller without duplicates.
 
-- [x] T022 [US2] Implementar inventario de radios, descubrimiento y asociación de modelos Nintendo en `src/Wii2Xbox/BluetoothService.cs` (FR-002). Asociación real pendiente en T026.
-- [ ] T023 [US2] Implementar cancelación real ≤5 s e informar errores de radio/acceso/asociación (FR-002). Búsqueda en curso cancelada en unos 2,3 s con el adaptador local. Verificación en otros adaptadores pendiente.
-- [x] T024 [US2] Añadir guía SYNC/1+2 y alternativa de asociación de Windows en `src/Wii2Xbox/MainForm.cs` y `docs/troubleshooting.md` (FR-002/018).
-- [x] T025 [US2] Reconexión manual y hasta cuatro reintentos, eventos de dispositivo y reenumeración tras suspensión en `SessionRecovery.cs` y `MainForm.cs` (FR-012). Ensayo físico pendiente.
-- [ ] T026 [US2] Ensayar modelos -01/-TR, 10 intentos por combinación, cancelación y ausencia de radio en `docs/compatibility.md` (SC-001/010).
+- [x] T022 [US2] Implement radio inventory, discovery, and pairing for Nintendo models in `src/Wii2Xbox/BluetoothService.cs` (FR-002). Real pairing remains in T026.
+- [ ] T023 [US2] Implement cancellation within 5 s and report radio, access, and pairing errors (FR-002). An active search stopped in about 2.3 s with the local adapter. Other adapters still need verification.
+- [x] T024 [US2] Add SYNC/1+2 guidance and Windows pairing fallback in `src/Wii2Xbox/MainForm.cs` and `docs/troubleshooting.md` (FR-002/018).
+- [x] T025 [US2] Implement manual reconnection, up to four retries, device events, and re-enumeration after sleep in `SessionRecovery.cs` and `MainForm.cs` (FR-012). Physical testing remains pending.
+- [ ] T026 [US2] Test -01/-TR models, 10 attempts per combination, cancellation, and absent radios in `docs/compatibility.md` (SC-001/010).
 
-## Phase 6: US4 — perfiles completos y Nunchuk (P2)
+## Phase 6: US4 — Complete Profiles and Nunchuk (P2)
 
-- [x] T027 [US4] Versionar esquema y validar catálogo, direcciones opuestas y múltiples fuentes en `Input.cs` y `ProfileTests.cs` (FR-009/010).
-- [x] T028 [US4] Implementar carga, guardado atómico e importación/exportación con validación previa en `ProfileStore.cs` y `ProfileDialog.cs` (FR-009/019).
-- [x] T029 [US4] Añadir editor por mando y aplicar el mapeo compilado con un informe neutro previo en `MainForm.cs` y `ControllerSession.cs` (FR-009/010). Verificación en dos sesiones físicas pendiente en T033.
-- [x] T030 [US4] Crear y empaquetar perfiles horizontal y Nunchuk en `profiles/horizontal.json` y `profiles/nunchuk.json`. Rotación y liberación verificadas con informes simulados (FR-007).
-- [x] T031 [US4] Implementar negociación e identificación del Nunchuk, ACK de escritura, calibración y retirada en caliente en `NunchukProtocol.cs` y `HidTransport.cs` (FR-008/021). Aceptación con accesorio físico en T033.
-- [x] T032 [US4] Probar extremos de calibración, centro/zona muerta, ID de accesorio desconocido y rechazo de perfiles inválidos en `NunchukTests.cs` y `ProfileTests.cs`. Ensayo físico pendiente en T033 (SC-009).
-- [ ] T033 [US4] Verificar accesorios/perfiles tras reinicio y dos mandos diferentes en `docs/compatibility.md` (SC-009).
+- [x] T027 [US4] Version the schema and validate the catalog, opposite directions, and multiple sources in `Input.cs` and `ProfileTests.cs` (FR-009/010).
+- [x] T028 [US4] Implement loading, atomic save, and import/export with validation in `ProfileStore.cs` and `ProfileDialog.cs` (FR-009/019).
+- [x] T029 [US4] Add a per-controller editor and apply the compiled mapping after a neutral report in `MainForm.cs` and `ControllerSession.cs` (FR-009/010). Verification with two physical sessions remains in T033.
+- [x] T030 [US4] Create and package the horizontal and Nunchuk profiles in `profiles/horizontal.json` and `profiles/nunchuk.json`. Verified rotation and release with simulated reports (FR-007).
+- [x] T031 [US4] Implement Nunchuk negotiation, identification, write ACK, calibration, and hot removal in `NunchukProtocol.cs` and `HidTransport.cs` (FR-008/021). Physical accessory acceptance remains in T033.
+- [x] T032 [US4] Test calibration extremes, center and dead zone, unknown accessory IDs, and invalid profile rejection in `NunchukTests.cs` and `ProfileTests.cs`. Physical testing remains in T033 (SC-009).
+- [ ] T033 [US4] Verify accessories and profiles after restart and with two different controllers in `docs/compatibility.md` (SC-009).
 
-## Phase 7: US5 — medir y optimizar latencia (P1)
+## Phase 7: US5 — Measure and Optimize Latency (P1)
 
-La arquitectura de T014 evita esperas desde el principio; esta fase aporta evidencia y optimización, no pospone el requisito.
+T014's architecture avoids waits from the start. This phase adds evidence and optimization.
 
-- [x] T034 [US5] Capturar timestamps monotónicos en buffer acotado y snapshots de cadencia en `src/Wii2Xbox/LatencyMetrics.cs` (FR-015).
-- [x] T035 [US5] Exportar p50/p95/p99/max de procesamiento con esquema y condiciones en `src/Wii2Xbox/LatencyReport.cs` para las pruebas de desarrollo (FR-016). La medición física de extremo a extremo queda en T040.
-- [x] T036 [US5] Crear observador XInput independiente y comparación de transiciones con frecuencia e incertidumbre. `scripts/test-native.ps1` prepara ambos fuera del paquete de usuario (FR-016/018, SC-006).
-- [x] T037 [US5] Validar percentiles, extremos del buffer, asignaciones y coste diagnóstico. Pasaron las pruebas unitarias y la comparación activado/desactivado con ViGEmBus real y entrada simulada. La medición con mandos físicos permanece en T038 (FR-015/016).
-- [ ] T038 [US5] Ensayar 1/4 mandos, UI reposo/uso/minimizada y diagnóstico on/off en `docs/performance.md` (SC-003/005/006). Pasaron los casos nativos breves y sostenidos de una y cuatro salidas con entrada simulada. Protocolo físico en `docs/hardware-validation.md`.
-- [ ] T039 [US5] Comparar política HID, informes y prioridad con base equivalente; conservar ajustes medidos y registrar alternativas en `docs/performance.md` (FR-013/014/020).
-- [ ] T040 [US5] Ensayo físico pulsación→respuesta, muestra suficiente para percentiles y límites del instrumento en `docs/performance.md` (SC-007).
+- [x] T034 [US5] Capture monotonic timestamps in a bounded buffer and cadence snapshots in `src/Wii2Xbox/LatencyMetrics.cs` (FR-015).
+- [x] T035 [US5] Export processing p50/p95/p99/max, schema, and conditions in `src/Wii2Xbox/LatencyReport.cs` for development tests (FR-016). End-to-end physical measurement remains in T040.
+- [x] T036 [US5] Create an independent XInput observer and transition comparison with frequency and uncertainty. `scripts/test-native.ps1` prepares them outside the user package (FR-016/018, SC-006).
+- [x] T037 [US5] Verify percentiles, buffer boundaries, allocations, and diagnostic overhead. Unit tests and the enabled/disabled comparison passed with actual ViGEmBus and simulated input. Physical measurement remains in T038 (FR-015/016).
+- [ ] T038 [US5] Test one and four controllers, idle/used/minimized UI, and diagnostics off/on (SC-003/005/006). Short and sustained native cases passed with one and four outputs and simulated input. See [acceptance](acceptance.md) and the physical protocol in `docs/hardware-validation.md`.
+- [ ] T039 [US5] Compare HID policy, reports, and priority against an equivalent baseline. Keep measured settings and record alternatives with the performance evidence (FR-013/014/020).
+- [ ] T040 [US5] Run a physical press-to-response trial with a sample sufficient for percentiles and record instrument limits with the performance evidence (SC-007).
 
-## Phase 8: US6 — distribución, fallos y aceptación (P2)
+## Phase 8: US6 — Distribution, Errors, and Acceptance (P2)
 
-- [ ] T041 [US6] Watchdog y cierre con botón sostenido comprobados con transportes simulados en `RecoveryTests.cs`. Pendientes los ensayos de corte de radio y suspensión físicos (FR-011/012, SC-008).
-- [x] T042 [US6] Publicar paquete self-contained win-x64 reproducible con licencias y versiones en `scripts/publish.ps1` y `docs/installation.md` (FR-017/018).
-- [ ] T043 [US6] Validar en Windows limpio, sin SDK ni Internet, la instalación desde Wii2Xbox y el primer mando virtual. Repetir con cancelación de elevación y con reinicio requerido. Registrar resultados reales en `acceptance.md` (SC-010).
-- [ ] T044 [US6] Documentar acceso HID, Bluetooth, límites XInput, modelos no verificados y juegos restrictivos en `docs/troubleshooting.md` (FR-017/018/021/022).
-- [ ] T045 [US6] Verificar cierre ≤3 s, neutralización ≤1 s y recursos tras 100 reconexiones en `docs/compatibility.md` (SC-002/008).
+- [ ] T041 [US6] Watchdog and shutdown with held input verified with simulated transports in `RecoveryTests.cs`. Physical radio loss and sleep trials remain pending (FR-011/012, SC-008).
+- [x] T042 [US6] Publish a reproducible, self-contained Windows x64 package with licenses and versions in `scripts/publish.ps1` and `docs/installation.md` (FR-017/018).
+- [ ] T043 [US6] Validate driver installation from Wii2Xbox and the first virtual controller on clean Windows without the SDK or Internet. Repeat with denied elevation and a required restart. Record results in `acceptance.md` (SC-010).
+- [ ] T044 [US6] Document HID access, Bluetooth, XInput limits, unverified models, and restrictive games in `docs/troubleshooting.md` (FR-017/018/021/022).
+- [ ] T045 [US6] Verify shutdown ≤3 s, neutralization ≤1 s, and resources after 100 reconnections in `docs/compatibility.md` (SC-002/008).
 
-## Phase 9: Convergencia y entrega completa
+## Phase 9: Convergence and Final Delivery
 
-- [x] T046 Auditar FR-001–FR-026 y SC-001–SC-011 contra código y evidencia en `specs/001-wii-xbox-low-latency/acceptance.md`. Pendientes físicos identificados sin sustituirlos por simulaciones.
-- [ ] T047 Ejecutar build/test/publish finales y prueba del paquete en equipo limpio; registrar comandos, versiones y resultados en `acceptance.md`.
-- [ ] T048 Documentar límites/riesgos pendientes y comprobar que no se publican afirmaciones de latencia no medidas en `README.md` y `docs/performance.md`.
-- [ ] T049 Actualizar tareas y estado de la spec solo con evidencia real; declarar producto completo únicamente si no quedan requisitos obligatorios pendientes.
+- [x] T046 Audit FR-001–FR-026 and SC-001–SC-011 against code and evidence in `specs/001-wii-xbox-low-latency/acceptance.md`. Record outstanding physical checks separately from simulations.
+- [ ] T047 Run the final build, test, and publish steps and test the package on a clean PC. Record commands, versions, and results in `acceptance.md`.
+- [ ] T048 Document remaining limits and risks and verify that `README.md` and `docs/performance.md` avoid unmeasured latency claims.
+- [ ] T049 Update tasks and spec status based on actual evidence. Declare completion only after all mandatory requirements are verified.
 
-## Dependencias y trazabilidad
+## Dependencies and Traceability
 
-### Ratón con barra IR
+### IR Sensor Bar Mouse
 
-- [x] T050 Implementar activación por ACK, decodificación de puntos y sesión combinada con Xbox/Nunchuk (FR-023/024).
-- [x] T051 Implementar cursor, clics y liberación con pérdida de seguimiento. Verificar con informes simulados (FR-024/025).
-- [ ] T052 Verificar seguimiento, clics y uso combinado con una barra Wii física y un Wii Remote (SC-011).
-- [x] T053 Calibrar el ratón IR mediante dos puntos y guardar el ajuste en el perfil del mando (FR-026). Prueba física incluida en T052.
+- [x] T050 Implement ACK-based activation, point decoding, and combined Xbox/Nunchuk sessions (FR-023/024).
+- [x] T051 Implement cursor movement, clicks, and release on tracking loss. Verify with simulated reports (FR-024/025).
+- [ ] T052 Verify tracking, clicks, and combined use with a physical Wii sensor bar and Wii Remote (SC-011).
+- [x] T053 Implement two-point IR mouse calibration and save it with the controller profile (FR-026). Physical testing is part of T052.
 
-### Identificación y distribución
+### Identification and Distribution
 
-- [x] T054 [US3] Asociar la columna **Xbox** y el LED físico con la ranura real. Verificados los cuatro comandos HID con un Wii Remote y la asignación de Xbox 2 con Xbox 1 ocupada (FR-005).
-- [x] T055 [US6] Integrar el instalador firmado, verificar el recurso publicado y retirar el observador y comparador del ZIP. Cubrir detección en `DriverAvailabilityTests.cs`. La instalación en Windows limpio se verifica en T043 (FR-017/018).
-- [ ] T056 [US3] Repetir la coincidencia entre el LED y la columna **Xbox** en cada ranura, tras reconexión y con varios Wii Remote físicos (SC-012).
-- [ ] T057 [US6] Comparar XInput, Windows.Gaming.Input y ControllerTest en Edge con la instalación oficial integrada en Windows limpio. Registrar también la detección en un juego XInput (FR-022).
-- [x] T058 [US2] Automatizar la búsqueda del asistente y cancelar su ciclo al cerrar. Retirar el acceso directo a la configuración Bluetooth de Windows (FR-002).
-- [x] T059 [US1, US6] Activar los mandos disponibles al detectarlos, aplicar su salida al seleccionarla y comprobar el controlador Xbox al arrancar. Conservar la captura con sesiones activas para las pruebas de desarrollo (FR-004/015/017).
-- [ ] T060 [US3] Verificar la activación automática de varios Wii Remote físicos al arrancar, conectar y volver a conectar, con cambios independientes de salida (FR-004/005).
-- [x] T061 Renombrar el asistente a **Añadir mando** y simplificar la ventana a cuatro columnas. Reservar las mediciones para las pruebas de desarrollo (FR-002/015/016).
+- [x] T054 [US3] Match the **Xbox** column and physical LED to the actual slot. Verified all four HID commands with one Wii Remote and Xbox 2 with Xbox 1 occupied (FR-005).
+- [x] T055 [US6] Embed the signed installer, verify the published resource, and remove the observer and comparator from the ZIP. Cover detection in `DriverAvailabilityTests.cs`. Clean Windows installation is covered in T043 (FR-017/018).
+- [ ] T056 [US3] Repeat the LED and **Xbox** column match in every slot, after reconnection, and with multiple physical Wii Remotes (SC-012).
+- [ ] T057 [US6] Compare XInput, Windows.Gaming.Input, and ControllerTest in Edge with the embedded official installer on clean Windows. Record detection in an XInput game (FR-022).
+- [x] T058 [US2] Start discovery automatically in the wizard and cancel it on close. Remove the Windows Bluetooth settings shortcut (FR-002).
+- [x] T059 [US1, US6] Activate available controllers when detected, apply the selected output, and check the Xbox driver at startup. Retain capture with active sessions for development tests (FR-004/015/017).
+- [ ] T060 [US3] Verify automatic activation of multiple physical Wii Remotes at startup, on connection, and on reconnection, with independent output changes (FR-004/005).
+- [x] T061 Rename the wizard to **Añadir mando** (Add controller) and simplify the window to four columns. Keep measurements in development tests (FR-002/015/016).
 
-Setup → gate backend/transporte → US1 → US3/US2/US4 → medición completa US5 → US6 → convergencia. Las pruebas de pureza de protocolo y mapeo pueden avanzar sin hardware; los gates físicos no.
+Setup → backend and transport gate → US1 → US3/US2/US4 → full US5 measurement → US6 → convergence. Protocol and mapping tests can proceed without hardware. The physical gates require hardware.
 
-| Requisitos | Tareas principales |
+| Requirements | Main tasks |
 | --- | --- |
 | FR-001/005 | T016/T019/T023/T054/T056/T060 |
 | FR-002/003/012 | T008/T018/T022–T026/T058 |
@@ -121,8 +121,8 @@ Setup → gate backend/transporte → US1 → US3/US2/US4 → medición completa
 | FR-017/018/019 | T006/T028/T036/T042–T044/T055/T059 |
 | FR-021/022 | T008/T026/T031/T033/T044/T057 |
 
-MVP demostrable: T001–T017. La entrega se completa con la aceptación de los criterios aplicables de `spec.md`.
+The demonstrable MVP covers T001–T017. Delivery completes when the applicable acceptance criteria in `spec.md` pass.
 
-## Incremento implementado
+## Implemented Increment
 
-El paquete local ofrece asociación, hasta cuatro salidas independientes, indicación de ranura por LED, perfiles, Nunchuk, ratón IR e instalación del controlador Xbox desde Wii2Xbox. La [aceptación](acceptance.md) recoge la evidencia y las pruebas que faltan.
+The local package supports pairing, up to four independent outputs, slot indication with LEDs, profiles, Nunchuk, IR mouse, and installation of the Xbox driver from Wii2Xbox. [Acceptance](acceptance.md) records evidence and remaining checks.

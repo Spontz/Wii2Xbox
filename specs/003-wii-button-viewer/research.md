@@ -1,12 +1,12 @@
-# Decisiones del visor
+# Viewer Decisions
 
-- Reutilizar el lector HID de cada sesión para obtener los botones Wii ya decodificados. Capturar después del envío Xbox habitual evita que el repintado o la agregación formen parte del camino de entrada.
-- Conservar la hora del flanco de pulsación y el estado mantenido. Así se distinguen pulsaciones breves sin guardar una cola de informes.
-- Usar una ilustración original de vista frontal horizontal con fondo transparente. La posición de la cruceta sigue la orientación física, con el extremo IR a la izquierda y una referencia aparte para B.
-- Leer mandos sin salida disponible mediante el mismo tipo de sesión. Se evita una segunda apertura HID del mismo mando.
+- Reuse the HID reader for each session to obtain the decoded Wii buttons. Capture after the regular Xbox report submission to keep painting and aggregation off the input path.
+- Retain the press-edge timestamp and held state. This makes short presses visible without storing a report queue.
+- Use an original front-facing horizontal illustration with a transparent background. The D-pad follows the physical orientation, with the IR end on the left and a separate callout for B.
+- Read controllers without available output through the same session type. This prevents opening the same HID device a second time.
 
-El recurso [WiiRemote.png](../../src/Wii2Xbox/Resources/WiiRemote.png) se creó con el generador de imágenes integrado. Se pidió un recorte fotorrealista de un Wii Remote blanco e inactivo, en vista frontal horizontal, con el extremo IR a la izquierda, controles y rótulos reconocibles, iluminación neutra y fondo transparente.
+The [WiiRemote.png](../../src/Wii2Xbox/Resources/WiiRemote.png) asset was created with the built-in image generator. The request was for a photorealistic cutout of an idle white Wii Remote from the front in horizontal orientation, with the IR end on the left, recognizable controls and labels, neutral lighting, and a transparent background.
 
-Después se pidió girar 90° en sentido antihorario solo las marcas de HOME, encendido, −, 1 y 2, conservando las posiciones de los botones y el lienzo transparente.
+A follow-up requested rotating only the HOME, power, −, 1, and 2 markings 90° counterclockwise while retaining the button positions and transparent canvas.
 
-La revisión final pidió girar también la A, darle a su botón un acabado de policarbonato translúcido y retirar la primera y la última fila del altavoz para mostrar tres filas de cuatro orificios.
+The final revision also requested rotating the A marking, giving the A button a translucent polycarbonate finish, and removing the first and last speaker rows to show three rows of four holes.

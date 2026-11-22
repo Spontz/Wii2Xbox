@@ -1,15 +1,15 @@
-# Tareas del visor
+# Wii Remote Button Viewer Tasks
 
-- [x] T001 Capturar botones físicos y flancos por sesión con pruebas de pulsación breve.
-- [x] T002 Dibujar y agregar el estado de las sesiones en el visor horizontal.
-- [x] T003 Integrar el visor, situar la casilla encima y permitir lectura cuando una salida no esté disponible.
-- [x] T004 Separar el estado y la ranura. Retirar el botón de búsqueda y verificar el reparto de ancho de las columnas.
-- [x] T005 Compilar Release, probar la vista con sesiones simuladas y verificar el ZIP.
-- [ ] T006 Verificar con dos Wii Remote físicos la lectura simultánea de los botones en el visor.
-- [x] T007 Integrar la ilustración y los LED azules por mando. Mover el menú **Salida** a cada fila y el botón de café a la esquina superior derecha. Verificar filas sin identificador, menú por ratón y teclado y posición de los controles.
+- [x] T001 Capture physical buttons and press edges per session, with tests for brief presses.
+- [x] T002 Draw and combine session states in the horizontal viewer.
+- [x] T003 Integrate the viewer, place the startup checkbox above it, and allow input reads when output is unavailable.
+- [x] T004 Separate status and slot. Remove the search button and verify column width distribution.
+- [x] T005 Build Release, test the viewer using simulated sessions, and verify the ZIP.
+- [ ] T006 Verify simultaneous button input in the viewer with two physical Wii Remotes.
+- [x] T007 Integrate the illustration and blue LEDs per controller. Move the **Salida** (Output) menu to each row and the coffee button to the top right. Verify rows without IDs, mouse and keyboard menu operation, and control placement.
 
-Las pruebas de WinForms confirmaron la casilla alineada debajo de la lista, la separación entre **Activo** y **Xbox 2**, y el ancho exacto de la lista a 690, 850 y 1200 píxeles y con barra de desplazamiento. Dos sesiones simuladas mostraron botones diferentes y un botón compartido. Al cerrar una, la otra mantuvo su entrada. Las pruebas automatizadas verificaron pulsaciones breves y un lector activo sin salida Xbox.
+WinForms tests confirmed checkbox alignment below the list, the separation between **Activo** (Active) and **Xbox 2**, and exact coverage of the list width at 690, 850, and 1200 pixels and with a scrollbar. Two simulated sessions displayed distinct buttons and one shared button. Closing one session left the other's input visible. Automated tests verified short presses and an active reader without Xbox output.
 
-La notificación de dispositivos de Windows desencadenó una nueva enumeración en la prueba de la ventana. Pasaron las 70 pruebas ordinarias y las dos integraciones con una y cuatro salidas XInput reales y entrada Wii simulada.
+A Windows device notification triggered another enumeration in the window test. The 70 regular tests and both integration tests passed. The integration tests used one and four real XInput outputs with simulated Wii input.
 
-La revisión del visor verificó en claro y oscuro dos LED encendidos simultáneamente, la retirada del LED de un mando al desconectarlo y el apagado al soltar todos los botones. El menú **Salida** cambió la fila pulsada aunque otra estuviera seleccionada. Las filas sintéticas sin identificador se pudieron actualizar sin lanzar la excepción de clave nula.
+The viewer review verified in light and dark mode that two LEDs could light simultaneously, a disconnected controller's LED went out, and all LEDs went out after all buttons were released. The **Salida** (Output) menu changed the clicked row even when a different row was selected. Synthetic rows without IDs could refresh without throwing a null-key exception.

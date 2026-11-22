@@ -1,118 +1,118 @@
-# Implementation Plan: Wii2Xbox con latencia mínima
+# Implementation Plan: Low-Latency Wii2Xbox
 
 **Date**: 2026-11-22 | **Spec**: [spec.md](spec.md)
 
-**Status**: Implementación publicada localmente. Validación en equipo limpio, juegos y configuraciones físicas pendiente.
+**Status**: Implementation packaged locally. Validation on a clean PC, in games, and with physical configurations is pending.
 
 ## Summary
 
-Aplicación nativa Windows que transforma hasta cuatro Wii Remote Bluetooth en salidas Xbox independientes. Primero demostrar un mando físico y una salida real; después aislamiento, recuperación y perfiles. Se optimiza el tramo HID→mapeo→envío sin depender del refresco de pantalla. El producto no se considera completo sin pruebas físicas y percentiles reproducibles.
+Native Windows app that converts up to four Bluetooth Wii Remotes into independent Xbox outputs. Demonstrate one physical controller and one real output first, then cover isolation, recovery, and profiles. Optimize the HID-to-mapping-to-submission path independently of screen refresh. Product acceptance requires physical tests and reproducible percentiles.
 
 ## Technical Context
 
-**Language/Version**: C# con .NET 10 LTS y SDK 10.0.404, Windows x64. T004 compilado en Release.
+**Language/Version**: C# with .NET 10 LTS and SDK 10.0.404, Windows x64. T004 built in Release.
 
-**Primary Dependencies**: WinForms, HidSharp 2.6.4 y Nefarius.ViGEm.Client 1.21.256. La publicación integra el instalador 1.22.0 de ViGEmBus. Compatibilidad y mantenimiento del controlador archivado siguen sujetos a la matriz de aceptación.
+**Primary Dependencies**: WinForms, HidSharp 2.6.4, and Nefarius.ViGEm.Client 1.21.256. Packaging embeds the ViGEmBus 1.22.0 installer. Compatibility and maintenance risks for the archived driver remain subject to the acceptance matrix.
 
-**Storage**: JSON versionado en `%LOCALAPPDATA%/Wii2Xbox`; escritura temporal y reemplazo atómico. Informes de rendimiento exportados a petición.
+**Storage**: Versioned JSON in `%LOCALAPPDATA%/Wii2Xbox`, with temporary writes and atomic replacement. Export performance reports on demand.
 
-**Testing**: xUnit para protocolo, mapeo, estados y aislamiento; transporte/salida simulados; ensayo de integración con observador XInput separado; banco físico documentado.
+**Testing**: xUnit for protocol, mapping, states, and isolation. Simulated transport and output, integration tests with a separate XInput observer, and a documented physical test setup.
 
-**Target Platform**: Windows 10/11 x64 en versiones declaradas en matriz. Se revisa soporte efectivo del runtime y de cada versión de Windows, sin presuponer que todas las compilaciones sirven.
+**Target Platform**: Windows 10/11 x64 versions listed in the matrix. Verify actual runtime and Windows support for each listed version and build.
 
-**Project Type**: Aplicación desktop local, sin backend.
+**Project Type**: Local desktop app with no backend.
 
-**Performance Goals**: SC-003 p95 ≤1 ms/p99 ≤2 ms local; SC-006 p95 ≤4 ms hasta observador virtual con incertidumbre declarada. No son resultados obtenidos.
+**Performance Goals**: SC-003 targets local p95 ≤1 ms and p99 ≤2 ms. SC-006 targets p95 ≤4 ms to a virtual observer with documented uncertainty. These are acceptance targets.
 
-**Constraints**: Cuatro salidas compartidas con XInput del sistema; no control de ranuras absolutas; Bluetooth Classic y controlador firmado compatibles. Sin elevar el proceso de juego, sin bucle ocupado por defecto, sin tiempo real ni cambios globales de energía/temporizadores.
+**Constraints**: Four shared system XInput slots. Windows assigns slots. Compatible Bluetooth Classic and a signed driver are required. Run the game process without elevation. Default settings use no busy loop, real-time scheduling, or global power or timer changes.
 
-**Scale/Scope**: Un proceso, hasta cuatro sesiones; Wii Remote original/Plus y Nunchuk, perfiles y diagnóstico acotado.
+**Scale/Scope**: One process, up to four sessions, original Wii Remote, Wii Remote Plus, Nunchuk, profiles, and bounded diagnostics.
 
 ## Constitution Check
 
-| Principio | Diseño previsto | Gate de evidencia |
+| Principle | Planned design | Evidence gate |
 | --- | --- | --- |
-| Latencia mínima | Lector por dispositivo, mapeo y envío síncronos, UI desacoplada | SC-003/005/006/007 |
-| Independencia | Sesión propietaria de transporte y salida, limpieza idempotente | SC-002/004/008 |
-| Evidencia | Simulación separada de Bluetooth y juegos | Matriz y aceptación física |
-| Transparencia | Dependencias visibles; instalación explícita | SC-010 y revisión de paquete |
-| Spec primero | Requisitos trazados a tareas y pruebas | Auditoría final de FR/SC |
+| Minimum latency | Per-device reader, synchronous mapping and submission, decoupled UI | SC-003/005/006/007 |
+| Isolation | Session owns transport and output, idempotent cleanup | SC-002/004/008 |
+| Evidence | Simulations tracked separately from Bluetooth and games | Matrix and physical acceptance |
+| Transparency | Visible dependencies and explicit installation | SC-010 and package review |
+| Specification first | Requirements traced to tasks and tests | Final FR/SC audit |
 
-Diseño conforme; gates de ejecución pendientes. La dependencia retirada es un riesgo explícito, no una exención para declarar compatibilidad.
+The design complies. Execution gates remain pending. The discontinued dependency is a recorded compatibility risk.
 
 ## Project Structure
 
 ```text
 src/Wii2Xbox/
-  Program.cs, MainForm.cs       # Arranque y panel fuera del camino de entrada
-  Input.cs                     # Esqueleto de estados, decodificación y perfil
-  HidTransport.cs               # Transporte físico y configuración del protocolo
-  BluetoothService.cs           # Descubrimiento/asociación y cancelación
-  XboxOutput.cs                 # Adaptador de emulación
-  VigemBusSetup.cs              # Instalador integrado y elevación de Windows
-  ControllerSession.cs          # Ciclo de vida y camino de baja latencia
-  SessionManager.cs             # Identidad, límite y asociación de mandos
-  ProfileStore.cs               # Persistencia y validación
-  LatencyMetrics.cs             # Buffer acotado y snapshots
-tests/Wii2Xbox.Tests/           # Pruebas automatizadas sin hardware
-tools/Wii2Xbox.Diagnostics/     # Observador XInput para pruebas de desarrollo
-scripts/                       # build, test, publish
-profiles/                      # Perfiles iniciales versionados
-docs/                          # Guía, compatibilidad y resultados físicos
-specs/001-wii-xbox-low-latency/  # Spec, decisiones, contratos y tareas
+  Program.cs, MainForm.cs       # Startup and UI outside the input path
+  Input.cs                     # State, decoding, and profile scaffolding
+  HidTransport.cs               # Physical transport and protocol setup
+  BluetoothService.cs           # Discovery, pairing, and cancellation
+  XboxOutput.cs                 # Emulation adapter
+  VigemBusSetup.cs              # Embedded installer and Windows elevation
+  ControllerSession.cs          # Lifecycle and low-latency path
+  SessionManager.cs             # Controller identity, capacity, and assignment
+  ProfileStore.cs               # Persistence and validation
+  LatencyMetrics.cs             # Bounded buffer and snapshots
+tests/Wii2Xbox.Tests/           # Automated tests without hardware
+tools/Wii2Xbox.Diagnostics/     # XInput observer for development tests
+scripts/                       # Build, test, publish
+profiles/                      # Versioned starter profiles
+docs/                          # Guides, compatibility, and physical results
+specs/001-wii-xbox-low-latency/  # Specification, decisions, contracts, and tasks
 ```
 
 ## Architecture and Latency Budget
 
-1. El control de sesión abre un único HID y crea su salida virtual antes de marcar Active. Configuración del mando mediante máquina de estados que espera ACK y valida identificación de accesorio; no interpretar datos cifrados como stick.
-2. Un lector dedicado por dispositivo espera una lectura bloqueante/overlapped. No usa sondeo de UI ni `Task.Delay` entre entradas. Se determina con pruebas la política de buffers HID y reportes continuos; no se inventa una frecuencia que el mando no produzca.
-3. Tras lectura completa: timestamp monotónico → validar ID/longitud → decodificar → perfil inmutable → actualizar estado completo → un único envío Xbox → timestamp final. Sin JSON, LINQ, logs por evento ni asignaciones evitables en este tramo.
-4. Las transiciones pulsar/soltar se conservan. La interfaz refresca estado, ranura y perfil a 5 Hz. Los ensayos de desarrollo toman muestras de latencia de forma independiente.
-5. Prioridad normal como base. Solo elevar lector a AboveNormal si mejora distribución medida sin perjudicar estabilidad; nunca prioridad Realtime. No se cambia `timeBeginPeriod`, plan de energía, parámetros de radio ni afinidad por defecto.
-6. El watchdog detecta silencio en los informes continuos y neutraliza en ≤1 s desde la pérdida observable. Al terminar la sesión, cancela la lectura y desconecta la salida incluso si falla el envío neutral. La limpieza es idempotente y el envío evita locks compartidos con la interfaz.
+1. Session control opens one HID interface and creates its virtual output before marking it Active. Configure the controller with a state machine that waits for ACK and validates accessory identity. Reject encrypted data as stick input.
+2. A dedicated reader per device waits on a blocking or overlapped read. It uses no UI polling or `Task.Delay` between reports. Use tests to choose HID buffering and continuous-report policy based on the rate the controller actually produces.
+3. After a full read: monotonic timestamp → validate ID and length → decode → apply immutable profile → update the full state → submit once to Xbox → final timestamp. Keep JSON, LINQ, per-event logs, and avoidable allocations out of this path.
+4. Preserve press/release transitions. The UI refreshes state, slot, and profile at 5 Hz. Development tests independently sample latency.
+5. Start with normal priority. Raise the reader to AboveNormal only if measurements improve without harming stability. Never use Realtime priority. Leave `timeBeginPeriod`, power plan, radio parameters, and affinity unchanged by default.
+6. The watchdog detects silence in continuous reports and neutralizes output within 1 second of observable loss. At session end it cancels the read and disconnects the output even if neutral submission fails. Cleanup is idempotent and submission avoids locks shared with the UI.
 
-Presupuesto local provisional: decodificar/mapear ≤0,15 ms p95; envío ocupa el resto del presupuesto de 1 ms p95. Los subpresupuestos se miden, no se presentan como hechos. Registrar coste de diagnóstico y pausas de runtime, cadencia HID y jitter. No trasladar pérdidas de informe del transporte a una cifra favorable de software.
+Provisional local budget: decode and map within 0.15 ms p95. Submission takes the remainder of the 1 ms p95 budget. Measure each part. Record diagnostic cost, runtime pauses, HID cadence, and jitter. Account for reports lost in transport when interpreting software measurements.
 
 ## Bluetooth and Protocol
 
-Enumeración HID de Nintendo y reconocimiento de modelos; acceso nativo Bluetooth de Windows para radio/descubrimiento/asociación. Cancelación con presupuesto de 5 s requiere trocear operaciones bloqueantes o aislarlas; cancelar solo la pantalla no cumple. Nunca eliminar asociaciones ajenas.
+Enumerate Nintendo HID devices and recognize models. Use native Windows Bluetooth for radio access, discovery, and pairing. Cancellation within 5 seconds requires splitting or isolating blocking operations and stopping the underlying work. Preserve unrelated pairings.
 
-El asistente repite búsquedas Bluetooth cortas en segundo plano y conserva la selección al recibir resultados. La asociación espera a que termine la búsqueda en curso y, si falla, la reanuda. El cierre cancela el bucle antes de descartar la ventana.
+The wizard repeats short Bluetooth searches in the background and preserves selection as results arrive. Pairing waits until the current search ends and resumes discovery if pairing fails. Closing cancels the loop before disposing of the window.
 
-Validar por modelo los métodos de apertura y envío HID (`Write` frente a control report) y el modo de informe. Estado/ACK/memoria pertenecen al canal de control, entrada al canal de datos. Inicialización Nunchuk con negociación, identificación y calibración real; retirada en caliente vuelve a neutral del accesorio. Modo básico debe poder funcionar sin extensión.
+For each model, validate HID opening and write methods (`Write` versus control report) and report mode. Status, ACK, and memory belong to the control channel. Input belongs to the data channel. Nunchuk initialization requires negotiation, identification, and actual calibration. Hot removal neutralizes accessory input. Basic mode must work without an extension.
 
 ## Lifecycle and Error Handling
 
-`Discovered → Connecting → Configuring → Active → Stopping → Disconnected`; cualquier etapa puede ir a `Faulted` pasando por limpieza. Un mando solo puede tener una sesión. Reconexión con backoff limitado fuera del lector, acción manual siempre disponible. Suspensión cancela sesiones de manera segura y reanudación reenumera identidades. Inicio parcial revierte recursos adquiridos.
+`Discovered → Connecting → Configuring → Active → Stopping → Disconnected`. Any stage can enter `Faulted` after cleanup. Allow one session per controller. Reconnect with bounded backoff outside the reader and always allow manual action. Sleep safely cancels sessions and resume re-enumerates identities. Roll back resources acquired by a partial startup.
 
-Cambios de perfil mediante snapshot validado e intercambio atómico en frontera de informe; la sesión neutraliza antes de usar el nuevo perfil. Las operaciones administrativas no bloquean la UI ni el lector con escritura a disco.
+Apply profile changes by atomically swapping a validated snapshot at a report boundary. Neutralize before using the new profile. Keep administrative disk writes from blocking the UI or reader.
 
-La enumeración HID y la comprobación del controlador habilitan la activación automática. La aplicación inicia por defecto una salida Xbox por mando disponible. Elegir otra salida cambia solo ese mando y espera a que la sesión anterior libere sus recursos. Las pruebas pueden cambiar la captura de latencia sin reiniciar la salida.
+HID enumeration and driver checking enable automatic activation. The app defaults to one Xbox output for each available controller. Choosing a different output changes only that controller and waits for the old session to release its resources. Tests can change latency capture without restarting the output.
 
-La sesión notifica la ranura que asigna XInput. Después de enviar el primer estado Xbox, escribe el LED correspondiente por HID. Si Windows tarda en asignar la ranura o falla la escritura, se reintenta en informes espaciados. La interfaz muestra la ranura en su actualización habitual.
+The session reports the slot assigned by XInput. After submitting the first Xbox state, it writes the corresponding LED through HID. If Windows takes time to assign the slot or the write fails, retry at spaced reports. The UI shows the slot on its normal refresh.
 
-## Instalación y distribución
+## Installation and Distribution
 
-`scripts/publish.ps1` verifica el SHA-256 y Authenticode del instalador oficial, lo incrusta en Wii2Xbox e incluye su licencia. Cuando el controlador falta o es incompatible, la app extrae y verifica el recurso, y solicita elevación a Windows solo al pulsar **Instalar controlador Xbox**. Espera a que termine el instalador sin bloquear la interfaz, comprueba el controlador y comunica el resultado. El instalador no fuerza el reinicio. `scripts/test-native.ps1` compila el observador XInput y ejecuta el comparador en el entorno de pruebas.
+`scripts/publish.ps1` verifies the official installer's SHA-256 and Authenticode signature, embeds it in Wii2Xbox, and includes its license. When the driver is missing or incompatible, the app extracts and verifies the resource and requests Windows elevation only when the user selects **Instalar controlador Xbox** (Install Xbox driver). It waits without blocking the UI, checks the driver afterward, and reports the result. The installer never forces a restart. `scripts/test-native.ps1` builds the XInput observer and runs comparisons in the test environment.
 
 ## Delivery Strategy
 
-- Gate A: demostrar transporte Wii y salida virtual con hardware; resolver mantenimiento/licencia/firma del controlador. Si falla, registrar bloqueo técnico y evaluar un backend firmado equivalente sin reescribir mapeo/UI.
-- Gate B: sesión robusta, cuatro mandos, watchdog, cancelación y pruebas automatizadas.
-- Gate C: perfiles completos, calibración Nunchuk y reconexión/suspensión.
-- Gate D: observador independiente, ensayos 1/4 mandos y optimización basada en percentiles.
-- Gate E: paquete self-contained win-x64 con instalador firmado integrado, guía y validación en equipo sin SDK. Aceptación completa SC-001–SC-012.
+- Gate A. Demonstrate Wii transport and virtual output with hardware. Resolve driver maintenance, license, and signing. On failure, record the technical blocker and evaluate an equivalent signed backend without rewriting mapping or UI.
+- Gate B. Robust session lifecycle, four controllers, watchdog, cancellation, and automated tests.
+- Gate C. Complete profiles, Nunchuk calibration, reconnection, and sleep handling.
+- Gate D. Independent observer, trials with one and four controllers, and percentile-based optimization.
+- Gate E. Self-contained Windows x64 package with an embedded signed installer, guide, and validation on a PC without the SDK. Full acceptance for SC-001–SC-012.
 
-No desarrollar un controlador kernel propio como atajo de este alcance. Una alternativa que exija ese trabajo necesita actualizar alcance/riesgos.
+A custom kernel driver is outside this scope. Update scope and risks if an alternative requires one.
 
 ## Verification Strategy
 
-Protocolo: fixtures de todos los IDs soportados, truncados, errores ACK, estados y bits de sensores. Mapeo: combinaciones y liberaciones, rotación horizontal, zonas muertas/rangos, varios orígenes a un destino. Sesión: timeout, pérdida, cancelación, error de salida, inicio parcial y cierre concurrente. Aislamiento: cuatro transportes y salidas falsas, 100.000 transiciones y 100 reconexiones.
+Protocol: fixtures for all supported IDs, truncated input, ACK errors, status, and sensor bits. Mapping: combinations and releases, horizontal rotation, dead zones and ranges, and multiple sources for one destination. Session: timeouts, loss, cancellation, output errors, partial startup, and concurrent shutdown. Isolation: four simulated transports and outputs, 100,000 transitions, and 100 reconnections.
 
-Rendimiento: Release sin depurador, calentamiento de 30 s, ≥10 minutos y ≥10.000 informes/mando, 1 y 4 mandos, UI reposo/interacción/minimizada, diagnóstico apagado/encendido. Reportar muestras perdidas, GC, equipo y variación. Observador en otro proceso; XInput entrega estados, no una cola de eventos: el ensayo físico no afirma ver todas las pulsaciones arbitrariamente cortas. Comparaciones temporales usan marcas identificables y frecuencia/aliasing declarados. Prueba sintética de SC-004 valida el canal de envíos, no afirma que un juego observe cada transición.
+Performance: Release without a debugger, 30-second warm-up, ≥10 minutes and ≥10,000 reports per controller, one and four controllers, UI idle, in use, and minimized, with diagnostics off and on. Report lost samples, GC, hardware, and variation. Run the observer in a separate process. XInput exposes sampled states, so the physical trial cannot establish that arbitrarily short presses are observed. Use identifiable markers and state reading frequency and aliasing. SC-004 synthetic testing verifies the submission path. Games can observe transitions at their own rate.
 
-Ensayo físico: adaptador/modelo/accesorio/Windows/driver/juego registrados, método de cámara o instrumento de entrada identificado, resolución temporal y tamaño de muestra suficientes para p99. Registrar limitaciones; nunca extrapolar percentiles sin muestras suficientes.
+Physical trials: record adapter, controller model, accessory, Windows version, driver, and game. Identify the camera procedure or input instrument and ensure sufficient time resolution and sample size for p99. Record limits and report percentiles only with enough samples.
 
 ## Complexity Tracking
 
-Sin desviaciones constitucionales aprobadas. Riesgos abiertos: backend retirado, variaciones de asociación por modelo, calibración de accesorios y objetivos aún no medidos. El esqueleto inicial no acredita ninguna historia completa.
+No approved constitutional deviations. Open risks include the discontinued backend, model-specific pairing differences, accessory calibration, and targets pending measurement. The initial scaffold is insufficient evidence of a completed story.

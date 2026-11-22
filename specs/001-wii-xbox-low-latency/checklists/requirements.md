@@ -1,6 +1,6 @@
 # Specification Quality Checklist: Wii2Xbox
 
-**Purpose**: Validar cobertura antes de planificación.
+**Purpose**: Validate coverage before planning.
 
 **Created**: 2026-11-22
 
@@ -8,28 +8,28 @@
 
 ## Content Quality
 
-- [x] Sin decisiones de lenguaje, biblioteca o arquitectura en requisitos de usuario.
-- [x] Foco en valor y latencia solicitados.
-- [x] Escenarios comprensibles sin código.
-- [x] Secciones obligatorias completas.
+- [x] User requirements leave language, library, and architecture choices to implementation.
+- [x] Focuses on the requested user value and latency.
+- [x] Scenarios are understandable without code.
+- [x] Mandatory sections are complete.
 
 ## Requirement Completeness
 
-- [x] Sin aclaraciones pendientes; supuestos explícitos.
-- [x] FR-001–FR-026 verificables.
-- [x] SC-001–SC-012 medibles y definidos por resultados observables.
-- [x] Escenarios de aceptación para todas las historias.
-- [x] Casos límite identificados.
-- [x] Alcance y exclusiones claros.
-- [x] Dependencias y supuestos documentados.
+- [x] Clarifications are resolved and assumptions are explicit.
+- [x] FR-001–FR-026 are verifiable.
+- [x] SC-001–SC-012 are measurable and defined by observable outcomes.
+- [x] All stories have acceptance scenarios.
+- [x] Edge cases are identified.
+- [x] Scope and exclusions are clear.
+- [x] Dependencies and assumptions are documented.
 
 ## Feature Readiness
 
-- [x] Requisitos cubiertos por escenarios y criterios.
-- [x] Historias cubren todos los flujos principales.
-- [x] Criterios permiten comprobar objetivo de usuario.
-- [x] Detalles de implementación separados en plan/research.
+- [x] Scenarios and criteria cover the requirements.
+- [x] The stories cover all main workflows.
+- [x] The criteria verify the user's objective.
+- [x] Implementation details are in the plan and research.
 
 ## Notes
 
-Revisión documental del 2026-11-22. La especificación, el plan y las tareas incluyen LED y ranuras Xbox, instalación integrada, alcance del ZIP y compatibilidad de la salida. El [informe de aceptación](../acceptance.md) conserva los resultados y las comprobaciones pendientes.
+Documentation review dated 2026-11-22. The spec, plan, and tasks cover LEDs and Xbox slots, the embedded installer, ZIP contents, and output compatibility. The [acceptance report](../acceptance.md) records results and pending checks.

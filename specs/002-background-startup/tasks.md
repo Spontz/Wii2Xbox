@@ -1,15 +1,15 @@
-# Tareas: ejecución en segundo plano y arranque con Windows
+# Background Operation and Windows Startup Tasks
 
-- [x] T001 [US1] Mantener sesiones y comprobaciones activas al ocultar la ventana. Añadir el icono con opciones de reapertura y salida (FR-001/002).
-- [x] T002 [US1] Coordinar lanzamientos en la misma sesión y restaurar la ventana desde una apertura manual (FR-003).
-- [x] T003 [US2] Añadir la casilla y el registro reversible de arranque de la cuenta. Inicializar el proceso oculto y mostrar avisos de controlador (FR-004/005).
-- [x] T004 [US1, US2] Verificar la compilación y el ciclo de ventana y proceso. Consultar la evidencia local.
-- [ ] T005 [US2] Verificar la casilla con dos inicios de sesión reales, uno activado y el siguiente desactivado (SC-003).
-- [ ] T006 [US1] Repetir ocultación y reapertura con mandos físicos en un juego. Comprobar las ranuras y liberar las salidas al elegir **Salir** (SC-001/002).
+- [x] T001 [US1] Keep sessions and checks active while the window is hidden. Add the icon with reopen and exit actions (FR-001/002).
+- [x] T002 [US1] Coordinate launches in the same session and restore the window on a manual relaunch (FR-003).
+- [x] T003 [US2] Add the checkbox and reversible per-user startup registration. Start hidden and show driver notices (FR-004/005).
+- [x] T004 [US1, US2] Verify the build and the window and process lifecycle. See local evidence.
+- [ ] T005 [US2] Verify the checkbox across two real sign-ins, first enabled and then disabled (SC-003).
+- [ ] T006 [US1] Repeat the hide and reopen cycle with physical controllers in a game. Check slots and confirm that **Salir** (Exit) releases the outputs (SC-001/002).
 
-## Evidencia local
+## Local Evidence
 
-- Pasaron 68 pruebas automatizadas. Se verificaron el paquete Release y las cuatro columnas de la lista de mandos.
-- Una ventana WinForms inició oculta, restauró el mismo identificador de ventana en tres intentos y conservó una sesión con entrada simulada. **Salir** envió estado neutro y liberó esa salida.
-- El ejecutable de publicación solicitó restaurar la ventana si se abrió manualmente como segunda instancia. Con `--background` salió sin solicitar que se mostrara.
-- La prueba con una clave de registro aislada verificó el estado inicial, la escritura de la ruta entre comillas y la eliminación de la entrada al desactivar. El inicio de sesión real queda pendiente en T005.
+- 68 automated tests passed. The Release package and the controller list's four columns were verified.
+- A WinForms window started hidden, restored the same window handle on three attempts, and retained a session receiving simulated input. **Salir** (Exit) sent neutral state and released that output.
+- The published executable requested window restoration when launched manually as a second instance. With `--background`, it exited without requesting that the window appear.
+- An isolated registry key test verified the initial state, registration of the quoted executable path, and removal of the entry when disabled. Real sign-in remains pending in T005.

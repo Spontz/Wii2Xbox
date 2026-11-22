@@ -1,5 +1,5 @@
-# Lista de calidad del visor
+# Viewer Quality Checklist
 
-- [x] Se enumeran las entradas visibles y la orientación del esquema.
-- [x] La agregación, las pulsaciones breves y la desconexión tienen pruebas observables.
-- [x] El alcance incluye los estados y columnas de la ventana principal.
+- [x] Visible inputs and illustration orientation are listed.
+- [x] Aggregation, brief presses, and disconnection have observable tests.
+- [x] The scope covers the main window's states and columns.
