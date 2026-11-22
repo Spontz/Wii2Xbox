@@ -4,8 +4,8 @@ A Windows app that connects up to four Wii Remotes over Bluetooth and lets you u
 
 ## Downloads
 
-- [MSI installer](https://github.com/Spontz/Wii2Xbox/releases/tag/v1.1.0-installer)
-- [Portable ZIP](https://github.com/Spontz/Wii2Xbox/releases/tag/v1.1.0-portable)
+- [MSI installer](https://github.com/Spontz/Wii2Xbox/releases/tag/v1.2.0-installer)
+- [Portable ZIP](https://github.com/Spontz/Wii2Xbox/releases/tag/v1.2.0-portable)
 
 ## Project Documentation
 
@@ -18,6 +18,7 @@ Wii2Xbox lists Wii Remotes paired with Windows and sends input from each active 
 - [Wii Remote button viewer](specs/003-wii-button-viewer/spec.md)
 - [Windows theme](specs/004-follow-windows-theme/spec.md)
 - [Portable ZIP and MSI distribution](specs/005-portable-msi-distribution/spec.md)
+- [Automatic updates](specs/007-automatic-updates/spec.md)
 - [Development quickstart](specs/001-wii-xbox-low-latency/quickstart.md)
 - [Constitution](.specify/memory/constitution.md)
 
@@ -27,7 +28,7 @@ The Windows packages include the signed ViGEmBus 1.22.0 installer. [Maintainer's
 
 See the [installation guide](docs/installation.md) for setup and input checks.
 
-1. Open Wii2Xbox. If **Instalar controlador Xbox** (Install Xbox driver) appears, select it and authorize the installation in Windows.
+1. Open Wii2Xbox. If it asks to install the Xbox driver, accept and allow the installation in the Windows prompt.
 2. Select **Añadir mando…** (Add controller…). The window searches until you close it. Put your Wii Remote into sync mode with SYNC or 1+2. When it appears, select it, choose the buttons you used, and select **Asociar seleccionado** (Pair selected).
 3. Wii2Xbox automatically activates available controllers in **Xbox** mode. The **Xbox** column and the Wii Remote LED show the slot assigned by Windows.
 4. Check input in an XInput-compatible game or in the Windows Game Controllers panel.

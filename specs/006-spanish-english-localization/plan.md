@@ -1,32 +1,23 @@
 # Implementation Plan: Spanish and English Localization
 
-**Date**: 2026-11-22 | **Spec**: [spec.md](spec.md)
+**Created**: 2026-11-22
 
-## Summary
+**Updated**: 2026-11-23
 
-Resolve the app language before the first window, keep it fixed for the lifetime of the process, and give each Windows account a saved override. Use a single per-user MSI with both English and Spanish setup text.
+**Specification**: [spec.md](spec.md)
 
 ## Technical Context
 
-- **Platform**: C# and .NET 10 WinForms, Windows 10/11 x64, WiX 6 Windows Installer. Building the MSI requires the Visual Studio x64 C++ build tools and Windows SDK for its small native language selector.
-- **Storage**: An optional per-user Windows setting containing a stable language code. Existing controller profiles keep their current schema and location.
-- **Testing**: xUnit for language selection, translations, and settings behavior. Verify setup language selection and the contents of the portable ZIP and MSI on Windows.
-- **Performance**: Resolve language once per process. Keep resource lookups, persistence, and formatting out of the input submission path.
+Wii2Xbox uses WinForms on .NET 10 and one per-user WiX MSI for Windows x64. Both distributions use the same app binaries and language resources.
 
 ## Constitution Check
 
-Language changes preserve live sessions and take effect only after a full relaunch. Background startup and driver checks use the same app language. Both release formats are built from the same application files. Document simulated and physical verification separately.
+Resolve the UI language once at startup and keep localized lookups outside the controller report path. Build the portable ZIP and MSI from the same build. Record Windows matrix acceptance separately from local tests.
 
-## Project Structure
+## Design
 
-- `src/Wii2Xbox/` contains language selection, resources, and localized WinForms surfaces.
-- `installer/` contains bilingual setup authoring.
-- `scripts/package.ps1` builds the MSI and portable ZIP together.
-- `tests/Wii2Xbox.Tests/` covers language policy, resources, and user-facing controls.
-
-## Design and Verification
-
-1. Resolve System from the native user display language. Resolve explicit preferences first. Save only changes requested by the user.
-2. Replace Wii2Xbox-owned text with named English and Spanish resources. Keep profile names, mapping keys, and device identities independent of display text.
-3. Localize setup from the Windows display language in one MSI. Keep the current per-user install, upgrade, and uninstall behavior.
-4. Run the [quickstart](quickstart.md) and record acceptance that requires additional Windows language configurations separately.
+1. Resolve the primary Windows display language and use English for any non-Spanish value.
+2. Use named English and Spanish resources. Keep profile names, mapping keys, and identities independent of the display language.
+3. Use separate resource sets for the setup wizard within one MSI. Leave controller sessions and application settings untouched by localization.
+4. Size desktop forms for per-monitor DPI, keep a minimum window size, and allow scroll overflow instead of collapsing rows.
+5. Verify the UI and packages using the [quickstart](quickstart.md).

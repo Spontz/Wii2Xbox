@@ -9,7 +9,7 @@ Both packages include .NET and run as a standard user on Windows x64. Turn on Bl
 
 ## Check the Virtual Driver
 
-Wii2Xbox checks the driver when it opens. If **Instalar controlador Xbox** (Install Xbox driver) appears, select it and authorize installation in the Windows prompt. Wii2Xbox checks the result when installation finishes. If the app requests a restart, restart Windows and reopen it.
+Wii2Xbox checks the driver when it opens. If the driver is missing or incompatible, Wii2Xbox offers to install it. If you accept, allow the installation in the Windows prompt. Wii2Xbox checks the result when installation finishes. If the app requests a restart, restart Windows and reopen it.
 
 When Wii2Xbox shows a slot in the **Xbox** column, open the Windows Game Controllers panel with `joy.cpl`. Select the virtual controller and choose **Properties** to check its buttons and axes.
 

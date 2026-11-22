@@ -99,9 +99,6 @@
   <data name="ControllerProfile" xml:space="preserve">
     <value>Wii controller profile</value>
   </data>
-  <data name="ControllersReadyHint" xml:space="preserve">
-    <value>Available controllers activate automatically. You can change the output for each controller.</value>
-  </data>
   <data name="DeadZone" xml:space="preserve">
     <value>Dead zone</value>
   </data>
@@ -125,9 +122,6 @@
   </data>
   <data name="DpadUp" xml:space="preserve">
     <value>D-pad ↑</value>
-  </data>
-  <data name="DriverInstallHint" xml:space="preserve">
-    <value>{0} You can install the driver from Wii2Xbox.</value>
   </data>
   <data name="DriverInstallerExitCode" xml:space="preserve">
     <value>The ViGEmBus installer returned code {0}.</value>
@@ -165,9 +159,6 @@
   <data name="Export" xml:space="preserve">
     <value>Export…</value>
   </data>
-  <data name="FollowSystem" xml:space="preserve">
-    <value>System</value>
-  </data>
   <data name="FoundWiiControllers" xml:space="preserve">
     <value>Wii controllers found</value>
   </data>
@@ -176,9 +167,6 @@
   </data>
   <data name="IncompleteWiiReport" xml:space="preserve">
     <value>Incomplete Wii report.</value>
-  </data>
-  <data name="InstallXboxDriver" xml:space="preserve">
-    <value>Install Xbox driver</value>
   </data>
   <data name="InstallationCanceled" xml:space="preserve">
     <value>Installation canceled.</value>
@@ -219,15 +207,6 @@
   <data name="IrUnavailableSuffix" xml:space="preserve">
     <value> · IR unavailable</value>
   </data>
-  <data name="Language" xml:space="preserve">
-    <value>Language</value>
-  </data>
-  <data name="LanguageRestart" xml:space="preserve">
-    <value>To apply the language, select Exit in the notification area and reopen Wii2Xbox.</value>
-  </data>
-  <data name="LanguageSaveFailed" xml:space="preserve">
-    <value>Could not save the language.</value>
-  </data>
   <data name="LeftShoulderBinding" xml:space="preserve">
     <value>Left bumper</value>
   </data>
@@ -248,9 +227,6 @@
   </data>
   <data name="NoBluetoothRadio" xml:space="preserve">
     <value>Windows cannot find an active Bluetooth Classic adapter.</value>
-  </data>
-  <data name="NoControllersHint" xml:space="preserve">
-    <value>Select Add controller… to connect a Wii Remote.</value>
   </data>
   <data name="NunchukDeadZone" xml:space="preserve">
     <value>Nunchuk dead zone</value>
@@ -446,5 +422,17 @@
   </data>
   <data name="XboxNoSlots" xml:space="preserve">
     <value>Xbox: no slots are available for another virtual controller.</value>
+  </data>
+  <data name="DriverInstallQuestion" xml:space="preserve">
+    <value>Install the Xbox driver now? Allow the installation when Windows prompts you.</value>
+  </data>
+  <data name="RestartToUpdate" xml:space="preserve">
+    <value>Restart to update</value>
+  </data>
+  <data name="UpdateFailed" xml:space="preserve">
+    <value>Wii2Xbox could not finish the update.</value>
+  </data>
+  <data name="UpdateRestartRequired" xml:space="preserve">
+    <value>Windows reported that a restart is required to finish updating Wii2Xbox.</value>
   </data>
 </root>

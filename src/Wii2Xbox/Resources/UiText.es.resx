@@ -99,9 +99,6 @@
   <data name="ControllerProfile" xml:space="preserve">
     <value>Perfil del mando Wii</value>
   </data>
-  <data name="ControllersReadyHint" xml:space="preserve">
-    <value>Los mandos disponibles se activan automáticamente. Puedes cambiar la salida de cada mando.</value>
-  </data>
   <data name="DeadZone" xml:space="preserve">
     <value>Zona muerta</value>
   </data>
@@ -125,9 +122,6 @@
   </data>
   <data name="DpadUp" xml:space="preserve">
     <value>Cruceta ↑</value>
-  </data>
-  <data name="DriverInstallHint" xml:space="preserve">
-    <value>{0} Puedes instalar el controlador desde Wii2Xbox.</value>
   </data>
   <data name="DriverInstallerExitCode" xml:space="preserve">
     <value>El instalador de ViGEmBus devolvió el código {0}.</value>
@@ -165,9 +159,6 @@
   <data name="Export" xml:space="preserve">
     <value>Exportar…</value>
   </data>
-  <data name="FollowSystem" xml:space="preserve">
-    <value>Sistema</value>
-  </data>
   <data name="FoundWiiControllers" xml:space="preserve">
     <value>Mandos Wii encontrados</value>
   </data>
@@ -176,9 +167,6 @@
   </data>
   <data name="IncompleteWiiReport" xml:space="preserve">
     <value>Informe Wii incompleto.</value>
-  </data>
-  <data name="InstallXboxDriver" xml:space="preserve">
-    <value>Instalar controlador Xbox</value>
   </data>
   <data name="InstallationCanceled" xml:space="preserve">
     <value>Instalación cancelada.</value>
@@ -219,15 +207,6 @@
   <data name="IrUnavailableSuffix" xml:space="preserve">
     <value> · IR no disponible</value>
   </data>
-  <data name="Language" xml:space="preserve">
-    <value>Idioma</value>
-  </data>
-  <data name="LanguageRestart" xml:space="preserve">
-    <value>Para aplicar el idioma, elige Salir en el área de notificación y vuelve a abrir Wii2Xbox.</value>
-  </data>
-  <data name="LanguageSaveFailed" xml:space="preserve">
-    <value>No se pudo guardar el idioma.</value>
-  </data>
   <data name="LeftShoulderBinding" xml:space="preserve">
     <value>Botón superior izquierdo</value>
   </data>
@@ -248,9 +227,6 @@
   </data>
   <data name="NoBluetoothRadio" xml:space="preserve">
     <value>Windows no encuentra un adaptador Bluetooth Classic activo.</value>
-  </data>
-  <data name="NoControllersHint" xml:space="preserve">
-    <value>Pulsa Añadir mando… para conectar un Wii Remote.</value>
   </data>
   <data name="NunchukDeadZone" xml:space="preserve">
     <value>Zona muerta del Nunchuk</value>
@@ -446,5 +422,17 @@
   </data>
   <data name="XboxNoSlots" xml:space="preserve">
     <value>Xbox: no hay plazas para otro mando virtual.</value>
+  </data>
+  <data name="DriverInstallQuestion" xml:space="preserve">
+    <value>¿Quieres instalar el controlador Xbox ahora? Cuando Windows lo solicite, permite la instalación.</value>
+  </data>
+  <data name="RestartToUpdate" xml:space="preserve">
+    <value>Reiniciar para actualizar</value>
+  </data>
+  <data name="UpdateFailed" xml:space="preserve">
+    <value>Wii2Xbox no pudo completar la actualización.</value>
+  </data>
+  <data name="UpdateRestartRequired" xml:space="preserve">
+    <value>Windows indicó que hace falta reiniciar el equipo para completar la actualización de Wii2Xbox.</value>
   </data>
 </root>

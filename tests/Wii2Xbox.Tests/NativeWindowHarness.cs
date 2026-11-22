@@ -55,7 +55,8 @@ internal sealed class NativeWindowHarness
         if (!minimize)
         {
             form.ClientSize = new Size(iteration % 2 == 0 ? 850 : 930, 410);
-            var list = form.Controls.OfType<TableLayoutPanel>().Single().Controls.OfType<ListView>().Single();
+            var layout = form.Controls.OfType<ScrollableLayout>().Single().Controls.OfType<TableLayoutPanel>().Single();
+            var list = layout.Controls.OfType<ListView>().Single();
             var row = list.Items[$"native-ui-{iteration % 4}"]!;
             row.Selected = true;
             row.EnsureVisible();

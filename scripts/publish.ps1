@@ -1,7 +1,7 @@
 param(
     [string]$Dotnet = 'dotnet',
     [string]$OutputDirectory = 'artifacts/win-x64',
-    [string]$Version = '1.0.0'
+    [string]$Version = '1.2.0'
 )
 $ErrorActionPreference = 'Stop'
 
@@ -56,4 +56,10 @@ try {
     Copy-PackageNotice $assets Microsoft.NETCore.App.Runtime.win-x64 $netCore 'LICENSE.TXT' "$OutputDirectory/licenses/dotnet-runtime.txt"
     Copy-PackageNotice $assets Microsoft.NETCore.App.Runtime.win-x64 $netCore 'THIRD-PARTY-NOTICES.TXT' "$OutputDirectory/licenses/dotnet-notices.txt"
     Copy-PackageNotice $assets Microsoft.WindowsDesktop.App.Runtime.win-x64 $desktop 'LICENSE' "$OutputDirectory/licenses/dotnet-desktop.txt"
+    $published = (Resolve-Path -LiteralPath $OutputDirectory).ProviderPath
+    $manifestName = 'update-files.txt'
+    $paths = Get-ChildItem -LiteralPath $published -Recurse -File |
+        ForEach-Object { $_.FullName.Substring($published.Length + 1).Replace('\', '/') } |
+        Where-Object { $_ -ne $manifestName }
+    @($paths + $manifestName | Sort-Object) | Set-Content -LiteralPath (Join-Path $published $manifestName) -Encoding UTF8
 } finally { Pop-Location }

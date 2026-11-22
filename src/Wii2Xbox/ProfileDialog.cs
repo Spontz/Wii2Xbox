@@ -13,8 +13,7 @@ internal sealed class ProfileDialog : Form
     public ProfileDialog(Profile profile)
     {
         Text = UiText.Get("ControllerProfile");
-        ClientSize = new Size(480, 510);
-        MinimumSize = new Size(430, 460);
+        ScrollableLayout.ConfigureForm(this, new Size(480, 510), new Size(450, 460));
         StartPosition = FormStartPosition.CenterParent;
         ShowInTaskbar = false;
         var root = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(12), ColumnCount = 1, RowCount = 4 };
@@ -27,6 +26,7 @@ internal sealed class ProfileDialog : Form
         heading.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         heading.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         orientation.Items.AddRange(["Horizontal", UiText.Get("Upright")]);
+        ScrollableLayout.FitChoices(orientation, 120);
         heading.Controls.Add(name);
         heading.Controls.Add(orientation);
         root.Controls.Add(heading);
@@ -67,7 +67,7 @@ internal sealed class ProfileDialog : Form
         actions.Controls.Add(cancel);
         CancelButton = cancel;
         root.Controls.Add(actions);
-        Controls.Add(root);
+        Controls.Add(new ScrollableLayout(root, 2, 150));
         ShowProfile(profile);
     }
 

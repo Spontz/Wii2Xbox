@@ -93,7 +93,7 @@ The session reports the slot assigned by XInput. After submitting the first Xbox
 
 ## Installation and Distribution
 
-`scripts/publish.ps1` verifies the official installer's SHA-256 and Authenticode signature, embeds it in Wii2Xbox, and includes its license. When the driver is missing or incompatible, the app extracts and verifies the resource and requests Windows elevation only when the user selects **Instalar controlador Xbox** (Install Xbox driver). It waits without blocking the UI, checks the driver afterward, and reports the result. The installer never forces a restart. `scripts/test-native.ps1` builds the XInput observer and runs comparisons in the test environment.
+`scripts/publish.ps1` verifies the official installer's SHA-256 and Authenticode signature, embeds it in Wii2Xbox, and includes its license. When the driver is missing or incompatible, the app offers installation when the main window opens. After the user accepts, Wii2Xbox extracts and verifies the resource and asks Windows for elevation. It waits without blocking the UI, checks the driver afterward, and reports the result. The installer never forces a restart. `scripts/test-native.ps1` builds the XInput observer and runs comparisons in the test environment.
 
 ## Delivery Strategy
 

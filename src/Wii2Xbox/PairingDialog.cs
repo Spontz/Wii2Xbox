@@ -6,7 +6,7 @@ internal sealed class PairingDialog : Form
     private readonly Button pair = new() { Text = UiText.Get("PairSelected"), AutoSize = true };
     private readonly Button close = new() { Text = UiText.Get("Close"), AutoSize = true, DialogResult = DialogResult.Cancel };
     private readonly ComboBox method = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 85, AccessibleName = UiText.Get("PairingButtons") };
-    private readonly Label status = new() { Text = UiText.Get("SearchingBluetooth"), AutoSize = true, MaximumSize = new Size(535, 0) };
+    private readonly Label status = new() { Text = UiText.Get("SearchingBluetooth"), AutoSize = true };
     private readonly Dictionary<ulong, BluetoothService.Candidate> discovered = new();
     private CancellationTokenSource? scanCancellation;
     private Task scanTask = Task.CompletedTask;
@@ -17,24 +17,27 @@ internal sealed class PairingDialog : Form
     public PairingDialog()
     {
         Text = UiText.Get("AddControllerTitle");
-        ClientSize = new Size(575, 310);
-        MinimumSize = new Size(590, 300);
+        ScrollableLayout.ConfigureForm(this, new Size(575, 375), new Size(520, 340));
         StartPosition = FormStartPosition.CenterParent;
         ShowInTaskbar = false;
-        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(14), ColumnCount = 1, RowCount = 4 };
+        var layout = new TableLayoutPanel { Padding = new Padding(14), ColumnCount = 1, RowCount = 5 };
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        layout.Controls.Add(new Label { Text = UiText.Get("PairingInstructions"), AutoSize = true, MaximumSize = new Size(535, 0) });
-        layout.Controls.Add(found);
+        layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        var instructions = new Label { Text = UiText.Get("PairingInstructions"), AutoSize = true };
+        layout.Controls.Add(instructions, 0, 0);
+        layout.Controls.Add(found, 0, 1);
         var buttons = new FlowLayoutPanel { AutoSize = true, Dock = DockStyle.Fill };
         method.Items.AddRange(new object[] { "SYNC", "1+2" });
         method.SelectedIndex = 0;
-        buttons.Controls.AddRange([method, pair, close]);
-        layout.Controls.Add(buttons);
-        layout.Controls.Add(status);
-        Controls.Add(layout);
+        ScrollableLayout.FitChoices(method, 85);
+        buttons.Controls.AddRange([pair, close]);
+        layout.Controls.Add(method, 0, 2);
+        layout.Controls.Add(buttons, 0, 3);
+        layout.Controls.Add(status, 0, 4);
+        Controls.Add(new ScrollableLayout(layout, 1, 120, instructions, status));
         CancelButton = close;
         Shown += (_, _) => StartScanning();
         pair.Click += async (_, _) => await Pair();

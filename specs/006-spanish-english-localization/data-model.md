@@ -1,10 +1,3 @@
-# Language Preference
+# Resolved Display Language
 
-| Stored value | Meaning |
-| --- | --- |
-| Missing or unrecognized | Follow the Windows display language |
-| `system` | Follow the Windows display language |
-| `es` | Always display Spanish |
-| `en` | Always display English |
-
-The preference belongs to the Windows account. The app resolves it at launch and keeps that language until it exits. Saving a different preference leaves the current instance and controller sessions running. Setup derives its own language from Windows and does not modify the app preference.
+The app and MSI each read the Windows display language when their process starts. Spanish variants map to Spanish and all other values map to English. The app keeps the resolved language for the lifetime of its process. Controller profiles remain independent of language.

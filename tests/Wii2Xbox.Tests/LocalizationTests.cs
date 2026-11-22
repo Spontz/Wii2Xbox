@@ -10,16 +10,14 @@ namespace Wii2Xbox.Tests;
 public sealed class LocalizationTests
 {
     [Theory]
-    [InlineData(null, 0x0c0a, "es")] // Spanish (Spain)
-    [InlineData("system", 0x080a, "es")] // Spanish (Mexico)
-    [InlineData("system", 0x0409, "en")] // English (United States)
-    [InlineData("unknown", 0x0809, "en")] // English (United Kingdom)
-    [InlineData("system", 0x040c, "en")] // French
-    [InlineData("en", 0x0c0a, "en")]
-    [InlineData("es", 0x0409, "es")]
-    public void ExplicitPreferenceWinsOverWindowsDisplayLanguage(string? preference, int displayLanguage, string expected)
+    [InlineData(0x0c0a, "es")] // Spanish (Spain)
+    [InlineData(0x080a, "es")] // Spanish (Mexico)
+    [InlineData(0x0409, "en")] // English (United States)
+    [InlineData(0x0809, "en")] // English (United Kingdom)
+    [InlineData(0x040c, "en")] // French
+    public void AppFollowsWindowsDisplayLanguage(int displayLanguage, string expected)
     {
-        var culture = UiLanguage.Resolve(UiLanguage.Parse(preference), (ushort)displayLanguage);
+        var culture = UiLanguage.Resolve((ushort)displayLanguage);
         Assert.Equal(expected, culture.Name);
     }
 
@@ -55,14 +53,14 @@ public sealed class LocalizationTests
                 using var main = new MainForm(static () => []);
                 using var pairing = new PairingDialog();
                 using var profile = new ProfileDialog(new Profile { Name = "Perfil personalizado" });
-                var layout = Assert.Single(main.Controls.OfType<TableLayoutPanel>());
-                var picker = Assert.Single(layout.Controls.OfType<FlowLayoutPanel>()
-                    .SelectMany(panel => panel.Controls.OfType<ComboBox>()));
-                Assert.Equal("Language", picker.AccessibleName);
-                Assert.Equal(new[] { "System", "Español", "English" }, picker.Items.Cast<string>());
+                var layout = Assert.Single(Assert.Single(main.Controls.OfType<ScrollableLayout>()).Controls.OfType<TableLayoutPanel>());
+                Assert.Empty(layout.Controls.OfType<FlowLayoutPanel>().SelectMany(panel => panel.Controls.OfType<ComboBox>()));
+                Assert.DoesNotContain(layout.Controls.OfType<FlowLayoutPanel>().SelectMany(panel => panel.Controls.OfType<Button>()),
+                    button => button.Text == "Install Xbox driver");
                 Assert.Equal("Add controller", pairing.Text);
                 Assert.Equal("Wii controller profile", profile.Text);
-                var profileName = Assert.Single(profile.Controls.OfType<TableLayoutPanel>().Single().Controls
+                var profileRoot = Assert.Single(Assert.Single(profile.Controls.OfType<ScrollableLayout>()).Controls.OfType<TableLayoutPanel>());
+                var profileName = Assert.Single(profileRoot.Controls
                     .OfType<TableLayoutPanel>().SelectMany(panel => panel.Controls.OfType<TextBox>()));
                 Assert.Equal("Perfil personalizado", profileName.Text);
                 done.SetResult();
@@ -72,6 +70,60 @@ public sealed class LocalizationTests
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
         await done.Task.WaitAsync(TimeSpan.FromSeconds(5));
+    }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(25)]
+    public async Task MainAndPairingKeepTheirRowsSeparateAtMinimumSize(int fontPoints)
+    {
+        var done = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                using var font = new System.Drawing.Font("Segoe UI", fontPoints);
+                using var main = new MainForm(static () => []);
+                using var pairing = new PairingDialog();
+                VerifyRows(main, font);
+                VerifyRows(pairing, font);
+                done.SetResult();
+            }
+            catch (Exception error) { done.SetException(error); }
+        }) { IsBackground = true };
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        await done.Task.WaitAsync(TimeSpan.FromSeconds(5));
+    }
+
+    private static void VerifyRows(Form form, System.Drawing.Font font)
+    {
+        form.Font = font;
+        var viewport = Assert.Single(form.Controls.OfType<ScrollableLayout>());
+        var table = Assert.Single(viewport.Controls.OfType<TableLayoutPanel>());
+        foreach (var label in table.Controls.OfType<Label>().Where(label => label.Text.Length > 0))
+            label.Font = font;
+        form.Size = new System.Drawing.Size(200, 150);
+        Assert.Equal(form.MinimumSize, form.Size);
+        form.CreateControl();
+        form.PerformLayout();
+        viewport.PerformLayout();
+        table.PerformLayout();
+        var rows = table.GetRowHeights();
+        var list = Assert.Single(table.Controls.OfType<ListBox>().Cast<Control>().Concat(table.Controls.OfType<ListView>()));
+        Assert.True(rows[table.GetRow(list)] >= 114);
+        var occupied = table.Controls.Cast<Control>()
+            .Where(control => control is not Label label || label.Text.Length != 0)
+            .GroupBy(table.GetRow).OrderBy(row => row.Key).ToArray();
+        for (int row = 1; row < occupied.Length; row++)
+            Assert.True(occupied[row - 1].Max(control => control.Bottom) <= occupied[row].Min(control => control.Top),
+                $"{form.GetType().Name} overlaps rows {occupied[row - 1].Key} and {occupied[row].Key} at {font.Size} pt.");
+        foreach (var toolbar in table.Controls.OfType<FlowLayoutPanel>())
+        {
+            var controls = toolbar.Controls.Cast<Control>().ToArray();
+            for (int index = 0; index < controls.Length; index++)
+                Assert.DoesNotContain(controls.Skip(index + 1), control => control.Bounds.IntersectsWith(controls[index].Bounds));
+        }
     }
 
     private static Dictionary<string, string> Catalog(ResourceManager manager, CultureInfo culture) =>

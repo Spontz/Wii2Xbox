@@ -12,7 +12,7 @@
 
 ## Requirement Completeness
 
-- [x] Defines regional language matching, the default and fallback, and the order of preferences.
+- [x] Defines regional language matching and the English fallback from the Windows display language.
 - [x] Defines persistence, upgrade behavior, and the distinction between reopening a window and restarting the process.
 - [x] Identifies Wii2Xbox-owned and third-party surfaces.
 - [x] Preserves the two distribution formats, existing profiles, and active controller sessions.

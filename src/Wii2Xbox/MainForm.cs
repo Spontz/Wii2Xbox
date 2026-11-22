@@ -22,10 +22,8 @@ public sealed class MainForm : Form
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Wii2Xbox", "profiles"));
     private readonly Dictionary<string, CoreInputMap> profileMaps = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Profile> profiles = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Label info = new() { AutoSize = true, Padding = new Padding(0, 8, 0, 0) };
-    private readonly Label xboxStatus = new() { AutoSize = true, Padding = new Padding(0, 4, 0, 0) };
-    private readonly Label languageNotice = new() { AutoSize = true, Visible = false };
-    private readonly Button installXbox = new() { Text = UiText.Get("InstallXboxDriver"), AutoSize = true, Visible = false };
+    private readonly Label info = new() { AutoSize = true, Visible = false, Padding = new Padding(0, 8, 0, 0) };
+    private readonly Label xboxStatus = new() { AutoSize = true, Visible = false, Padding = new Padding(0, 4, 0, 0) };
     private readonly CheckBox startup = new()
     {
         Text = UiText.Get("StartWithWindows"), AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 8, 0, 0)
@@ -43,28 +41,42 @@ public sealed class MainForm : Form
     private bool deviceRefreshRequested;
     private bool pairingTransition;
     private bool installingXbox;
+    private bool driverOfferPending;
     private bool xboxChecked;
     private bool initialized;
     private bool exitRequested;
+    private readonly AppUpdater? updater;
+    private readonly string? updateResult;
+    private readonly CancellationTokenSource updateCancellation = new();
+    private readonly System.Windows.Forms.Timer updateTimer = new() { Interval = 30000 };
+    private DateTime nextUpdateCheck;
+    private bool checkingUpdate;
+    private bool updateHandoff;
+    private bool modalOperation;
+    private StagedUpdate? stagedUpdate;
+    private ToolStripMenuItem? restartUpdate;
     private NotifyIcon? trayIcon;
     private Icon? trayImage;
     internal bool XboxReady { get; private set; }
 
     public MainForm() : this(WiiDevice.Find) { }
 
-    internal MainForm(Func<WiiDevice[]> enumerateDevices)
+    internal MainForm(Func<WiiDevice[]> enumerateDevices, AppUpdater? updater = null, string? updateResult = null)
     {
         this.enumerateDevices = enumerateDevices;
+        this.updater = updater;
+        this.updateResult = updateResult;
+        nextUpdateCheck = updateResult is null ? DateTime.MinValue : DateTime.UtcNow.AddHours(6);
+        updateTimer.Tick += async (_, _) => await CheckForUpdates();
         using (var icon = typeof(MainForm).Assembly.GetManifestResourceStream("Wii2Xbox.AppIcon")
             ?? throw new InvalidOperationException(UiText.Get("MissingAppIcon")))
             appIcon = new Icon(icon);
         Text = "Wii2Xbox";
         Icon = appIcon;
-        ClientSize = new Size(850, 520);
-        MinimumSize = new Size(690, 420);
+        ScrollableLayout.ConfigureForm(this, new Size(850, 520), new Size(690, 450));
         StartPosition = FormStartPosition.CenterScreen;
         Font = new Font("Segoe UI", 10);
-        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(16), ColumnCount = 2, RowCount = 8 };
+        var layout = new TableLayoutPanel { Padding = new Padding(16), ColumnCount = 2, RowCount = 7 };
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
@@ -74,20 +86,22 @@ public sealed class MainForm : Form
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 165));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        layout.Controls.Add(new Label { Text = UiText.Get("WiiControllers"), Font = new Font("Segoe UI", 22, FontStyle.Bold), AutoSize = true }, 0, 0);
-        layout.Controls.Add(CreateLanguagePicker(), 1, 0);
+        layout.Controls.Add(new Label
+        {
+            Text = UiText.Get("WiiControllers"), Font = new Font("Segoe UI", 16, FontStyle.Bold),
+            Dock = DockStyle.Fill, AutoEllipsis = true, AutoSize = true, TextAlign = ContentAlignment.MiddleLeft
+        }, 0, 0);
         var actions = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Dock = DockStyle.Fill };
         actions.Controls.Add(Action(UiText.Get("AddControllerButton"), () => _ = PairDevice()));
         actions.Controls.Add(Action(UiText.Get("EditProfileButton"), EditProfile));
         actions.Controls.Add(Action(UiText.Get("CalibrateIrButton"), CalibrateInfrared));
-        actions.Controls.Add(installXbox);
-        layout.Controls.Add(actions, 0, 1);
+        AddFullWidth(actions, 1);
         var support = Action(UiText.Get("CoffeeButton"), OpenSupportPage);
         support.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-        layout.Controls.Add(support, 1, 1);
+        layout.Controls.Add(support, 1, 0);
         startup.Click += (_, _) => UpdateStartup();
-        installXbox.Click += async (_, _) => await InstallXbox();
+        info.TextChanged += (_, _) => info.Visible = info.Text.Length != 0;
+        xboxStatus.TextChanged += (_, _) => xboxStatus.Visible = xboxStatus.Text.Length != 0;
         devices.Columns.Add(UiText.Get("ControllerColumn"));
         devices.Columns.Add("Xbox");
         devices.Columns.Add(UiText.Get("StatusColumn"));
@@ -115,18 +129,13 @@ public sealed class MainForm : Form
         };
         devices.ClientSizeChanged += (_, _) => ResizeDeviceColumns();
         devices.HandleCreated += (_, _) => ResizeDeviceColumns();
+        devices.FontChanged += (_, _) => ResizeDeviceColumns();
         AddFullWidth(devices, 2);
         AddFullWidth(startup, 3);
         AddFullWidth(remoteView, 4);
         AddFullWidth(info, 5);
         AddFullWidth(xboxStatus, 6);
-        AddFullWidth(languageNotice, 7);
-        layout.SizeChanged += (_, _) =>
-        {
-            var limit = new Size(Math.Max(1, layout.ClientSize.Width - layout.Padding.Horizontal - 8), 0);
-            info.MaximumSize = xboxStatus.MaximumSize = languageNotice.MaximumSize = limit;
-        };
-        Controls.Add(layout);
+        Controls.Add(new ScrollableLayout(layout, 2, 114, info, xboxStatus));
         display.Tick += async (_, _) =>
         {
             StartAvailableSessions();
@@ -153,49 +162,16 @@ public sealed class MainForm : Form
         }
     }
 
-    private Control CreateLanguagePicker()
-    {
-        var options = new FlowLayoutPanel
-        {
-            Anchor = AnchorStyles.Right, AutoSize = true, WrapContents = false
-        };
-        var label = new Label
-        {
-            Text = UiText.Get("Language"), AutoSize = true, Margin = new Padding(3, 7, 0, 0)
-        };
-        var picker = new ComboBox
-        {
-            DropDownStyle = ComboBoxStyle.DropDownList, Width = 100, AccessibleName = label.Text
-        };
-        picker.Items.AddRange([UiText.Get("FollowSystem"), "Español", "English"]);
-        var savedMode = UiLanguage.Mode;
-        picker.SelectedIndex = (int)savedMode;
-        picker.SelectionChangeCommitted += (_, _) =>
-        {
-            var selected = (UiLanguageMode)picker.SelectedIndex;
-            try
-            {
-                UiLanguage.Save(selected);
-                savedMode = selected;
-                languageNotice.Text = UiText.Get("LanguageRestart");
-                languageNotice.Visible = selected != UiLanguage.Mode;
-            }
-            catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Security.SecurityException)
-            {
-                System.Diagnostics.Debug.WriteLine(error);
-                picker.SelectedIndex = (int)savedMode;
-                languageNotice.Text = UiText.Get("LanguageSaveFailed");
-                languageNotice.Visible = true;
-            }
-        };
-        options.Controls.AddRange([label, picker]);
-        return options;
-    }
-
     internal void StartResident(bool background)
     {
         var menu = new ContextMenuStrip();
         menu.Items.Add(UiText.Get("OpenApp"), null, (_, _) => RestoreWindow());
+        if (updater is not null)
+        {
+            restartUpdate = new ToolStripMenuItem(UiText.Get("RestartToUpdate")) { Available = false };
+            restartUpdate.Click += async (_, _) => await ApplyStagedUpdate(explicitRestart: true);
+            menu.Items.Add(restartUpdate);
+        }
         menu.Items.Add(UiText.Get("Exit"), null, (_, _) =>
         {
             if (installingXbox)
@@ -230,6 +206,7 @@ public sealed class MainForm : Form
         if (WindowState == FormWindowState.Minimized) WindowState = FormWindowState.Normal;
         ShowSessions();
         Activate();
+        _ = OfferXboxDriver();
     }
 
     private async Task InitializeOnce()
@@ -245,6 +222,90 @@ public sealed class MainForm : Form
         }
         await Task.WhenAll(FindDevices(), CheckXbox());
         if (startupError is not null && !closing && !IsDisposed) info.Text = startupError;
+        if (closing || IsDisposed) return;
+        if (updateResult is "failed" or "restart-required")
+        {
+            string message = UiText.Get(updateResult == "failed" ? "UpdateFailed" : "UpdateRestartRequired");
+            info.Text = message;
+            if (!Visible) trayIcon?.ShowBalloonTip(5000, "Wii2Xbox", message, ToolTipIcon.Warning);
+        }
+        if (updater is not null)
+        {
+            updateTimer.Start();
+            _ = CheckForUpdates();
+        }
+    }
+
+    private async Task CheckForUpdates()
+    {
+        if (updater is null || closing || checkingUpdate || updateHandoff) return;
+        if (stagedUpdate is not null)
+        {
+            await ApplyStagedUpdate(explicitRestart: false);
+            return;
+        }
+        if (DateTime.UtcNow < nextUpdateCheck) return;
+
+        checkingUpdate = true;
+        nextUpdateCheck = DateTime.UtcNow.AddHours(6);
+        try
+        {
+            var staged = await updater.CheckAndStage(updateCancellation.Token);
+            if (staged is null) return;
+            if (closing || IsDisposed)
+            {
+                AppUpdater.RemoveStage(staged.Directory);
+                return;
+            }
+            stagedUpdate = staged;
+            if (restartUpdate is not null) restartUpdate.Available = true;
+            await ApplyStagedUpdate(explicitRestart: false);
+        }
+        catch (Exception error) when (error is HttpRequestException or IOException or UnauthorizedAccessException
+                                         or OperationCanceledException or System.Text.Json.JsonException)
+        {
+            System.Diagnostics.Debug.WriteLine(error);
+        }
+        finally { checkingUpdate = false; }
+    }
+
+    private async Task ApplyStagedUpdate(bool explicitRestart)
+    {
+        if (updater is null || stagedUpdate is not { } staged || updateHandoff || UpdateBlocked(explicitRestart))
+            return;
+
+        updateHandoff = true;
+        try
+        {
+            using var handoff = await updater.PrepareHandoff(staged, !Visible || WindowState == FormWindowState.Minimized);
+            if (handoff is null) throw new IOException("The update helper did not start.");
+            if (UpdateBlocked(explicitRestart) || IsDisposed) return;
+            handoff.Begin();
+            stagedUpdate = null; // The helper owns the verified package from here.
+            exitRequested = true;
+            Close();
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or
+                                     System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            System.Diagnostics.Debug.WriteLine(error);
+            AppUpdater.RemoveStage(staged.Directory);
+            stagedUpdate = null;
+            if (restartUpdate is not null) restartUpdate.Available = false;
+            if (!closing) info.Text = UiText.Get("UpdateFailed");
+        }
+        finally { updateHandoff = false; }
+    }
+
+    private bool UpdateBlocked(bool explicitRestart) =>
+        closing || suspended || installingXbox || modalOperation || pairingTransition || finding || recovering ||
+        !explicitRestart && sessions.Values.Any(session => !session.Completion.IsCompleted);
+
+    private DialogResult ShowOwnedDialog(Form dialog)
+    {
+        modalOperation = true;
+        try { return dialog.ShowDialog(this); }
+        finally { modalOperation = false; }
     }
 
     private void UpdateStartup()
@@ -259,27 +320,40 @@ public sealed class MainForm : Form
 
     private async Task CheckXbox(string? installationResult = null, bool restartRequired = false)
     {
-        installXbox.Enabled = false;
         var status = await Task.Run(() => XboxOutput.CheckDriver());
         if (closing || IsDisposed) return;
         xboxChecked = true;
         XboxReady = status.Ready;
         if (status.Ready) unavailableXboxOutputs.Clear();
-        installXbox.Visible = status.CanInstall && VigemBusSetup.IsBundled && !restartRequired;
-        installXbox.Enabled = true;
-        string message = installXbox.Visible
-            ? UiText.Format("DriverInstallHint", status.Message)
-            : status.Message;
+        driverOfferPending = installationResult is null && status.CanInstall && VigemBusSetup.IsBundled && !restartRequired;
+        string message = status.Message;
         xboxStatus.Text = installationResult is null ? (status.Ready ? "" : message) : $"{installationResult} {message}";
         if (!status.Ready && !Visible && installationResult is null)
             trayIcon?.ShowBalloonTip(5000, "Wii2Xbox", message, ToolTipIcon.Warning);
         StartAvailableSessions();
+        await OfferXboxDriver();
+    }
+
+    private async Task OfferXboxDriver()
+    {
+        if (!driverOfferPending || !Visible || closing || IsDisposed) return;
+        driverOfferPending = false;
+        string question = $"{xboxStatus.Text}{Environment.NewLine}{Environment.NewLine}{UiText.Get("DriverInstallQuestion")}";
+        DialogResult answer;
+        modalOperation = true;
+        try
+        {
+            answer = MessageBox.Show(this, question, "Wii2Xbox", MessageBoxButtons.YesNo, MessageBoxIcon.Question,
+                MessageBoxDefaultButton.Button2);
+        }
+        finally { modalOperation = false; }
+        if (answer == DialogResult.Yes)
+            await InstallXbox();
     }
 
     private async Task InstallXbox()
     {
         installingXbox = true;
-        installXbox.Enabled = false;
         xboxStatus.Text = UiText.Get("InstallingDriver");
         string result;
         bool restartRequired = false;
@@ -365,10 +439,7 @@ public sealed class MainForm : Form
             ResizeDeviceColumns();
             if (devices.SelectedItems.Count == 0 && devices.Items.Count > 0) devices.Items[0].Selected = true;
             StartAvailableSessions();
-            if (announce)
-                info.Text = found.Length == 0
-                    ? UiText.Get("NoControllersHint")
-                    : UiText.Get("ControllersReadyHint");
+            if (announce) info.Text = "";
         }
         catch (Exception error)
         {
@@ -392,7 +463,7 @@ public sealed class MainForm : Form
     private async Task PairAndSelectDevice()
     {
         using var dialog = new PairingDialog();
-        if (dialog.ShowDialog(this) != DialogResult.OK || dialog.PairedAddress is not ulong address) return;
+        if (ShowOwnedDialog(dialog) != DialogResult.OK || dialog.PairedAddress is not ulong address) return;
         info.Text = UiText.Get("WaitingForHid");
         string id = $"bluetooth:{address:X12}";
         long deadline = Environment.TickCount64 + 5000;
@@ -447,7 +518,7 @@ public sealed class MainForm : Form
 
     private void StartAvailableSessions()
     {
-        if (closing || suspended) return;
+        if (closing || suspended || updateHandoff) return;
         bool promoting = false;
         foreach (var (id, device) in discovered)
         {
@@ -514,16 +585,40 @@ public sealed class MainForm : Form
         int width = devices.ClientSize.Width;
         if (width <= 0) return;
 
-        int xboxWidth = Math.Min(LogicalToDeviceUnits(66), width / 4);
-        int outputWidth = Math.Min(LogicalToDeviceUnits(152), width / 3);
-        int remaining = width - xboxWidth - outputWidth;
-        int nameWidth = remaining / 3;
-        int statusWidth = remaining * 5 / 12;
-        devices.Columns[0].Width = nameWidth;
-        devices.Columns[1].Width = xboxWidth;
-        devices.Columns[2].Width = statusWidth;
-        devices.Columns[3].Width = remaining - nameWidth - statusWidth;
-        devices.Columns[OutputColumn].Width = outputWidth;
+        int padding = LogicalToDeviceUnits(14);
+        int[] minimum = devices.Columns.Cast<ColumnHeader>()
+            .Select(column => TextRenderer.MeasureText(column.Text, devices.Font).Width + padding)
+            .ToArray();
+        int total = minimum.Sum();
+        if (total <= width)
+        {
+            int remaining = width - total;
+            int xboxExtra = Math.Clamp(LogicalToDeviceUnits(66) - minimum[1], 0, remaining);
+            minimum[1] += xboxExtra;
+            remaining -= xboxExtra;
+            int outputLabel = outputLabels.Max(label => TextRenderer.MeasureText($"{label}  ▾", devices.Font).Width);
+            int outputTarget = Math.Min(width / 3, Math.Max(LogicalToDeviceUnits(152), outputLabel + padding));
+            int outputExtra = Math.Clamp(outputTarget - minimum[OutputColumn], 0, remaining);
+            minimum[OutputColumn] += outputExtra;
+            remaining -= outputExtra;
+            int nameExtra = remaining / 3;
+            int statusExtra = remaining * 5 / 12;
+            minimum[0] += nameExtra;
+            minimum[2] += statusExtra;
+            minimum[3] += remaining - nameExtra - statusExtra;
+        }
+        else
+        {
+            int available = width;
+            for (int i = 0; i < minimum.Length - 1; i++)
+            {
+                minimum[i] = minimum[i] * width / total;
+                available -= minimum[i];
+            }
+            minimum[OutputColumn] = available;
+        }
+        for (int i = 0; i < minimum.Length; i++)
+            devices.Columns[i].Width = minimum[i];
     }
 
     private bool HasCapacity(SessionMode mode) =>
@@ -535,7 +630,7 @@ public sealed class MainForm : Form
 
     private async Task RecoverSessions()
     {
-        if (closing || suspended || finding || recovering) return;
+        if (closing || suspended || finding || recovering || updateHandoff) return;
         long now = Environment.TickCount64;
         var due = recovery.Where(pair => sessions.TryGetValue(pair.Key, out var session) &&
             session.Completion.IsCompleted && pair.Value.HasRetry(now, session.ReconnectRecommended) &&
@@ -604,7 +699,7 @@ public sealed class MainForm : Form
             return;
         }
         using var dialog = new ProfileDialog(GetProfile(id));
-        if (dialog.ShowDialog(this) != DialogResult.OK || dialog.Result is not { } updated) return;
+        if (ShowOwnedDialog(dialog) != DialogResult.OK || dialog.Result is not { } updated) return;
         SaveProfile(id, updated, UiText.Get("ProfileSaved"));
     }
 
@@ -620,7 +715,7 @@ public sealed class MainForm : Form
         try
         {
             using var dialog = new InfraredCalibrationDialog(session, capture);
-            var result = dialog.ShowDialog(this);
+            var result = ShowOwnedDialog(dialog);
             if (result == DialogResult.Abort)
             {
                 info.Text = UiText.Get("CalibrationSessionLost");
@@ -700,6 +795,8 @@ public sealed class MainForm : Form
             return;
         }
         closing = true;
+        updateCancellation.Cancel();
+        updateTimer.Stop();
         display.Stop();
         buttonDisplay.Stop();
         recovery.Clear();
@@ -730,6 +827,10 @@ public sealed class MainForm : Form
     {
         if (disposing)
         {
+            updateCancellation.Cancel();
+            updateCancellation.Dispose();
+            updateTimer.Dispose();
+            if (stagedUpdate is { } staged) AppUpdater.RemoveStage(staged.Directory);
             display.Dispose();
             buttonDisplay.Dispose();
             outputMenu.Dispose();

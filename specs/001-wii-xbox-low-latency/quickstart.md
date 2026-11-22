@@ -27,7 +27,7 @@ Packaging creates the portable ZIP and MSI from one Release build and validates 
 
 ## Real Hardware Test
 
-1. Extract the ZIP on Windows without the SDK or driver, disconnect the Internet, and open Wii2Xbox. Choose **Instalar controlador Xbox** (Install Xbox driver), authorize the installation, and restart if required.
+1. Extract the ZIP on Windows without the SDK or driver, disconnect the Internet, and open Wii2Xbox. Accept the driver installation offer, authorize the installation in Windows, and restart if required.
 2. Connect a compatible radio and Wii Remote. Verify the model, identity, and real HID input.
 3. Verify automatic activation and test buttons and axes in `joy.cpl` or an XInput game. Check that the LED matches the **Xbox** column, including with another slot occupied. Record browser detection separately.
 4. Repeat with four controllers and test disconnection while holding input, cancellation, sleep, and reconnection.

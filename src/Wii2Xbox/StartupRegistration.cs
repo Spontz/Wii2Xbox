@@ -43,12 +43,12 @@ internal static class StartupRegistration
         startup.SetValue(valueName, command, RegistryValueKind.String);
     }
 
-    private static string GetValueName(string? executable)
+    private static string GetValueName(string? executable) => IsInstalledExecutable(executable) ? InstalledValueName : PortableValueName;
+
+    internal static bool IsInstalledExecutable(string? executable)
     {
         using var key = Registry.CurrentUser.OpenSubKey(InstallerKey);
         return executable is not null &&
-            string.Equals(executable, key?.GetValue("ExecutablePath") as string, StringComparison.OrdinalIgnoreCase)
-            ? InstalledValueName
-            : PortableValueName;
+            string.Equals(executable, key?.GetValue("ExecutablePath") as string, StringComparison.OrdinalIgnoreCase);
     }
 }

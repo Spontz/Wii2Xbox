@@ -97,7 +97,7 @@ As a user, I want to run without the SDK and recover from disconnections without
 **Acceptance Scenarios**:
 
 1. **Given** Windows without the SDK, **When** I run the package, **Then** it opens and checks prerequisites.
-2. **Given** Windows without the Xbox driver or Internet access, **When** I select **Instalar controlador Xbox** (Install Xbox driver) and authorize installation, **Then** Wii2Xbox installs the embedded driver, checks the result, and reports whether Windows requires a restart.
+2. **Given** Windows without the Xbox driver or Internet access, **When** I accept the installation offer shown on opening Wii2Xbox and authorize installation in Windows, **Then** Wii2Xbox installs the embedded driver, checks the result, and reports whether Windows requires a restart.
 3. **Given** a held button, **When** I remove the batteries or turn off the radio, **Then** output is neutralized within 1 second of observable communication loss.
 4. **Given** sleep and resume, **When** Bluetooth returns, **Then** I can recover without duplicate outputs or impact on unrelated devices.
 5. **Given** the app is active, **When** I select **Salir** (Exit) from the notification area, **Then** discovery, readers, and outputs stop. See the [background operation specification](../002-background-startup/spec.md) for what happens when only the window closes.
@@ -135,7 +135,7 @@ As a user, I want to run without the SDK and recover from disconnections without
 - **FR-014**: Preserve ordered transitions and avoid unbounded queues. Identify the reason for every dropped report.
 - **FR-015**: Measure processing and cadence in the test environment with bounded samples, units, and a time window. The controller list displays **Mando** (Controller), **Xbox**, **Estado** (Status), and **Perfil** (Profile).
 - **FR-016**: Export measurements with percentiles and conditions in development tests. Separate processing, virtual observation, and end-to-end measurement.
-- **FR-017**: Check virtual driver availability at startup and report absence, incompatibility, or blocked access. Offer **Instalar controlador Xbox** (Install Xbox driver) if the driver is missing or incompatible. Embed the signed official installer and support user-initiated offline installation with Windows elevation. Recheck afterward and report cancellation, failure, or a required restart. Keep **Ratón IR** (IR mouse) available without the Xbox driver.
+- **FR-017**: Check virtual driver availability at startup and report absence, incompatibility, or blocked access. If installation is available, ask once when the main window opens. Start installation only after the user accepts. Embed the signed official installer and support offline installation with Windows elevation. Recheck afterward and report cancellation, failure, or a required restart. Keep **Ratón IR** (IR mouse) available without the Xbox driver.
 - **FR-018**: Ship a Windows package with the runtime, licenses, and guides. Keep the XInput observer and comparison tool in development tests.
 - **FR-019**: Keep configuration and diagnostics local. Allow offline play without an account after installing prerequisites.
 - **FR-020**: Leave sensors, rumble, and global changes disabled by default. Optional improvements must respect the latency budget.
