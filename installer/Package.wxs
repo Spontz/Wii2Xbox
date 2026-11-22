@@ -1,0 +1,43 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="Wii2Xbox"
+           Manufacturer="Iván Fernández"
+           Version="$(var.ProductVersion)"
+           UpgradeCode="F6ADEE8B-98F0-49F1-BBEB-EDC0C5A9F748"
+           Scope="perUser"
+           Language="3082">
+    <MajorUpgrade Schedule="afterInstallExecute" AllowSameVersionUpgrades="yes"
+                  DowngradeErrorMessage="Ya hay una versión más reciente de Wii2Xbox instalada." />
+    <MediaTemplate EmbedCab="yes" />
+    <Property Id="ARPNOMODIFY" Value="1" />
+    <Property Id="ARPPRODUCTICON" Value="Wii2Xbox.ico" />
+    <Icon Id="Wii2Xbox.ico" SourceFile="$(sys.SOURCEFILEDIR)..\src\Wii2Xbox\Resources\Wii2Xbox.ico" />
+
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="UserProgramsFolder" Name="Programs">
+        <Directory Id="InstallFolder" Name="Wii2Xbox" />
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Component Id="StartMenuEntry">
+        <Shortcut Id="StartMenuShortcut" Name="Wii2Xbox"
+                  Target="[InstallFolder]Wii2Xbox.exe" WorkingDirectory="InstallFolder" />
+        <RegistryValue Root="HKCU" Key="Software\Wii2Xbox\Installer"
+                       Name="ExecutablePath" Value="[InstallFolder]Wii2Xbox.exe" Type="string" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+
+    <DirectoryRef Id="InstallFolder">
+      <Component Id="InstalledStartup" NeverOverwrite="yes">
+        <RemoveFolder Id="RemoveEmptyProgramsFolder" Directory="UserProgramsFolder" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\Microsoft\Windows\CurrentVersion\Run"
+                       Name="Wii2Xbox.Installed" Value="" Type="string" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+    <Feature Id="Application" Title="Wii2Xbox">
+      <ComponentGroupRef Id="ApplicationFiles" />
+      <ComponentGroupRef Id="PayloadDirectoryCleanup" />
+      <ComponentRef Id="StartMenuEntry" />
+      <ComponentRef Id="InstalledStartup" />
+    </Feature>
+  </Package>
+</Wix>

@@ -1,0 +1,17 @@
+{
+  "SchemaVersion": 1,
+  "Name": "Wii Remote y Nunchuk",
+  "Horizontal": false,
+  "Deadzone": 12,
+  "Bindings": {
+    "A": "A",
+    "B": "RightTrigger",
+    "One": "X",
+    "Two": "Y",
+    "Plus": "Start",
+    "Minus": "Back",
+    "Home": "Guide",
+    "C": "B",
+    "Z": "LeftTrigger"
+  }
+}

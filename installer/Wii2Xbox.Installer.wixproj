@@ -1,0 +1,12 @@
+<Project Sdk="WixToolset.Sdk/6.0.2">
+  <PropertyGroup>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <OutputName>Wii2Xbox-win-x64</OutputName>
+    <!-- Per-user only. Rebuilding the same three-part version also replaces it. -->
+    <SuppressIces>ICE91;ICE61</SuppressIces>
+    <DefineConstants>ProductVersion=$(ProductVersion)</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(PayloadSource)" Condition="'$(PayloadSource)' != ''" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,17 @@
+{
+  "SchemaVersion": 1,
+  "Name": "Wii Remote horizontal",
+  "Horizontal": true,
+  "Deadzone": 12,
+  "Bindings": {
+    "Two": "A",
+    "One": "B",
+    "A": "X",
+    "B": "Y",
+    "Plus": "Start",
+    "Minus": "Back",
+    "Home": "Guide",
+    "C": "LeftShoulder",
+    "Z": "LeftTrigger"
+  }
+}
