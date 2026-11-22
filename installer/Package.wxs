@@ -5,13 +5,18 @@
            Version="$(var.ProductVersion)"
            UpgradeCode="F6ADEE8B-98F0-49F1-BBEB-EDC0C5A9F748"
            Scope="perUser"
-           Language="3082">
-    <MajorUpgrade Schedule="afterInstallExecute" AllowSameVersionUpgrades="yes"
-                  DowngradeErrorMessage="Ya hay una versión más reciente de Wii2Xbox instalada." />
+           Language="!(loc.PackageLanguage)">
+    <MajorUpgrade Schedule="afterInstallExecute" AllowSameVersionUpgrades="yes" IgnoreLanguage="yes"
+                  DowngradeErrorMessage="!(loc.DowngradeBlocked)" />
     <MediaTemplate EmbedCab="yes" />
     <ui:WixUI Id="WixUI_Minimal" />
-    <UIRef Id="WixUI_ErrorProgressText" />
     <WixVariable Id="WixUILicenseRtf" Value="$(var.InstallerLicense)" />
+    <Binary Id="LanguageSelector" SourceFile="$(var.LanguageSelector)" />
+    <CustomAction Id="SelectSetupLanguage" BinaryRef="LanguageSelector" DllEntry="SelectSetupLanguage"
+                  Execute="immediate" Return="check" />
+    <InstallUISequence>
+      <Custom Action="SelectSetupLanguage" Before="PrepareDlg" />
+    </InstallUISequence>
     <Property Id="ARPPRODUCTICON" Value="Wii2Xbox.ico" />
     <Icon Id="Wii2Xbox.ico" SourceFile="$(sys.SOURCEFILEDIR)..\src\Wii2Xbox\Resources\Wii2Xbox.ico" />
 

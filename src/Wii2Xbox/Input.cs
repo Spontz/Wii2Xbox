@@ -36,19 +36,19 @@ public sealed class Profile
     public void Validate()
     {
         if (SchemaVersion != 1)
-            throw new InvalidDataException($"Versión de perfil incompatible: {SchemaVersion}.");
+            throw new InvalidDataException(UiText.Format("UnsupportedProfileVersion", SchemaVersion));
         if (string.IsNullOrWhiteSpace(Name) || Name.Length > 80 || Deadzone < 0 || Deadzone > 60 || Bindings is null)
-            throw new InvalidDataException("Perfil inválido: nombre o zona muerta (0–60).");
+            throw new InvalidDataException(UiText.Get("InvalidProfileNameOrZone"));
         if (InfraredCalibration is { } calibration && !calibration.IsValid)
-            throw new InvalidDataException("Calibración infrarroja inválida.");
+            throw new InvalidDataException(UiText.Get("InvalidIrCalibration"));
         foreach (var (source,target) in Bindings)
             if (!Sources.Contains(source) ||
                 !(target is not null && (XboxButtons.ContainsKey(target) || target is "LeftTrigger" or "RightTrigger" or "None")))
-                throw new InvalidDataException($"Asignación inválida: {source} → {target}");
+                throw new InvalidDataException(UiText.Format("InvalidBinding", source, target));
     }
     public static Profile Load(string path)
     {
-        var p=JsonSerializer.Deserialize<Profile>(File.ReadAllText(path)) ?? throw new InvalidDataException("Perfil vacío.");
+        var p=JsonSerializer.Deserialize<Profile>(File.ReadAllText(path)) ?? throw new InvalidDataException(UiText.Get("EmptyProfile"));
         p.Validate(); return p;
     }
     public void Save(string path) => ProfileStore.Write(path, this);
@@ -67,7 +67,7 @@ public static class InputMapper
 
     public static WiiInput Parse(ReadOnlySpan<byte> r)
     {
-        if(r.Length<3) throw new InvalidDataException("Informe Wii incompleto.");
+        if(r.Length<3) throw new InvalidDataException(UiText.Get("IncompleteWiiReport"));
         // Only button bits: accelerometer bits may occupy the other positions.
         var buttons = ParseButtons(r).Buttons;
         if(r[0]==0x32 && r.Length>=11)

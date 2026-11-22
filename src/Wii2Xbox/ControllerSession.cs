@@ -15,7 +15,7 @@ internal sealed class ControllerSession
     private readonly object lifecycle = new();
     private bool stopping;
     private IControllerTransport? stream;
-    private string status = "Abriendo mando…";
+    private string status = UiText.Get("OpeningController");
     private int reports;
     private int truncatedReports;
     private int unknownReports;
@@ -30,7 +30,7 @@ internal sealed class ControllerSession
     {
         var capture = new InfraredCalibrationCapture();
         if (Interlocked.CompareExchange(ref calibrationCapture, capture, null) is not null)
-            throw new InvalidOperationException("Ya hay una calibración abierta para este mando.");
+            throw new InvalidOperationException(UiText.Get("CalibrationAlreadyOpen"));
         return capture;
     }
     public void EndInfraredCalibration(InfraredCalibrationCapture capture) =>
@@ -126,6 +126,11 @@ internal sealed class ControllerSession
             if (infrared is not null) input.Send(InfraredCommand.Clock);
             else input.Send(WiiCommand.Status);
             var lastValidReport = Stopwatch.GetTimestamp();
+            string activeLabel = UiText.Get("Active");
+            string irStarting = UiText.Get("IrStartingSuffix");
+            string irUnavailable = UiText.Get("IrUnavailableSuffix");
+            string irActive = UiText.Get("IrActiveSuffix");
+            string irAim = UiText.Get("IrAimSuffix");
             string lastAccessory = "";
             string lastMouseStatus = "";
             int indicatedPlayer = 0;
@@ -139,7 +144,7 @@ internal sealed class ControllerSession
                 if (input.ReadTimeout != timeout) input.ReadTimeout = timeout;
                 int count = input.Read(buffer);
                 long received = Stopwatch.GetTimestamp();
-                if (count == 0) throw new IOException("El mando cerró la conexión.");
+                if (count == 0) throw new IOException(UiText.Get("ControllerClosedConnection"));
                 if (Volatile.Read(ref stopping)) break;
                 transportOperation = false;
                 var frame = buffer.AsSpan(0, count);
@@ -206,16 +211,17 @@ internal sealed class ControllerSession
                     var mouseStatus = infrared switch
                     {
                         null => "",
-                        { Pending: true } => " · iniciando IR",
-                        { Enabled: false } => " · IR no disponible",
-                        _ => mouse!.Tracking ? " · ratón IR" : " · apunta a la barra IR"
+                        { Pending: true } => irStarting,
+                        { Enabled: false } => irUnavailable,
+                        _ => mouse!.Tracking ? irActive : irAim
                     };
-                    if (initial || retryPlayer || lastAccessory != protocol.Accessory || lastMouseStatus != mouseStatus)
+                    string accessory = protocol.Accessory;
+                    if (initial || retryPlayer || lastAccessory != accessory || lastMouseStatus != mouseStatus)
                     {
-                        lastAccessory = protocol.Accessory;
+                        lastAccessory = accessory;
                         lastMouseStatus = mouseStatus;
                         Volatile.Write(ref status, lastAccessory.Length == 0
-                            ? "Activo" + mouseStatus : $"Activo · {lastAccessory}{mouseStatus}");
+                            ? activeLabel + mouseStatus : $"{activeLabel} · {lastAccessory}{mouseStatus}");
                     }
                 }
                 else
@@ -238,7 +244,7 @@ internal sealed class ControllerSession
                 else if (configuringMouse && infrared is { Pending: false })
                 {
                     if (!infrared.Enabled && mode == SessionMode.Mouse)
-                        throw new IOException("El mando no confirmó la activación de la cámara IR.");
+                        throw new IOException(UiText.Get("IrActivationUnconfirmed"));
                     if (infrared.Enabled)
                     {
                         input.Send(WiiCommand.CoreMode, infrared: true);
@@ -262,7 +268,7 @@ internal sealed class ControllerSession
                     Nefarius.ViGEm.Client.Exceptions.VigemNoFreeSlotException;
                 var message = error switch
                 {
-                    TimeoutException => "Se ha perdido la comunicación con el mando.",
+                    TimeoutException => UiText.Get("ControllerCommunicationLost"),
                     Nefarius.ViGEm.Client.Exceptions.VigemBusNotFoundException or
                     Nefarius.ViGEm.Client.Exceptions.VigemBusAccessFailedException or
                     Nefarius.ViGEm.Client.Exceptions.VigemBusVersionMismatchException or
@@ -287,7 +293,7 @@ internal sealed class ControllerSession
             }
             try { input?.Dispose(); }
             catch (Exception error) { Debug.WriteLine(error); }
-            if (Volatile.Read(ref stopping)) Volatile.Write(ref status, "Detenido");
+            if (Volatile.Read(ref stopping)) Volatile.Write(ref status, UiText.Get("Stopped"));
         }
     }
 }

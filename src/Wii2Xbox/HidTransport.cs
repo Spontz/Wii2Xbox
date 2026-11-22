@@ -26,7 +26,7 @@ internal sealed record WiiDevice(HidDevice Device, ulong? BluetoothAddress)
     public IControllerTransport Open()
     {
         if (!Device.TryOpen(out var stream))
-            throw new IOException("Windows no ha podido abrir el mando. Comprueba que esté encendido y cierra otras aplicaciones que lo utilicen.");
+            throw new IOException(UiText.Get("CannotOpenController"));
         try
         {
             stream.ReadTimeout = InputDeadline.LimitMs;

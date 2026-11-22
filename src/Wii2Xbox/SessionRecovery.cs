@@ -46,7 +46,7 @@ internal static class InputDeadline
     {
         double remaining = LimitMs - elapsed.TotalMilliseconds;
         if (remaining <= 0)
-            throw new TimeoutException("Se ha perdido la comunicación con el mando.");
+            throw new TimeoutException(UiText.Get("ControllerCommunicationLost"));
         return (int)Math.Ceiling(remaining);
     }
 }

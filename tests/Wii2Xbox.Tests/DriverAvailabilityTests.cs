@@ -6,9 +6,9 @@ namespace Wii2Xbox.Tests;
 public sealed class DriverAvailabilityTests
 {
     [Theory]
-    [InlineData(typeof(VigemBusNotFoundException), "no se encontró ViGEmBus", true)]
-    [InlineData(typeof(VigemBusVersionMismatchException), "no es compatible", true)]
-    [InlineData(typeof(VigemBusAccessFailedException), "denegó el acceso", false)]
+    [InlineData(typeof(VigemBusNotFoundException), "was not found", true)]
+    [InlineData(typeof(VigemBusVersionMismatchException), "unsupported", true)]
+    [InlineData(typeof(VigemBusAccessFailedException), "denied access", false)]
     public void ConvertsDriverFailuresIntoDifferentActions(Type type, string expected, bool canInstall)
     {
         var result = XboxOutput.CheckDriver(() => throw (Exception)Activator.CreateInstance(type)!);

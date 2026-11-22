@@ -14,6 +14,7 @@ internal static class Program
 
         try
         {
+            UiLanguage.Initialize();
             ApplicationConfiguration.Initialize();
             Application.SetColorMode(SystemColorMode.System);
             using var context = new ApplicationContext();

@@ -47,13 +47,16 @@ internal sealed class NunchukProtocol(bool enableExtension = true)
     private long deadline;
     public StickCalibration Calibration { get; private set; } = StickCalibration.Default;
     public bool UsingFallbackCalibration { get; private set; }
+    private readonly string fallbackCalibration = UiText.Get("NunchukFallback");
+    private readonly string unsupportedAccessory = UiText.Get("UnsupportedAccessory");
+    private readonly string detectingAccessory = UiText.Get("DetectingAccessory");
     public string Accessory => stage switch
     {
-        Stage.Active when UsingFallbackCalibration => "Nunchuk · calibración predeterminada",
+        Stage.Active when UsingFallbackCalibration => fallbackCalibration,
         Stage.Active => "Nunchuk",
-        Stage.Unsupported => "Accesorio sin compatibilidad",
+        Stage.Unsupported => unsupportedAccessory,
         Stage.Absent => "",
-        _ => "Detectando accesorio"
+        _ => detectingAccessory
     };
 
     public bool Process(ReadOnlySpan<byte> report, long now, out WiiInput input, out WiiCommand command)

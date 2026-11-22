@@ -1,0 +1,4 @@
+<WixLocalization xmlns="http://wixtoolset.org/schemas/v4/wxl" Culture="es-ES">
+  <String Id="PackageLanguage" Value="3082" />
+  <String Id="DowngradeBlocked" Value="Ya hay una versión más reciente de Wii2Xbox instalada." />
+</WixLocalization>

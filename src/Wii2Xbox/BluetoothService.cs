@@ -15,7 +15,7 @@ internal static class BluetoothService
     {
         public bool CanPair => IsSupportedModel(Device.Name);
         public override string ToString() =>
-            $"{Device.Name} · {Device.Address:X12}{(CanPair ? "" : " · no compatible")}";
+            $"{Device.Name} · {Device.Address:X12}{(CanPair ? "" : UiText.Get("UnsupportedControllerSuffix"))}";
     }
 
     internal static bool IsSupportedModel(string? name)
@@ -58,7 +58,7 @@ internal static class BluetoothService
             {
                 var error = Marshal.GetLastWin32Error();
                 cancellation.ThrowIfCancellationRequested();
-                if (error != NoMoreItems) Check(error, "buscar mandos");
+                if (error != NoMoreItems) Check(error, UiText.Get("BluetoothSearchOperation"));
                 continue;
             }
             try
@@ -70,19 +70,19 @@ internal static class BluetoothService
                         found.TryAdd(device.Address, new Candidate(info.Address, device));
                 } while (BluetoothFindNextDevice(find, ref device));
                 var error = Marshal.GetLastWin32Error();
-                if (error != NoMoreItems) Check(error, "enumerar mandos");
+                if (error != NoMoreItems) Check(error, UiText.Get("BluetoothEnumerateOperation"));
             }
             finally { BluetoothFindDeviceClose(find); }
         }
         cancellation.ThrowIfCancellationRequested();
-        if (!hasRadio) throw new InvalidOperationException("Windows no encuentra un adaptador Bluetooth Classic activo.");
+        if (!hasRadio) throw new InvalidOperationException(UiText.Get("NoBluetoothRadio"));
         return found.Values.ToArray();
     }
 
     public static void Pair(Candidate candidate, bool syncButton)
     {
         if (!candidate.CanPair)
-            throw new NotSupportedException("Wii2Xbox asocia Wii Remote RVL-CNT-01 y RVL-CNT-01-TR. El modelo seleccionado no es compatible.");
+            throw new NotSupportedException(UiText.Get("UnsupportedWiiModel"));
 
         foreach (var radio in Radios())
         {
@@ -100,15 +100,15 @@ internal static class BluetoothService
                 for (int index = 0; index < pin.Length; index++)
                     pin[index] = (ushort)((address >> (8 * index)) & 0xff);
 
-                Check(BluetoothAuthenticateDevice(IntPtr.Zero, radio, ref device, pin, (uint)pin.Length), "asociar el mando");
+                Check(BluetoothAuthenticateDevice(IntPtr.Zero, radio, ref device, pin, (uint)pin.Length), UiText.Get("BluetoothPairOperation"));
                 uint serviceCount = 0;
                 int result = BluetoothEnumerateInstalledServices(radio, ref device, ref serviceCount, null);
-                if (result != MoreData) Check(result, "consultar servicios Bluetooth");
+                if (result != MoreData) Check(result, UiText.Get("BluetoothServicesOperation"));
             }
-            Check(EnableHid(radio, ref device), "activar el servicio de mando HID");
+            Check(EnableHid(radio, ref device), UiText.Get("BluetoothHidOperation"));
             return;
         }
-        throw new InvalidOperationException("El adaptador que encontró este mando se ha desconectado.");
+        throw new InvalidOperationException(UiText.Get("BluetoothRadioDisconnected"));
     }
 
     private static int EnableHid(SafeFileHandle radio, ref DeviceInfo device)
@@ -135,7 +135,7 @@ internal static class BluetoothService
         {
             var error = Marshal.GetLastWin32Error();
             handle?.Dispose();
-            if (error is not (NoMoreItems or 1168)) Check(error, "abrir el adaptador Bluetooth");
+            if (error is not (NoMoreItems or 1168)) Check(error, UiText.Get("OpenBluetoothRadioOperation"));
             yield break;
         }
         try
@@ -147,7 +147,7 @@ internal static class BluetoothService
                 {
                     var error = Marshal.GetLastWin32Error();
                     handle?.Dispose();
-                    if (error != NoMoreItems) Check(error, "enumerar adaptadores Bluetooth");
+                    if (error != NoMoreItems) Check(error, UiText.Get("EnumerateBluetoothRadiosOperation"));
                     break;
                 }
             }
@@ -158,7 +158,7 @@ internal static class BluetoothService
     private static RadioInfo ReadRadio(SafeFileHandle radio)
     {
         var info = new RadioInfo { Size = SizeOf<RadioInfo>(), Name = "" };
-        Check(BluetoothGetRadioInfo(radio, ref info), "consultar el adaptador Bluetooth");
+        Check(BluetoothGetRadioInfo(radio, ref info), UiText.Get("QueryBluetoothRadioOperation"));
         return info;
     }
 
@@ -168,7 +168,7 @@ internal static class BluetoothService
     private static void Check(int error, string operation)
     {
         if (error != 0)
-            throw new Win32Exception(error, $"Windows no pudo {operation}: {new Win32Exception(error).Message} ({error}).");
+            throw new Win32Exception(error, UiText.Format("BluetoothOperationFailed", operation, new Win32Exception(error).Message, error));
     }
 
     [StructLayout(LayoutKind.Sequential)]

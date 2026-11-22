@@ -1,0 +1,450 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms</value>
+  </resheader>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="AddControllerButton" xml:space="preserve">
+    <value>Add controller…</value>
+  </data>
+  <data name="AddControllerTitle" xml:space="preserve">
+    <value>Add controller</value>
+  </data>
+  <data name="AutomaticMapping" xml:space="preserve">
+    <value>Based on orientation</value>
+  </data>
+  <data name="Available" xml:space="preserve">
+    <value>Available</value>
+  </data>
+  <data name="BluetoothEnumerateOperation" xml:space="preserve">
+    <value>list controllers</value>
+  </data>
+  <data name="BluetoothHidOperation" xml:space="preserve">
+    <value>enable the HID controller service</value>
+  </data>
+  <data name="BluetoothOperationFailed" xml:space="preserve">
+    <value>Windows could not {0}: {1} ({2}).</value>
+  </data>
+  <data name="BluetoothPairOperation" xml:space="preserve">
+    <value>pair the controller</value>
+  </data>
+  <data name="BluetoothRadioDisconnected" xml:space="preserve">
+    <value>The adapter that found this controller disconnected.</value>
+  </data>
+  <data name="BluetoothSearchOperation" xml:space="preserve">
+    <value>search for controllers</value>
+  </data>
+  <data name="BluetoothServicesOperation" xml:space="preserve">
+    <value>query Bluetooth services</value>
+  </data>
+  <data name="CalibrateFirstTarget" xml:space="preserve">
+    <value>Aim at the upper-left crosshair and press A.</value>
+  </data>
+  <data name="CalibrateIrButton" xml:space="preserve">
+    <value>&amp;Calibrate IR…</value>
+  </data>
+  <data name="CalibrateMouseTitle" xml:space="preserve">
+    <value>Calibrate IR mouse</value>
+  </data>
+  <data name="CalibrateSecondTarget" xml:space="preserve">
+    <value>Aim at the lower-right crosshair and press A.</value>
+  </data>
+  <data name="CalibrationAlreadyOpen" xml:space="preserve">
+    <value>Calibration is already open for this controller.</value>
+  </data>
+  <data name="CalibrationPointsTooClose" xml:space="preserve">
+    <value>The two points were too close. Aim at the first crosshair again.</value>
+  </data>
+  <data name="CalibrationSessionLost" xml:space="preserve">
+    <value>The session disconnected during calibration.</value>
+  </data>
+  <data name="CalibrationShortcuts" xml:space="preserve">
+    <value>Esc to cancel   ·   R to restore factory settings</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="CannotOpenController" xml:space="preserve">
+    <value>Windows could not open the controller. Check that it is on and close other apps using it.</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="CoffeeButton" xml:space="preserve">
+    <value>Buy me a coffee</value>
+  </data>
+  <data name="ControllerClosedConnection" xml:space="preserve">
+    <value>The controller closed the connection.</value>
+  </data>
+  <data name="ControllerColumn" xml:space="preserve">
+    <value>Controller</value>
+  </data>
+  <data name="ControllerCommunicationLost" xml:space="preserve">
+    <value>Communication with the controller was lost.</value>
+  </data>
+  <data name="ControllerOutput" xml:space="preserve">
+    <value>Controller output</value>
+  </data>
+  <data name="ControllerProfile" xml:space="preserve">
+    <value>Wii controller profile</value>
+  </data>
+  <data name="ControllersReadyHint" xml:space="preserve">
+    <value>Available controllers activate automatically. You can change the output for each controller.</value>
+  </data>
+  <data name="DeadZone" xml:space="preserve">
+    <value>Dead zone</value>
+  </data>
+  <data name="DetectingAccessory" xml:space="preserve">
+    <value>Detecting accessory</value>
+  </data>
+  <data name="DisabledBinding" xml:space="preserve">
+    <value>Unassigned</value>
+  </data>
+  <data name="Disconnected" xml:space="preserve">
+    <value>Disconnected</value>
+  </data>
+  <data name="DpadDown" xml:space="preserve">
+    <value>D-pad ↓</value>
+  </data>
+  <data name="DpadLeft" xml:space="preserve">
+    <value>D-pad ←</value>
+  </data>
+  <data name="DpadRight" xml:space="preserve">
+    <value>D-pad →</value>
+  </data>
+  <data name="DpadUp" xml:space="preserve">
+    <value>D-pad ↑</value>
+  </data>
+  <data name="DriverInstallHint" xml:space="preserve">
+    <value>{0} You can install the driver from Wii2Xbox.</value>
+  </data>
+  <data name="DriverInstallerExitCode" xml:space="preserve">
+    <value>The ViGEmBus installer returned code {0}.</value>
+  </data>
+  <data name="DriverInstallerFinished" xml:space="preserve">
+    <value>The ViGEmBus installer finished.</value>
+  </data>
+  <data name="DriverInstallerLaunchFailed" xml:space="preserve">
+    <value>Could not start the installer. {0}</value>
+  </data>
+  <data name="DriverRestartNeeded" xml:space="preserve">
+    <value>Restart Windows to complete ViGEmBus installation.</value>
+  </data>
+  <data name="EditProfileButton" xml:space="preserve">
+    <value>Profile…</value>
+  </data>
+  <data name="EmbeddedDriverInvalid" xml:space="preserve">
+    <value>The embedded ViGEmBus installer does not match the official copy.</value>
+  </data>
+  <data name="EmbeddedDriverMissing" xml:space="preserve">
+    <value>This build does not include the ViGEmBus installer.</value>
+  </data>
+  <data name="EmptyProfile" xml:space="preserve">
+    <value>Empty profile.</value>
+  </data>
+  <data name="EnableIrBeforeCalibration" xml:space="preserve">
+    <value>Enable the IR mouse and wait for the controller to confirm the camera before calibrating.</value>
+  </data>
+  <data name="EnumerateBluetoothRadiosOperation" xml:space="preserve">
+    <value>list Bluetooth adapters</value>
+  </data>
+  <data name="Exit" xml:space="preserve">
+    <value>Exit</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Export…</value>
+  </data>
+  <data name="FollowSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="FoundWiiControllers" xml:space="preserve">
+    <value>Wii controllers found</value>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>Import…</value>
+  </data>
+  <data name="IncompleteWiiReport" xml:space="preserve">
+    <value>Incomplete Wii report.</value>
+  </data>
+  <data name="InstallXboxDriver" xml:space="preserve">
+    <value>Install Xbox driver</value>
+  </data>
+  <data name="InstallationCanceled" xml:space="preserve">
+    <value>Installation canceled.</value>
+  </data>
+  <data name="InstallingDriver" xml:space="preserve">
+    <value>Installing ViGEmBus. Allow the installation when Windows prompts you.</value>
+  </data>
+  <data name="InvalidBinding" xml:space="preserve">
+    <value>Invalid mapping: {0} → {1}</value>
+  </data>
+  <data name="InvalidIrCalibration" xml:space="preserve">
+    <value>Invalid IR calibration.</value>
+  </data>
+  <data name="InvalidProfileNameOrZone" xml:space="preserve">
+    <value>Invalid profile name or dead zone (0–60).</value>
+  </data>
+  <data name="IrActivationUnconfirmed" xml:space="preserve">
+    <value>The controller did not confirm IR camera activation.</value>
+  </data>
+  <data name="IrActiveSuffix" xml:space="preserve">
+    <value> · IR mouse</value>
+  </data>
+  <data name="IrAimSuffix" xml:space="preserve">
+    <value> · aim at the sensor bar</value>
+  </data>
+  <data name="IrCalibrationReset" xml:space="preserve">
+    <value>IR calibration reset.</value>
+  </data>
+  <data name="IrCalibrationSaved" xml:space="preserve">
+    <value>IR calibration saved.</value>
+  </data>
+  <data name="IrControlsHint" xml:space="preserve">
+    <value>Turn on the sensor bar and point the controller upright. Press A to left-click and B to right-click.</value>
+  </data>
+  <data name="IrStartingSuffix" xml:space="preserve">
+    <value> · starting IR</value>
+  </data>
+  <data name="IrUnavailableSuffix" xml:space="preserve">
+    <value> · IR unavailable</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="LanguageRestart" xml:space="preserve">
+    <value>To apply the language, select Exit in the notification area and reopen Wii2Xbox.</value>
+  </data>
+  <data name="LanguageSaveFailed" xml:space="preserve">
+    <value>Could not save the language.</value>
+  </data>
+  <data name="LeftShoulderBinding" xml:space="preserve">
+    <value>Left bumper</value>
+  </data>
+  <data name="LeftStickBinding" xml:space="preserve">
+    <value>Left stick click</value>
+  </data>
+  <data name="LeftTriggerBinding" xml:space="preserve">
+    <value>Left trigger</value>
+  </data>
+  <data name="MissingAppIcon" xml:space="preserve">
+    <value>The Wii2Xbox icon was not found.</value>
+  </data>
+  <data name="MissingExecutablePath" xml:space="preserve">
+    <value>Windows did not provide the Wii2Xbox path.</value>
+  </data>
+  <data name="MissingViewerImage" xml:space="preserve">
+    <value>The Wii Remote image was not found.</value>
+  </data>
+  <data name="NoBluetoothRadio" xml:space="preserve">
+    <value>Windows cannot find an active Bluetooth Classic adapter.</value>
+  </data>
+  <data name="NoControllersHint" xml:space="preserve">
+    <value>Select Add controller… to connect a Wii Remote.</value>
+  </data>
+  <data name="NunchukDeadZone" xml:space="preserve">
+    <value>Nunchuk dead zone</value>
+  </data>
+  <data name="NunchukFallback" xml:space="preserve">
+    <value>Nunchuk · default calibration</value>
+  </data>
+  <data name="OpenApp" xml:space="preserve">
+    <value>Open Wii2Xbox</value>
+  </data>
+  <data name="OpenBluetoothRadioOperation" xml:space="preserve">
+    <value>open the Bluetooth adapter</value>
+  </data>
+  <data name="OpeningController" xml:space="preserve">
+    <value>Opening controller…</value>
+  </data>
+  <data name="Orientation" xml:space="preserve">
+    <value>Orientation</value>
+  </data>
+  <data name="OutputColumn" xml:space="preserve">
+    <value>Output</value>
+  </data>
+  <data name="OutputCombined" xml:space="preserve">
+    <value>Xbox and IR mouse</value>
+  </data>
+  <data name="OutputIr" xml:space="preserve">
+    <value>IR mouse</value>
+  </data>
+  <data name="PairSelected" xml:space="preserve">
+    <value>Pair selected</value>
+  </data>
+  <data name="PairingButtons" xml:space="preserve">
+    <value>Buttons pressed on the controller</value>
+  </data>
+  <data name="PairingConfirmed" xml:space="preserve">
+    <value>Windows confirmed pairing. Select the controller in the list if it appears.</value>
+  </data>
+  <data name="PairingInProgress" xml:space="preserve">
+    <value>Windows is pairing the controller. Keep its LEDs flashing.</value>
+  </data>
+  <data name="PairingInstructions" xml:space="preserve">
+    <value>Press SYNC next to the batteries or hold 1+2 until the LEDs flash.</value>
+  </data>
+  <data name="PairingRetry" xml:space="preserve">
+    <value>{0} Put the controller in sync mode and try again.</value>
+  </data>
+  <data name="PairingSuccess" xml:space="preserve">
+    <value>Controller paired. Output activates automatically when available.</value>
+  </data>
+  <data name="ProfileColumn" xml:space="preserve">
+    <value>Profile</value>
+  </data>
+  <data name="ProfileFileFilter" xml:space="preserve">
+    <value>JSON profile (*.json)|*.json</value>
+  </data>
+  <data name="ProfileLoadFailed" xml:space="preserve">
+    <value>Could not load the profile. The default profile will be used. {0}</value>
+  </data>
+  <data name="ProfileName" xml:space="preserve">
+    <value>Profile name</value>
+  </data>
+  <data name="ProfileSaveFailed" xml:space="preserve">
+    <value>Could not save the profile. {0}</value>
+  </data>
+  <data name="ProfileSaved" xml:space="preserve">
+    <value>Profile saved for this controller.</value>
+  </data>
+  <data name="QueryBluetoothRadioOperation" xml:space="preserve">
+    <value>query the Bluetooth adapter</value>
+  </data>
+  <data name="RearButton" xml:space="preserve">
+    <value>B · Rear</value>
+  </data>
+  <data name="RetryingSession" xml:space="preserve">
+    <value>{0} · retrying</value>
+  </data>
+  <data name="RightShoulderBinding" xml:space="preserve">
+    <value>Right bumper</value>
+  </data>
+  <data name="RightStickBinding" xml:space="preserve">
+    <value>Right stick click</value>
+  </data>
+  <data name="RightTriggerBinding" xml:space="preserve">
+    <value>Right trigger</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="SearchingBluetooth" xml:space="preserve">
+    <value>Searching for Wii controllers…</value>
+  </data>
+  <data name="SearchingChooseController" xml:space="preserve">
+    <value>Search is still running. Select a controller and choose SYNC or 1+2.</value>
+  </data>
+  <data name="SearchingPaired" xml:space="preserve">
+    <value>Looking for Wii controllers paired with Windows…</value>
+  </data>
+  <data name="SearchingPressSync" xml:space="preserve">
+    <value>Searching for Wii controllers. Press SYNC or hold 1+2.</value>
+  </data>
+  <data name="SearchingSupportedModels" xml:space="preserve">
+    <value>Searching for a compatible Wii Remote. Supported models: RVL-CNT-01 and RVL-CNT-01-TR.</value>
+  </data>
+  <data name="SelectProfileController" xml:space="preserve">
+    <value>Select the controller whose profile you want to edit.</value>
+  </data>
+  <data name="SensorBarDetected" xml:space="preserve">
+    <value>Sensor bar detected. Hold the controller upright.</value>
+  </data>
+  <data name="SensorBarNotVisible" xml:space="preserve">
+    <value>The camera needs to see both ends of the sensor bar.</value>
+  </data>
+  <data name="StartWithWindows" xml:space="preserve">
+    <value>Start with Windows</value>
+  </data>
+  <data name="StartupChangeFailed" xml:space="preserve">
+    <value>Could not change Windows startup. {0}</value>
+  </data>
+  <data name="StartupPathTooLong" xml:space="preserve">
+    <value>The Wii2Xbox path is too long for Windows startup.</value>
+  </data>
+  <data name="StartupReadFailed" xml:space="preserve">
+    <value>Could not read Windows startup settings.</value>
+  </data>
+  <data name="StartupWriteDenied" xml:space="preserve">
+    <value>Windows did not allow access to startup settings.</value>
+  </data>
+  <data name="StatusColumn" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Stopped" xml:space="preserve">
+    <value>Stopped</value>
+  </data>
+  <data name="StoppingBluetoothSearch" xml:space="preserve">
+    <value>Stopping Bluetooth search…</value>
+  </data>
+  <data name="SupportPageFailed" xml:space="preserve">
+    <value>Could not open Ko-fi. Check that you have a default browser.</value>
+  </data>
+  <data name="UnsupportedAccessory" xml:space="preserve">
+    <value>Unsupported accessory</value>
+  </data>
+  <data name="UnsupportedControllerSuffix" xml:space="preserve">
+    <value> · unsupported</value>
+  </data>
+  <data name="UnsupportedProfileVersion" xml:space="preserve">
+    <value>Unsupported profile version: {0}.</value>
+  </data>
+  <data name="UnsupportedWiiModel" xml:space="preserve">
+    <value>Wii2Xbox pairs RVL-CNT-01 and RVL-CNT-01-TR Wii Remotes. The selected model is unsupported.</value>
+  </data>
+  <data name="Upright" xml:space="preserve">
+    <value>Upright</value>
+  </data>
+  <data name="WaitUntilDriverInstalled" xml:space="preserve">
+    <value>Wait for ViGEmBus installation to finish before exiting.</value>
+  </data>
+  <data name="WaitingForHid" xml:space="preserve">
+    <value>Bluetooth paired. Waiting for Windows to expose the HID controller…</value>
+  </data>
+  <data name="WaitingForIrMouse" xml:space="preserve">
+    <value>Waiting for the IR mouse</value>
+  </data>
+  <data name="WaitingForXboxDriver" xml:space="preserve">
+    <value>Waiting for the Xbox driver</value>
+  </data>
+  <data name="WaitingForXboxSlot" xml:space="preserve">
+    <value>Waiting for an Xbox slot</value>
+  </data>
+  <data name="WiiControllers" xml:space="preserve">
+    <value>Wii controllers</value>
+  </data>
+  <data name="WiiRemoteButtons" xml:space="preserve">
+    <value>Wii Remote buttons</value>
+  </data>
+  <data name="WindowsCannotLaunchDriver" xml:space="preserve">
+    <value>Windows could not open the ViGEmBus installer.</value>
+  </data>
+  <data name="XboxAccessDenied" xml:space="preserve">
+    <value>Xbox: Windows denied access to ViGEmBus. Check the driver status in Windows.</value>
+  </data>
+  <data name="XboxDriverMissing" xml:space="preserve">
+    <value>Xbox: ViGEmBus was not found.</value>
+  </data>
+  <data name="XboxDriverReady" xml:space="preserve">
+    <value>Xbox: ViGEmBus is available.</value>
+  </data>
+  <data name="XboxDriverUnsupported" xml:space="preserve">
+    <value>Xbox: the ViGEmBus version is unsupported.</value>
+  </data>
+  <data name="XboxError" xml:space="preserve">
+    <value>Xbox: {0}</value>
+  </data>
+  <data name="XboxNoSlots" xml:space="preserve">
+    <value>Xbox: no slots are available for another virtual controller.</value>
+  </data>
+</root>

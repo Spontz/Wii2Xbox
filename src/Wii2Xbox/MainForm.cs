@@ -3,7 +3,7 @@ namespace Wii2Xbox;
 public sealed class MainForm : Form
 {
     private const int OutputColumn = 4;
-    private static readonly string[] OutputLabels = ["Xbox", "Ratón IR", "Xbox y ratón IR"];
+    private readonly string[] outputLabels = ["Xbox", UiText.Get("OutputIr"), UiText.Get("OutputCombined")];
     private readonly ListView devices = new()
     {
         Dock = DockStyle.Fill, View = View.Details, FullRowSelect = true, MultiSelect = false
@@ -24,14 +24,15 @@ public sealed class MainForm : Form
     private readonly Dictionary<string, Profile> profiles = new(StringComparer.OrdinalIgnoreCase);
     private readonly Label info = new() { AutoSize = true, Padding = new Padding(0, 8, 0, 0) };
     private readonly Label xboxStatus = new() { AutoSize = true, Padding = new Padding(0, 4, 0, 0) };
-    private readonly Button installXbox = new() { Text = "Instalar controlador Xbox", AutoSize = true, Visible = false };
+    private readonly Label languageNotice = new() { AutoSize = true, Visible = false };
+    private readonly Button installXbox = new() { Text = UiText.Get("InstallXboxDriver"), AutoSize = true, Visible = false };
     private readonly CheckBox startup = new()
     {
-        Text = "Arrancar al iniciar Windows", AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 8, 0, 0)
+        Text = UiText.Get("StartWithWindows"), AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 8, 0, 0)
     };
     private readonly ContextMenuStrip outputMenu = new()
     {
-        AccessibleName = "Salida del mando", ShowImageMargin = false, ShowCheckMargin = true
+        AccessibleName = UiText.Get("ControllerOutput"), ShowImageMargin = false, ShowCheckMargin = true
     };
     private string? outputMenuDevice;
     private bool closing;
@@ -55,7 +56,7 @@ public sealed class MainForm : Form
     {
         this.enumerateDevices = enumerateDevices;
         using (var icon = typeof(MainForm).Assembly.GetManifestResourceStream("Wii2Xbox.AppIcon")
-            ?? throw new InvalidOperationException("No se encontró el icono de Wii2Xbox."))
+            ?? throw new InvalidOperationException(UiText.Get("MissingAppIcon")))
             appIcon = new Icon(icon);
         Text = "Wii2Xbox";
         Icon = appIcon;
@@ -63,7 +64,7 @@ public sealed class MainForm : Form
         MinimumSize = new Size(690, 420);
         StartPosition = FormStartPosition.CenterScreen;
         Font = new Font("Segoe UI", 10);
-        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(16), ColumnCount = 2, RowCount = 7 };
+        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(16), ColumnCount = 2, RowCount = 8 };
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
@@ -73,27 +74,29 @@ public sealed class MainForm : Form
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 165));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        AddFullWidth(new Label { Text = "Mandos Wii", Font = new Font("Segoe UI", 22, FontStyle.Bold), AutoSize = true }, 0);
+        layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        layout.Controls.Add(new Label { Text = UiText.Get("WiiControllers"), Font = new Font("Segoe UI", 22, FontStyle.Bold), AutoSize = true }, 0, 0);
+        layout.Controls.Add(CreateLanguagePicker(), 1, 0);
         var actions = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Dock = DockStyle.Fill };
-        actions.Controls.Add(Action("Añadir mando…", () => _ = PairDevice()));
-        actions.Controls.Add(Action("Perfil…", EditProfile));
-        actions.Controls.Add(Action("&Calibrar IR…", CalibrateInfrared));
+        actions.Controls.Add(Action(UiText.Get("AddControllerButton"), () => _ = PairDevice()));
+        actions.Controls.Add(Action(UiText.Get("EditProfileButton"), EditProfile));
+        actions.Controls.Add(Action(UiText.Get("CalibrateIrButton"), CalibrateInfrared));
         actions.Controls.Add(installXbox);
         layout.Controls.Add(actions, 0, 1);
-        var support = Action("Invítame a un café", OpenSupportPage);
+        var support = Action(UiText.Get("CoffeeButton"), OpenSupportPage);
         support.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         layout.Controls.Add(support, 1, 1);
         startup.Click += (_, _) => UpdateStartup();
         installXbox.Click += async (_, _) => await InstallXbox();
-        devices.Columns.Add("Mando");
+        devices.Columns.Add(UiText.Get("ControllerColumn"));
         devices.Columns.Add("Xbox");
-        devices.Columns.Add("Estado");
-        devices.Columns.Add("Perfil");
-        devices.Columns.Add("Salida");
-        for (int index = 0; index < OutputLabels.Length; index++)
+        devices.Columns.Add(UiText.Get("StatusColumn"));
+        devices.Columns.Add(UiText.Get("ProfileColumn"));
+        devices.Columns.Add(UiText.Get("OutputColumn"));
+        for (int index = 0; index < outputLabels.Length; index++)
         {
             var mode = (SessionMode)index;
-            outputMenu.Items.Add(OutputLabels[index], null, (_, _) =>
+            outputMenu.Items.Add(outputLabels[index], null, (_, _) =>
             {
                 if (outputMenuDevice is { } id) SetOutputMode(id, mode);
             });
@@ -117,10 +120,11 @@ public sealed class MainForm : Form
         AddFullWidth(remoteView, 4);
         AddFullWidth(info, 5);
         AddFullWidth(xboxStatus, 6);
+        AddFullWidth(languageNotice, 7);
         layout.SizeChanged += (_, _) =>
         {
             var limit = new Size(Math.Max(1, layout.ClientSize.Width - layout.Padding.Horizontal - 8), 0);
-            info.MaximumSize = xboxStatus.MaximumSize = limit;
+            info.MaximumSize = xboxStatus.MaximumSize = languageNotice.MaximumSize = limit;
         };
         Controls.Add(layout);
         display.Tick += async (_, _) =>
@@ -149,16 +153,55 @@ public sealed class MainForm : Form
         }
     }
 
+    private Control CreateLanguagePicker()
+    {
+        var options = new FlowLayoutPanel
+        {
+            Anchor = AnchorStyles.Right, AutoSize = true, WrapContents = false
+        };
+        var label = new Label
+        {
+            Text = UiText.Get("Language"), AutoSize = true, Margin = new Padding(3, 7, 0, 0)
+        };
+        var picker = new ComboBox
+        {
+            DropDownStyle = ComboBoxStyle.DropDownList, Width = 100, AccessibleName = label.Text
+        };
+        picker.Items.AddRange([UiText.Get("FollowSystem"), "Español", "English"]);
+        var savedMode = UiLanguage.Mode;
+        picker.SelectedIndex = (int)savedMode;
+        picker.SelectionChangeCommitted += (_, _) =>
+        {
+            var selected = (UiLanguageMode)picker.SelectedIndex;
+            try
+            {
+                UiLanguage.Save(selected);
+                savedMode = selected;
+                languageNotice.Text = UiText.Get("LanguageRestart");
+                languageNotice.Visible = selected != UiLanguage.Mode;
+            }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+            {
+                System.Diagnostics.Debug.WriteLine(error);
+                picker.SelectedIndex = (int)savedMode;
+                languageNotice.Text = UiText.Get("LanguageSaveFailed");
+                languageNotice.Visible = true;
+            }
+        };
+        options.Controls.AddRange([label, picker]);
+        return options;
+    }
+
     internal void StartResident(bool background)
     {
         var menu = new ContextMenuStrip();
-        menu.Items.Add("Abrir Wii2Xbox", null, (_, _) => RestoreWindow());
-        menu.Items.Add("Salir", null, (_, _) =>
+        menu.Items.Add(UiText.Get("OpenApp"), null, (_, _) => RestoreWindow());
+        menu.Items.Add(UiText.Get("Exit"), null, (_, _) =>
         {
             if (installingXbox)
             {
                 RestoreWindow();
-                xboxStatus.Text = "Espera a que termine la instalación de ViGEmBus antes de salir.";
+                xboxStatus.Text = UiText.Get("WaitUntilDriverInstalled");
                 return;
             }
             exitRequested = true;
@@ -198,7 +241,7 @@ public sealed class MainForm : Form
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Security.SecurityException)
         {
             startup.Enabled = false;
-            startupError = "No se pudo leer la configuración de inicio de Windows.";
+            startupError = UiText.Get("StartupReadFailed");
         }
         await Task.WhenAll(FindDevices(), CheckXbox());
         if (startupError is not null && !closing && !IsDisposed) info.Text = startupError;
@@ -210,7 +253,7 @@ public sealed class MainForm : Form
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Security.SecurityException)
         {
             startup.Checked = !startup.Checked;
-            info.Text = $"No se pudo cambiar el inicio con Windows. {error.Message}";
+            info.Text = UiText.Format("StartupChangeFailed", error.Message);
         }
     }
 
@@ -225,7 +268,7 @@ public sealed class MainForm : Form
         installXbox.Visible = status.CanInstall && VigemBusSetup.IsBundled && !restartRequired;
         installXbox.Enabled = true;
         string message = installXbox.Visible
-            ? $"{status.Message} Puedes instalar el controlador desde Wii2Xbox."
+            ? UiText.Format("DriverInstallHint", status.Message)
             : status.Message;
         xboxStatus.Text = installationResult is null ? (status.Ready ? "" : message) : $"{installationResult} {message}";
         if (!status.Ready && !Visible && installationResult is null)
@@ -237,7 +280,7 @@ public sealed class MainForm : Form
     {
         installingXbox = true;
         installXbox.Enabled = false;
-        xboxStatus.Text = "Instalando ViGEmBus. Autoriza la instalación cuando Windows lo solicite.";
+        xboxStatus.Text = UiText.Get("InstallingDriver");
         string result;
         bool restartRequired = false;
         try
@@ -246,19 +289,19 @@ public sealed class MainForm : Form
             restartRequired = code is 1641 or 3010;
             result = code switch
             {
-                0 => "El instalador de ViGEmBus ha terminado.",
-                1641 or 3010 => "Reinicia Windows para completar la instalación de ViGEmBus.",
-                1602 => "Instalación cancelada.",
-                _ => $"El instalador de ViGEmBus devolvió el código {code}."
+                0 => UiText.Get("DriverInstallerFinished"),
+                1641 or 3010 => UiText.Get("DriverRestartNeeded"),
+                1602 => UiText.Get("InstallationCanceled"),
+                _ => UiText.Format("DriverInstallerExitCode", code)
             };
         }
         catch (System.ComponentModel.Win32Exception error) when (error.NativeErrorCode == 1223)
         {
-            result = "Instalación cancelada.";
+            result = UiText.Get("InstallationCanceled");
         }
         catch (Exception error) when (error is System.ComponentModel.Win32Exception or IOException or UnauthorizedAccessException)
         {
-            result = $"No se pudo iniciar la instalación. {error.Message}";
+            result = UiText.Format("DriverInstallerLaunchFailed", error.Message);
         }
         finally { installingXbox = false; }
 
@@ -281,7 +324,7 @@ public sealed class MainForm : Form
         }
         catch (Exception error) when (error is System.ComponentModel.Win32Exception or InvalidOperationException)
         {
-            info.Text = "No se pudo abrir Ko-fi. Comprueba que haya un navegador predeterminado.";
+            info.Text = UiText.Get("SupportPageFailed");
         }
     }
 
@@ -289,7 +332,7 @@ public sealed class MainForm : Form
     {
         if (finding || suspended || closing) return;
         finding = true;
-        if (announce) info.Text = "Buscando mandos Wii asociados en Windows…";
+        if (announce) info.Text = UiText.Get("SearchingPaired");
         try
         {
             var found = await Task.Run(enumerateDevices);
@@ -324,8 +367,8 @@ public sealed class MainForm : Form
             StartAvailableSessions();
             if (announce)
                 info.Text = found.Length == 0
-                    ? "Pulsa Añadir mando… para conectar un Wii Remote."
-                    : "Los mandos disponibles se activan automáticamente. Puedes cambiar la salida de cada mando.";
+                    ? UiText.Get("NoControllersHint")
+                    : UiText.Get("ControllersReadyHint");
         }
         catch (Exception error)
         {
@@ -350,7 +393,7 @@ public sealed class MainForm : Form
     {
         using var dialog = new PairingDialog();
         if (dialog.ShowDialog(this) != DialogResult.OK || dialog.PairedAddress is not ulong address) return;
-        info.Text = "Bluetooth asociado. Esperando a que Windows publique el mando HID…";
+        info.Text = UiText.Get("WaitingForHid");
         string id = $"bluetooth:{address:X12}";
         long deadline = Environment.TickCount64 + 5000;
         while (!closing && !suspended)
@@ -362,14 +405,14 @@ public sealed class MainForm : Form
                 row.Selected = true;
                 row.Focused = true;
                 row.EnsureVisible();
-                info.Text = "Mando asociado. La salida se activa automáticamente cuando está disponible.";
+                info.Text = UiText.Get("PairingSuccess");
                 return;
             }
             if (Environment.TickCount64 >= deadline) break;
             await Task.Delay(300);
         }
         if (!closing)
-            info.Text = "Windows confirmó la asociación. Si el mando aparece en la lista, selecciónalo allí.";
+            info.Text = UiText.Get("PairingConfirmed");
     }
 
     private string? SelectedId => devices.SelectedItems.Count == 0 ? null : devices.SelectedItems[0].Tag as string;
@@ -392,14 +435,14 @@ public sealed class MainForm : Form
     {
         if (closing || devices.Items[id] is not { } row || GetOutputMode(id) == mode) return;
         outputModes[id] = mode;
-        row.SubItems[OutputColumn].Text = $"{OutputLabels[(int)mode]}  ▾";
+        row.SubItems[OutputColumn].Text = $"{outputLabels[(int)mode]}  ▾";
         recovery.Remove(id);
         unavailableXboxOutputs.Remove(id);
         if (sessions.TryGetValue(id, out var session) && !session.Completion.IsCompleted)
             _ = Task.Run(session.Stop);
         StartAvailableSessions();
         if (mode is SessionMode.Mouse or SessionMode.XboxAndMouse)
-            info.Text = "Enciende la barra, apunta con el mando en vertical y usa A para clic izquierdo y B para derecho.";
+            info.Text = UiText.Get("IrControlsHint");
     }
 
     private void StartAvailableSessions()
@@ -458,7 +501,7 @@ public sealed class MainForm : Form
 
     private ListViewItem AddDeviceRow(string id, string name)
     {
-        var row = new ListViewItem(new[] { name, "—", "Disponible", "", $"{OutputLabels[(int)GetOutputMode(id)]}  ▾" })
+        var row = new ListViewItem(new[] { name, "—", UiText.Get("Available"), "", $"{outputLabels[(int)GetOutputMode(id)]}  ▾" })
         {
             Name = id, Tag = id
         };
@@ -548,7 +591,7 @@ public sealed class MainForm : Form
         try { return profiles[id] = profileStore.Read(id, discovered.GetValueOrDefault(id)?.HidPath); }
         catch (Exception error)
         {
-            info.Text = $"No se pudo cargar el perfil. Se usará el predeterminado. {error.Message}";
+            info.Text = UiText.Format("ProfileLoadFailed", error.Message);
             return profiles[id] = new Profile();
         }
     }
@@ -557,12 +600,12 @@ public sealed class MainForm : Form
     {
         if (SelectedId is not { } id)
         {
-            info.Text = "Selecciona el mando cuyo perfil quieres editar.";
+            info.Text = UiText.Get("SelectProfileController");
             return;
         }
         using var dialog = new ProfileDialog(GetProfile(id));
         if (dialog.ShowDialog(this) != DialogResult.OK || dialog.Result is not { } updated) return;
-        SaveProfile(id, updated, "Perfil guardado para este mando.");
+        SaveProfile(id, updated, UiText.Get("ProfileSaved"));
     }
 
     private void CalibrateInfrared()
@@ -570,7 +613,7 @@ public sealed class MainForm : Form
         if (SelectedId is not { } id || !sessions.TryGetValue(id, out var session) ||
             session.Completion.IsCompleted || !session.InfraredReady)
         {
-            info.Text = "Activa el ratón IR y espera a que el mando confirme la cámara antes de calibrar.";
+            info.Text = UiText.Get("EnableIrBeforeCalibration");
             return;
         }
         var capture = session.StartInfraredCalibration();
@@ -580,7 +623,7 @@ public sealed class MainForm : Form
             var result = dialog.ShowDialog(this);
             if (result == DialogResult.Abort)
             {
-                info.Text = "Se perdió la sesión durante la calibración.";
+                info.Text = UiText.Get("CalibrationSessionLost");
                 return;
             }
             if (result != DialogResult.OK) return;
@@ -590,7 +633,7 @@ public sealed class MainForm : Form
                 Name = previous.Name, Horizontal = previous.Horizontal, Deadzone = previous.Deadzone,
                 Bindings = previous.Bindings, InfraredCalibration = dialog.Result
             };
-            SaveProfile(id, updated, dialog.Result is null ? "Calibración IR restablecida." : "Calibración IR guardada.");
+            SaveProfile(id, updated, dialog.Result is null ? UiText.Get("IrCalibrationReset") : UiText.Get("IrCalibrationSaved"));
         }
         finally { session.EndInfraredCalibration(capture); }
     }
@@ -608,7 +651,7 @@ public sealed class MainForm : Form
             if (devices.Items[id] is { } row) row.SubItems[3].Text = updated.Name;
             info.Text = success;
         }
-        catch (Exception error) { info.Text = $"No se pudo guardar el perfil. {error.Message}"; }
+        catch (Exception error) { info.Text = UiText.Format("ProfileSaveFailed", error.Message); }
     }
 
     private void ShowSessions()
@@ -622,10 +665,10 @@ public sealed class MainForm : Form
                 row.SubItems[1].Text = "—";
                 row.SubItems[2].Text = GetOutputMode(id) switch
                 {
-                    _ when !discovered.ContainsKey(id) => "Desconectado",
-                    SessionMode.Xbox or SessionMode.XboxAndMouse when !XboxReady => "Esperando al controlador Xbox",
-                    SessionMode.Mouse or SessionMode.XboxAndMouse when MouseInUse() => "Esperando al ratón IR",
-                    _ => "Esperando una ranura Xbox"
+                    _ when !discovered.ContainsKey(id) => UiText.Get("Disconnected"),
+                    SessionMode.Xbox or SessionMode.XboxAndMouse when !XboxReady => UiText.Get("WaitingForXboxDriver"),
+                    SessionMode.Mouse or SessionMode.XboxAndMouse when MouseInUse() => UiText.Get("WaitingForIrMouse"),
+                    _ => UiText.Get("WaitingForXboxSlot")
                 };
                 if (session is null) continue;
             }
@@ -635,7 +678,7 @@ public sealed class MainForm : Form
                     recovery.TryGetValue(id, out var plan) &&
                     plan.HasRetry(Environment.TickCount64, session.ReconnectRecommended);
                 row.SubItems[1].Text = !session.Completion.IsCompleted && session.Player is int player ? player.ToString() : "—";
-                row.SubItems[2].Text = waiting ? $"{session.Status} · reintentando" : session.Status;
+                row.SubItems[2].Text = waiting ? UiText.Format("RetryingSession", session.Status) : session.Status;
             }
             row.SubItems[3].Text = session.Completion.IsCompleted && profiles.TryGetValue(id, out var saved)
                 ? saved.Name : session.ProfileName;

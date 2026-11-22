@@ -14,7 +14,7 @@ internal sealed class InfraredCalibrationDialog : Form
     {
         this.session = session;
         this.capture = capture;
-        Text = "Calibrar ratón IR";
+        Text = UiText.Get("CalibrateMouseTitle");
         StartPosition = FormStartPosition.Manual;
         FormBorderStyle = FormBorderStyle.None;
         Bounds = Screen.PrimaryScreen?.Bounds ?? Screen.FromPoint(Point.Empty).Bounds;
@@ -80,12 +80,12 @@ internal sealed class InfraredCalibrationDialog : Form
         e.Graphics.DrawEllipse(target, x - radius, y - radius, radius * 2, radius * 2);
         e.Graphics.DrawLine(target, x - radius * 2, y, x + radius * 2, y);
         e.Graphics.DrawLine(target, x, y - radius * 2, x, y + radius * 2);
-        var text = first is null ? "Apunta a la cruz superior izquierda y pulsa A." : "Apunta a la cruz inferior derecha y pulsa A.";
-        var detail = invalid ? "Las dos muestras quedaron demasiado cerca. Vuelve a apuntar a la primera cruz."
-            : tracking ? "Barra detectada. Mantén el mando en vertical." : "La cámara necesita ver ambos extremos de la barra.";
+        var text = first is null ? UiText.Get("CalibrateFirstTarget") : UiText.Get("CalibrateSecondTarget");
+        var detail = invalid ? UiText.Get("CalibrationPointsTooClose")
+            : tracking ? UiText.Get("SensorBarDetected") : UiText.Get("SensorBarNotVisible");
         var box = new Rectangle(16, ClientSize.Height / 2 - 70, ClientSize.Width - 32, 140);
         using var instructions = new Font("Segoe UI", 16, FontStyle.Regular);
-        TextRenderer.DrawText(e.Graphics, $"{text}\n{detail}\nEsc para cancelar   ·   R para restaurar el ajuste de fábrica",
+        TextRenderer.DrawText(e.Graphics, $"{text}\n{detail}\n{UiText.Get("CalibrationShortcuts")}",
             instructions, box, ForeColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak);
     }
 

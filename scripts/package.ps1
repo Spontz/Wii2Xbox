@@ -27,8 +27,17 @@ try {
             $_.Replace('\', '\\').Replace('{', '\{').Replace('}', '\}') + '\par'
         }
         Set-Content -LiteralPath $installerLicense -Encoding Ascii -Value (@('{\rtf1\ansi\deff0{\fonttbl{\f0 Segoe UI;}}\fs18') + $licenseLines + '}')
-        & $Dotnet build installer/Wii2Xbox.Installer.wixproj -c Release -o $stage "-p:PayloadSource=$payloadSource" "-p:ProductVersion=$Version" "-p:InstallerLicense=$installerLicense"
+        & ./installer/Build-LanguageSelector.ps1 -Destination $stage
+        $languageSelector = Join-Path $stage 'SelectSetupLanguage.dll'
+        & $Dotnet build installer/Wii2Xbox.Installer.wixproj -c Release -o $stage "-p:PayloadSource=$payloadSource" "-p:ProductVersion=$Version" "-p:InstallerLicense=$installerLicense" "-p:LanguageSelector=$languageSelector"
         if ($LASTEXITCODE -ne 0) { throw "No se pudo generar el MSI (código $LASTEXITCODE)." }
+        $powerShell = (Get-Process -Id $PID).Path
+        # Release the MSI database handles before copying the output and cleaning the stage.
+        & $powerShell -NoProfile -NonInteractive -File ./installer/Merge-SetupLanguages.ps1 `
+            -English (Join-Path $stage 'en-US/Wii2Xbox-win-x64.msi') `
+            -Spanish (Join-Path $stage 'es-ES/Wii2Xbox-win-x64.msi') `
+            -Destination (Join-Path $stage 'Wii2Xbox-win-x64.msi')
+        if ($LASTEXITCODE -ne 0) { throw 'Could not merge the two setup languages.' }
 
         Add-Type -AssemblyName System.IO.Compression.FileSystem
         $zip = Join-Path $stage 'Wii2Xbox-win-x64.zip'

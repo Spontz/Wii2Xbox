@@ -2,17 +2,17 @@ namespace Wii2Xbox;
 
 internal sealed class ProfileDialog : Form
 {
-    private const string Automatic = "Según orientación";
-    private readonly TextBox name = new() { Dock = DockStyle.Fill, MaxLength = 80, AccessibleName = "Nombre del perfil" };
-    private readonly ComboBox orientation = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 120, AccessibleName = "Orientación" };
+    private const string Automatic = "Automatic";
+    private readonly TextBox name = new() { Dock = DockStyle.Fill, MaxLength = 80, AccessibleName = UiText.Get("ProfileName") };
+    private readonly ComboBox orientation = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 120, AccessibleName = UiText.Get("Orientation") };
     private readonly Dictionary<string, ComboBox> bindings = new();
     private InfraredCalibration? infraredCalibration;
-    private readonly NumericUpDown deadzone = new() { Minimum = 0, Maximum = 60, Width = 60, AccessibleName = "Zona muerta del Nunchuk" };
+    private readonly NumericUpDown deadzone = new() { Minimum = 0, Maximum = 60, Width = 60, AccessibleName = UiText.Get("NunchukDeadZone") };
     public Profile? Result { get; private set; }
 
     public ProfileDialog(Profile profile)
     {
-        Text = "Perfil del mando Wii";
+        Text = UiText.Get("ControllerProfile");
         ClientSize = new Size(480, 510);
         MinimumSize = new Size(430, 460);
         StartPosition = FormStartPosition.CenterParent;
@@ -22,11 +22,11 @@ internal sealed class ProfileDialog : Form
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        root.Controls.Add(new Label { Text = "Nombre del perfil", AutoSize = true });
+        root.Controls.Add(new Label { Text = UiText.Get("ProfileName"), AutoSize = true });
         var heading = new TableLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, ColumnCount = 2 };
         heading.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         heading.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        orientation.Items.AddRange(["Horizontal", "Vertical"]);
+        orientation.Items.AddRange(["Horizontal", UiText.Get("Upright")]);
         heading.Controls.Add(name);
         heading.Controls.Add(orientation);
         root.Controls.Add(heading);
@@ -37,11 +37,19 @@ internal sealed class ProfileDialog : Form
         {
             string label = source switch
             {
-                "Left" => "Cruceta ←", "Right" => "Cruceta →", "Up" => "Cruceta ↑", "Down" => "Cruceta ↓",
+                "Left" => UiText.Get("DpadLeft"), "Right" => UiText.Get("DpadRight"), "Up" => UiText.Get("DpadUp"), "Down" => UiText.Get("DpadDown"),
                 "One" => "1", "Two" => "2", "Plus" => "+", "Minus" => "−",
                 "C" or "Z" => $"{source} (Nunchuk)", _ => source
             };
-            var box = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Dock = DockStyle.Fill, AccessibleName = label };
+            var box = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList, Dock = DockStyle.Fill, AccessibleName = label, FormattingEnabled = true
+            };
+            box.Format += (_, args) =>
+            {
+                if (args.ListItem is string target)
+                    args.Value = BindingLabel(target);
+            };
             if (IsDirection(source)) box.Items.Add(Automatic);
             box.Items.AddRange(["None", "LeftTrigger", "RightTrigger", .. Profile.XboxButtons.Keys]);
             bindings.Add(source, box);
@@ -50,12 +58,12 @@ internal sealed class ProfileDialog : Form
         }
         root.Controls.Add(mapping);
         var actions = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true };
-        actions.Controls.Add(new Label { Text = "Zona muerta", AutoSize = true, Margin = new Padding(3, 7, 0, 0) });
+        actions.Controls.Add(new Label { Text = UiText.Get("DeadZone"), AutoSize = true, Margin = new Padding(3, 7, 0, 0) });
         actions.Controls.Add(deadzone);
-        actions.Controls.Add(Action("Importar…", Import));
-        actions.Controls.Add(Action("Exportar…", Export));
-        actions.Controls.Add(Action("Guardar", Save));
-        var cancel = new Button { Text = "Cancelar", DialogResult = DialogResult.Cancel, AutoSize = true };
+        actions.Controls.Add(Action(UiText.Get("Import"), Import));
+        actions.Controls.Add(Action(UiText.Get("Export"), Export));
+        actions.Controls.Add(Action(UiText.Get("Save"), Save));
+        var cancel = new Button { Text = UiText.Get("Cancel"), DialogResult = DialogResult.Cancel, AutoSize = true };
         actions.Controls.Add(cancel);
         CancelButton = cancel;
         root.Controls.Add(actions);
@@ -71,6 +79,23 @@ internal sealed class ProfileDialog : Form
     }
 
     private static bool IsDirection(string source) => source is "Up" or "Down" or "Left" or "Right";
+
+    private static string BindingLabel(string target) => target switch
+    {
+        Automatic => UiText.Get("AutomaticMapping"),
+        "None" => UiText.Get("DisabledBinding"),
+        "LeftTrigger" => UiText.Get("LeftTriggerBinding"),
+        "RightTrigger" => UiText.Get("RightTriggerBinding"),
+        "LeftThumb" => UiText.Get("LeftStickBinding"),
+        "RightThumb" => UiText.Get("RightStickBinding"),
+        "LeftShoulder" => UiText.Get("LeftShoulderBinding"),
+        "RightShoulder" => UiText.Get("RightShoulderBinding"),
+        "Up" => UiText.Get("DpadUp"),
+        "Down" => UiText.Get("DpadDown"),
+        "Left" => UiText.Get("DpadLeft"),
+        "Right" => UiText.Get("DpadRight"),
+        _ => target
+    };
 
     private void ShowProfile(Profile profile)
     {
@@ -105,14 +130,14 @@ internal sealed class ProfileDialog : Form
 
     private void Import() => TryEdit(() =>
     {
-        using var file = new OpenFileDialog { Filter = "Perfil JSON (*.json)|*.json" };
+        using var file = new OpenFileDialog { Filter = UiText.Get("ProfileFileFilter") };
         if (file.ShowDialog(this) == DialogResult.OK) ShowProfile(Profile.Load(file.FileName));
     });
 
     private void Export() => TryEdit(() =>
     {
         var profile = EditedProfile();
-        using var file = new SaveFileDialog { Filter = "Perfil JSON (*.json)|*.json", FileName = "wii2xbox-perfil.json" };
+        using var file = new SaveFileDialog { Filter = UiText.Get("ProfileFileFilter"), FileName = "Wii2Xbox.json" };
         if (file.ShowDialog(this) == DialogResult.OK) profile.Save(file.FileName);
     });
 

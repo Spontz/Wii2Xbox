@@ -29,10 +29,10 @@ internal sealed class WiiRemoteView : Control
     public WiiRemoteView()
     {
         using var resource = typeof(WiiRemoteView).Assembly.GetManifestResourceStream("Wii2Xbox.WiiRemoteImage")
-            ?? throw new InvalidOperationException("No se encontró la imagen del Wii Remote.");
+            ?? throw new InvalidOperationException(UiText.Get("MissingViewerImage"));
         using var image = Image.FromStream(resource);
         artwork = new Bitmap(image);
-        AccessibleName = "Botones del Wii Remote";
+        AccessibleName = UiText.Get("WiiRemoteButtons");
         SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
         Margin = new Padding(0, 3, 0, 0);
     }
@@ -135,7 +135,7 @@ internal sealed class WiiRemoteView : Control
             canvas.FillPath(triggerFill, triggerShape);
         }
         canvas.DrawPath(triggerCount > 0 ? edge : triggerEdge, triggerShape);
-        canvas.DrawString("B · Detrás", font, triggerCount > 0 ? litLabel : label, trigger, align);
+        canvas.DrawString(UiText.Get("RearButton"), font, triggerCount > 0 ? litLabel : label, trigger, align);
         DrawBadge(triggerCount, trigger);
 
         using var led = new SolidBrush(highContrast ? SystemColors.Highlight : Color.FromArgb(36, 201, 255));

@@ -22,7 +22,7 @@ internal sealed class XboxOutput : IXboxOutput
         try
         {
             using var bus = connect is null ? new ViGEmClient() : connect();
-            return new(true, "Xbox: ViGEmBus responde.");
+            return new(true, UiText.Get("XboxDriverReady"));
         }
         catch (Exception error)
         {
@@ -33,11 +33,11 @@ internal sealed class XboxOutput : IXboxOutput
 
     internal static string DescribeDriverFailure(Exception error) => error switch
     {
-        VigemBusNotFoundException => "Xbox: no se encontró ViGEmBus.",
-        VigemBusVersionMismatchException => "Xbox: la versión de ViGEmBus no es compatible.",
-        VigemBusAccessFailedException or UnauthorizedAccessException => "Xbox: Windows denegó el acceso a ViGEmBus. Comprueba el estado del controlador en Windows.",
-        VigemNoFreeSlotException => "Xbox: no hay plazas para otro mando virtual.",
-        _ => $"Xbox: {error.Message}"
+        VigemBusNotFoundException => UiText.Get("XboxDriverMissing"),
+        VigemBusVersionMismatchException => UiText.Get("XboxDriverUnsupported"),
+        VigemBusAccessFailedException or UnauthorizedAccessException => UiText.Get("XboxAccessDenied"),
+        VigemNoFreeSlotException => UiText.Get("XboxNoSlots"),
+        _ => UiText.Format("XboxError", error.Message)
     };
 
     private readonly ViGEmClient client;

@@ -2,11 +2,11 @@ namespace Wii2Xbox;
 
 internal sealed class PairingDialog : Form
 {
-    private readonly ListBox found = new() { Dock = DockStyle.Fill, AccessibleName = "Mandos Wii encontrados" };
-    private readonly Button pair = new() { Text = "Asociar seleccionado", AutoSize = true };
-    private readonly Button close = new() { Text = "Cerrar", AutoSize = true, DialogResult = DialogResult.Cancel };
-    private readonly ComboBox method = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 85, AccessibleName = "Botones pulsados en el mando" };
-    private readonly Label status = new() { Text = "Buscando mandos Wii…", AutoSize = true, MaximumSize = new Size(535, 0) };
+    private readonly ListBox found = new() { Dock = DockStyle.Fill, AccessibleName = UiText.Get("FoundWiiControllers") };
+    private readonly Button pair = new() { Text = UiText.Get("PairSelected"), AutoSize = true };
+    private readonly Button close = new() { Text = UiText.Get("Close"), AutoSize = true, DialogResult = DialogResult.Cancel };
+    private readonly ComboBox method = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 85, AccessibleName = UiText.Get("PairingButtons") };
+    private readonly Label status = new() { Text = UiText.Get("SearchingBluetooth"), AutoSize = true, MaximumSize = new Size(535, 0) };
     private readonly Dictionary<ulong, BluetoothService.Candidate> discovered = new();
     private CancellationTokenSource? scanCancellation;
     private Task scanTask = Task.CompletedTask;
@@ -16,7 +16,7 @@ internal sealed class PairingDialog : Form
 
     public PairingDialog()
     {
-        Text = "Añadir mando";
+        Text = UiText.Get("AddControllerTitle");
         ClientSize = new Size(575, 310);
         MinimumSize = new Size(590, 300);
         StartPosition = FormStartPosition.CenterParent;
@@ -26,7 +26,7 @@ internal sealed class PairingDialog : Form
         layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        layout.Controls.Add(new Label { Text = "Pulsa SYNC junto a las pilas o mantén 1+2 hasta que parpadeen las luces.", AutoSize = true, MaximumSize = new Size(535, 0) });
+        layout.Controls.Add(new Label { Text = UiText.Get("PairingInstructions"), AutoSize = true, MaximumSize = new Size(535, 0) });
         layout.Controls.Add(found);
         var buttons = new FlowLayoutPanel { AutoSize = true, Dock = DockStyle.Fill };
         method.Items.AddRange(new object[] { "SYNC", "1+2" });
@@ -63,10 +63,10 @@ internal sealed class PairingDialog : Form
                     var batch = await Task.Run(() => BluetoothService.Find(cancellation), cancellation);
                     cancellation.ThrowIfCancellationRequested();
                     UpdateResults(batch);
-                    status.Text = discovered.Count == 0 ? "Buscando mandos Wii. Pulsa SYNC o mantén 1+2."
+                    status.Text = discovered.Count == 0 ? UiText.Get("SearchingPressSync")
                         : discovered.Values.Any(item => item.CanPair)
-                            ? "La búsqueda sigue activa. Selecciona un mando y elige SYNC o 1+2."
-                            : "Buscando un Wii Remote compatible. Modelos admitidos: RVL-CNT-01 y RVL-CNT-01-TR.";
+                            ? UiText.Get("SearchingChooseController")
+                            : UiText.Get("SearchingSupportedModels");
                 }
                 catch (Exception error) when (error is System.ComponentModel.Win32Exception or InvalidOperationException)
                 {
@@ -123,7 +123,7 @@ internal sealed class PairingDialog : Form
 
         closing = true;
         UpdateButtons();
-        status.Text = "Deteniendo la búsqueda de Bluetooth…";
+        status.Text = UiText.Get("StoppingBluetoothSearch");
         scanCancellation?.Cancel();
         await scanTask;
         if (!IsDisposed) Close();
@@ -135,7 +135,7 @@ internal sealed class PairingDialog : Form
         bool sync = method.SelectedIndex == 0;
         pairing = true;
         UpdateButtons();
-        status.Text = "Windows está asociando el mando. Mantén las luces parpadeando.";
+        status.Text = UiText.Get("PairingInProgress");
         try
         {
             scanCancellation?.Cancel();
@@ -146,7 +146,7 @@ internal sealed class PairingDialog : Form
         }
         catch (Exception error)
         {
-            status.Text = $"{error.Message} Pon el mando en sincronización y vuelve a intentar.";
+            status.Text = UiText.Format("PairingRetry", error.Message);
         }
         finally
         {

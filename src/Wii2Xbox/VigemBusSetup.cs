@@ -13,7 +13,7 @@ internal static class VigemBusSetup
     public static async Task<int> Install()
     {
         using var payload = typeof(VigemBusSetup).Assembly.GetManifestResourceStream(ResourceName)
-            ?? throw new IOException("Esta compilación no incluye el instalador de ViGEmBus.");
+            ?? throw new IOException(UiText.Get("EmbeddedDriverMissing"));
         var folder = Directory.CreateTempSubdirectory("Wii2Xbox-");
         var path = Path.Combine(folder.FullName, "ViGEmBusSetup.exe");
         try
@@ -24,14 +24,14 @@ internal static class VigemBusSetup
             // Keep the verified file open while it runs so it cannot be replaced before elevation.
             using var installer = File.OpenRead(path);
             if (Convert.ToHexString(SHA256.HashData(installer)) != InstallerHash)
-                throw new IOException("El instalador integrado de ViGEmBus no coincide con la copia oficial.");
+                throw new IOException(UiText.Get("EmbeddedDriverInvalid"));
 
             using var process = Process.Start(new ProcessStartInfo(path, "/exenoui /qn /norestart")
             {
                 UseShellExecute = true,
                 Verb = "runas",
                 WorkingDirectory = folder.FullName
-            }) ?? throw new IOException("Windows no pudo abrir el instalador de ViGEmBus.");
+            }) ?? throw new IOException(UiText.Get("WindowsCannotLaunchDriver"));
 
             await process.WaitForExitAsync().ConfigureAwait(false);
             return process.ExitCode;

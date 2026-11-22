@@ -31,15 +31,15 @@ internal static class StartupRegistration
         }
 
         if (executable is null)
-            throw new IOException("Windows no devolvió la ruta de Wii2Xbox.");
+            throw new IOException(UiText.Get("MissingExecutablePath"));
         string command = $"\"{executable}\" {BackgroundArgument}";
         if (Path.GetFileName(executable).Equals("dotnet.exe", StringComparison.OrdinalIgnoreCase))
             command = $"\"{executable}\" \"{typeof(StartupRegistration).Assembly.Location}\" {BackgroundArgument}";
         if (command.Length > 260)
-            throw new IOException("La ruta de Wii2Xbox es demasiado larga para el inicio de Windows.");
+            throw new IOException(UiText.Get("StartupPathTooLong"));
 
         using var startup = Registry.CurrentUser.CreateSubKey(RunKey)
-            ?? throw new IOException("Windows no permitió abrir la configuración de inicio.");
+            ?? throw new IOException(UiText.Get("StartupWriteDenied"));
         startup.SetValue(valueName, command, RegistryValueKind.String);
     }
 

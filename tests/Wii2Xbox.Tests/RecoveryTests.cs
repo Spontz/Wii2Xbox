@@ -40,7 +40,7 @@ public sealed class RecoveryTests
         try
         {
             await waiting.Task.WaitAsync(TimeSpan.FromSeconds(3));
-            Assert.Equal("Activo", session.Status);
+            Assert.Equal("Active", session.Status);
             Assert.Null(session.Player);
             var counts = new int[WiiButtonState.BitCount];
             session.Buttons.Accumulate(long.MaxValue, counts);
@@ -116,7 +116,7 @@ public sealed class RecoveryTests
             session.Stop();
             await session.Completion.WaitAsync(TimeSpan.FromSeconds(3));
             Assert.False(session.ReconnectRecommended);
-            Assert.Equal("Detenido", session.Status);
+            Assert.Equal("Stopped", session.Status);
             Assert.Equal(new ushort[] { 0x1000, 0 }, output.Buttons);
             Assert.True(output.DisconnectedWhileNeutral);
         }

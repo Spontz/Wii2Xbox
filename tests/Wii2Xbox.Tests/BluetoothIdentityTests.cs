@@ -25,7 +25,7 @@ public sealed class BluetoothIdentityTests
         {
             Name = "Nintendo RVL-WBC-01", Address = 0xaa11223344bb
         });
-        Assert.Contains("no compatible", balanceBoard.ToString());
+        Assert.Contains("unsupported", balanceBoard.ToString());
         Assert.Throws<NotSupportedException>(() => BluetoothService.Pair(balanceBoard, syncButton: true));
     }
 
