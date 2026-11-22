@@ -18,6 +18,7 @@ As a player, I want to run an MSI, open Wii2Xbox from Start, and uninstall it fr
 
 1. A successful installation creates the Start shortcut, registers the app for the current user, and installs the same files as the ZIP in the user's local programs folder.
 2. After selecting **Salir** (Exit) from the notification-area icon and uninstalling Wii2Xbox, Windows removes the product registration, shortcut, installed files, and startup entry for that installation. Saved profiles and the shared ViGEmBus driver remain available.
+3. Opening the MSI normally shows the setup wizard, installation progress, and a completion dialog. The installed app opens from the Start shortcut.
 
 ### P1. Receive both packages with attribution
 

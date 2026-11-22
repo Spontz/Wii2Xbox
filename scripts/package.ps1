@@ -1,7 +1,7 @@
 param(
     [string]$Dotnet = 'dotnet',
     [ValidatePattern('^(0|[1-9][0-9]{0,2})\.(0|[1-9][0-9]{0,2})\.(0|[1-9][0-9]{0,4})$')]
-    [string]$Version = '1.0.0'
+    [string]$Version = '1.0.1'
 )
 $ErrorActionPreference = 'Stop'
 
@@ -22,7 +22,12 @@ try {
         & "$PSScriptRoot/publish.ps1" -Dotnet $Dotnet -OutputDirectory $payload -Version $Version
         $payloadSource = Join-Path $stage 'Payload.wxs'
         & ./installer/New-PayloadSource.ps1 -Payload $payload -Destination $payloadSource
-        & $Dotnet build installer/Wii2Xbox.Installer.wixproj -c Release -o $stage "-p:PayloadSource=$payloadSource" "-p:ProductVersion=$Version"
+        $installerLicense = Join-Path $stage 'LICENSE.rtf'
+        $licenseLines = Get-Content -LiteralPath (Join-Path $payload 'LICENSE') | ForEach-Object {
+            $_.Replace('\', '\\').Replace('{', '\{').Replace('}', '\}') + '\par'
+        }
+        Set-Content -LiteralPath $installerLicense -Encoding Ascii -Value (@('{\rtf1\ansi\deff0{\fonttbl{\f0 Segoe UI;}}\fs18') + $licenseLines + '}')
+        & $Dotnet build installer/Wii2Xbox.Installer.wixproj -c Release -o $stage "-p:PayloadSource=$payloadSource" "-p:ProductVersion=$Version" "-p:InstallerLicense=$installerLicense"
         if ($LASTEXITCODE -ne 0) { throw "No se pudo generar el MSI (código $LASTEXITCODE)." }
 
         Add-Type -AssemblyName System.IO.Compression.FileSystem

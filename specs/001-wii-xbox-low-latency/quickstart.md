@@ -20,7 +20,7 @@ Configuration is in `.specify/init-options.json`, the Codex integration is in `.
 $wiiSdk = "$env:LOCALAPPDATA/Wii2Xbox/dotnet10/dotnet.exe"
 & ./scripts/build.ps1 -Dotnet $wiiSdk
 & ./scripts/test.ps1 -Dotnet $wiiSdk
-& ./scripts/package.ps1 -Dotnet $wiiSdk -Version 1.0.0
+& ./scripts/package.ps1 -Dotnet $wiiSdk -Version 1.0.1
 ```
 
 Packaging creates the portable ZIP and MSI from one Release build and validates and embeds the signed driver installer. For XInput tests from the repository, run `./scripts/test-native.ps1 -Dotnet $wiiSdk`. The observer and its reports are generated in `artifacts/native-test-…`.

@@ -2,11 +2,13 @@
   <PropertyGroup>
     <InstallerPlatform>x64</InstallerPlatform>
     <OutputName>Wii2Xbox-win-x64</OutputName>
+    <Cultures>es-ES</Cultures>
     <!-- Per-user only. Rebuilding the same three-part version also replaces it. -->
     <SuppressIces>ICE91;ICE61</SuppressIces>
-    <DefineConstants>ProductVersion=$(ProductVersion)</DefineConstants>
+    <DefineConstants>ProductVersion=$(ProductVersion);InstallerLicense=$(InstallerLicense)</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(PayloadSource)" Condition="'$(PayloadSource)' != ''" />
+    <PackageReference Include="WixToolset.UI.wixext" Version="6.0.2" />
   </ItemGroup>
 </Project>
