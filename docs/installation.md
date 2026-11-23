@@ -11,6 +11,6 @@ Both packages include .NET and run as a standard user on Windows x64. Turn on Bl
 
 Wii2Xbox checks the driver when it opens. If the driver is missing or incompatible, Wii2Xbox offers to install it. If you accept, allow the installation in the Windows prompt. Wii2Xbox checks the result when installation finishes. If the app requests a restart, restart Windows and reopen it.
 
-When Wii2Xbox shows a slot in the **Xbox** column, open the Windows Game Controllers panel with `joy.cpl`. Select the virtual controller and choose **Properties** to check its buttons and axes.
+When Wii2Xbox shows a slot in the **Xbox** column, follow the [Windows controller test](troubleshooting/xbox-output.md#test-the-controller-in-windows) to check its buttons and axes. For setup or update errors, see [Installation and updates](troubleshooting/install-and-update.md).
 
 Both packages include `LICENSE`, `NOTICE`, and the ViGEmBus, HidSharp, ViGEm.NET, ViGEmClient, and .NET notices in `licenses`.

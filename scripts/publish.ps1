@@ -41,6 +41,7 @@ try {
         ForEach-Object { Remove-Item -LiteralPath $_.FullName }
     New-Item -ItemType Directory -Path "$OutputDirectory/docs" -Force | Out-Null
     Copy-Item docs/troubleshooting.md -Destination "$OutputDirectory/docs"
+    Copy-Item docs/troubleshooting -Destination "$OutputDirectory/docs" -Recurse -Force
     Copy-Item docs/installation.md -Destination "$OutputDirectory/docs"
     Copy-Item docs/compatibility.md -Destination "$OutputDirectory/docs"
     Copy-Item docs/hardware-validation.md -Destination "$OutputDirectory/docs"
