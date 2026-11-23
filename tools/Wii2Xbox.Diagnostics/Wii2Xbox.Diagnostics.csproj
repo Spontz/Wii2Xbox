@@ -5,11 +5,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PlatformTarget>x64</PlatformTarget>
+    <RootNamespace>Wii2Xbox</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../src/Wii2Xbox/XboxOutput.cs" Link="XboxOutput.cs" />
     <Compile Include="../../src/Wii2Xbox/BluetoothService.cs" Link="BluetoothService.cs" />
     <Compile Include="../../src/Wii2Xbox/BluetoothHidIdentity.cs" Link="BluetoothHidIdentity.cs" />
+    <Compile Include="../../src/Wii2Xbox/UiLanguage.cs" Link="UiLanguage.cs" />
+    <EmbeddedResource Include="../../src/Wii2Xbox/Resources/UiText.resx" Link="Resources/UiText.resx" />
+    <EmbeddedResource Include="../../src/Wii2Xbox/Resources/UiText.es.resx" Link="Resources/UiText.es.resx" />
     <PackageReference Include="HidSharp" Version="2.6.4" />
     <PackageReference Include="Nefarius.ViGEm.Client" Version="1.21.256" />
   </ItemGroup>
