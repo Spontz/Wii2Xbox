@@ -4,7 +4,8 @@ public sealed class MainForm : Form
 {
     private const int OutputColumn = 4;
     private const int DeviceListRow = 2;
-    private const int RemoteRow = 4;
+    private const int StartupRow = 3;
+    private const int RemoteRow = 6;
     private const int RemoteHeight = 165;
     private const int DeviceListHeight = 114;
     private static readonly Size MinimumWindow = new(690, 450);
@@ -83,30 +84,31 @@ public sealed class MainForm : Form
         StartPosition = FormStartPosition.CenterScreen;
         Font = new Font("Segoe UI", 10);
         bool fitPending = false;
-        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(16), ColumnCount = 2, RowCount = 8 };
+        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(16), ColumnCount = 2, RowCount = 7 };
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, RemoteHeight));
-        layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         layout.Controls.Add(new Label
         {
             Text = UiText.Get("WiiControllers"), Font = new Font("Segoe UI", 16, FontStyle.Bold),
             Dock = DockStyle.Fill, AutoEllipsis = true, AutoSize = true, TextAlign = ContentAlignment.MiddleLeft
         }, 0, 0);
         string helpText = UiText.Get("TroubleshootingHelp");
-        var help = Action("?", () => OpenWebPage(
-            "https://github.com/Spontz/Wii2Xbox/blob/main/docs/troubleshooting.md", "TroubleshootingPageFailed"));
-        help.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-        help.Padding = new Padding(4, 0, 4, 0);
-        help.AccessibleName = helpText;
-        help.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-        help.Margin = new Padding(3, 3, 6, 3);
+        var help = new HelpIconButton
+        {
+            AccessibleName = helpText, Anchor = AnchorStyles.Top | AnchorStyles.Right, Margin = new Padding(3, 3, 6, 3)
+        };
+        help.Click += (_, _) => OpenWebPage(
+            "https://github.com/Spontz/Wii2Xbox/blob/main/docs/troubleshooting.md", "TroubleshootingPageFailed");
+        help.FontChanged += (_, _) => SizeHelpIcon();
+        help.DpiChangedAfterParent += (_, _) => SizeHelpIcon();
+        SizeHelpIcon();
         var helpTip = new ToolTip();
         helpTip.SetToolTip(help, helpText);
         help.Disposed += (_, _) => helpTip.Dispose();
@@ -163,16 +165,23 @@ public sealed class MainForm : Form
         devices.FontChanged += (_, _) => QueueFit();
         devices.ColumnWidthChanging += (_, args) => args.Cancel = !resizingColumns;
         AddFullWidth(devices, DeviceListRow);
-        AddFullWidth(startup, 3);
+        var options = new TableLayoutPanel
+        {
+            AutoSize = true, Dock = DockStyle.Fill, Margin = Padding.Empty, ColumnCount = 2, RowCount = 1
+        };
+        options.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        options.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        options.Controls.Add(startup, 0, 0);
+        AddFullWidth(options, StartupRow);
+        AddFullWidth(info, 4);
+        AddFullWidth(xboxStatus, 5);
         AddFullWidth(remoteView, RemoteRow);
-        AddFullWidth(info, 5);
-        AddFullWidth(xboxStatus, 6);
         var version = typeof(MainForm).Assembly.GetName().Version!;
-        AddFullWidth(new Label
+        options.Controls.Add(new Label
         {
             Text = $"v{version.ToString(3)}", AutoSize = true, Anchor = AnchorStyles.Right,
-            Margin = new Padding(3, 3, 6, 0)
-        }, 7);
+            Margin = new Padding(3, 8, 6, 0)
+        }, 1, 0);
         Controls.Add(layout);
         layout.Layout += (_, _) => QueueFit();
         HandleCreated += (_, _) => QueueFit();
@@ -196,6 +205,12 @@ public sealed class MainForm : Form
         };
         Shown += async (_, _) => await InitializeOnce();
         FormClosing += CloseSessions;
+
+        void SizeHelpIcon()
+        {
+            int size = help.Font.Height + help.LogicalToDeviceUnits(8);
+            help.Size = new Size(size, size);
+        }
 
         void AddFullWidth(Control control, int row)
         {
@@ -268,7 +283,10 @@ public sealed class MainForm : Form
         {
             Text = "Wii2Xbox", Icon = trayImage, ContextMenuStrip = menu, Visible = true
         };
-        trayIcon.DoubleClick += (_, _) => RestoreWindow();
+        trayIcon.MouseClick += (_, args) =>
+        {
+            if (args.Button == MouseButtons.Left) RestoreWindow();
+        };
         trayIcon.BalloonTipClicked += (_, _) => RestoreWindow();
         if (!background) Show();
         else
@@ -468,6 +486,30 @@ public sealed class MainForm : Form
         return button;
     }
 
+    private sealed class HelpIconButton : Button
+    {
+        public HelpIconButton()
+        {
+            Text = "?";
+            Cursor = Cursors.Hand;
+            FlatStyle = FlatStyle.Flat;
+            FlatAppearance.BorderSize = 0;
+            SetStyle(ControlStyles.SupportsTransparentBackColor, true);
+            BackColor = Color.Transparent;
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            int inset = LogicalToDeviceUnits(3);
+            var circle = Rectangle.Inflate(ClientRectangle, -inset, -inset);
+            using var outline = new Pen(ForeColor, LogicalToDeviceUnits(Focused && ShowFocusCues ? 2 : 1));
+            e.Graphics.DrawEllipse(outline, circle);
+            TextRenderer.DrawText(e.Graphics, Text, Font, ClientRectangle, ForeColor,
+                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
+        }
+    }
+
     private static void RefreshCoffeeIcon(Button button)
     {
         int size = button.Font.Height;
@@ -566,7 +608,7 @@ public sealed class MainForm : Form
     {
         using var dialog = new PairingDialog();
         if (ShowOwnedDialog(dialog) != DialogResult.OK || dialog.PairedAddress is not ulong address) return;
-        info.Text = UiText.Get("WaitingForHid");
+        info.Text = "";
         string id = $"bluetooth:{address:X12}";
         long deadline = Environment.TickCount64 + 5000;
         while (!closing && !suspended)
@@ -578,14 +620,11 @@ public sealed class MainForm : Form
                 row.Selected = true;
                 row.Focused = true;
                 row.EnsureVisible();
-                info.Text = UiText.Get("PairingSuccess");
                 return;
             }
             if (Environment.TickCount64 >= deadline) break;
             await Task.Delay(300);
         }
-        if (!closing)
-            info.Text = UiText.Get("PairingConfirmed");
     }
 
     private string? SelectedId => devices.SelectedItems.Count == 0 ? null : devices.SelectedItems[0].Tag as string;

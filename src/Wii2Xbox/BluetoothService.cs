@@ -79,7 +79,7 @@ internal static class BluetoothService
         return found.Values.ToArray();
     }
 
-    public static void Pair(Candidate candidate, bool syncButton)
+    public static void Pair(Candidate candidate)
     {
         if (!candidate.CanPair)
             throw new NotSupportedException(UiText.Get("UnsupportedWiiModel"));
@@ -94,11 +94,10 @@ internal static class BluetoothService
 
             if (device.Authenticated == 0)
             {
-                // Wii Remote PIN is the six raw address bytes, least significant first.
-                ulong address = syncButton ? candidate.RadioAddress : device.Address;
+                // Red SYNC uses the Bluetooth radio's raw address bytes, least significant first.
                 var pin = new ushort[6];
                 for (int index = 0; index < pin.Length; index++)
-                    pin[index] = (ushort)((address >> (8 * index)) & 0xff);
+                    pin[index] = (ushort)((candidate.RadioAddress >> (8 * index)) & 0xff);
 
                 Check(BluetoothAuthenticateDevice(IntPtr.Zero, radio, ref device, pin, (uint)pin.Length), UiText.Get("BluetoothPairOperation"));
                 uint serviceCount = 0;

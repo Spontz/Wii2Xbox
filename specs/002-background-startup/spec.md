@@ -10,7 +10,7 @@
 
 As a player, I want to remove the window from my desktop and keep using my controllers.
 
-**Independent test**. With an active session, close the window, check input in a game, and reopen Wii2Xbox from the notification-area icon.
+**Independent test**. With an active session, close the window and check input in a game. Left-click the notification-area icon once to reopen Wii2Xbox. Right-click the icon to open its menu.
 
 1. Closing the window removes it from the desktop. The process keeps running with the same sessions.
 2. Choosing **Abrir Wii2Xbox** (Open Wii2Xbox) from the icon or launching the app again restores the same window.
@@ -35,7 +35,7 @@ As a player, I want Wii2Xbox to start at Windows sign-in and make my controllers
 ## Requirements
 
 - **FR-001**. Keep controller detection, input, and reconnection active while the window is hidden.
-- **FR-002**. Offer **Abrir Wii2Xbox** (Open Wii2Xbox) and **Salir** (Exit) from the notification area. Explicitly exiting releases inputs and outputs.
+- **FR-002**. Reopen the main window with a single left-click on the notification-area icon. Offer **Abrir Wii2Xbox** (Open Wii2Xbox) and **Salir** (Exit) in the icon's context menu. Explicitly exiting releases inputs and outputs.
 - **FR-003**. Allow one instance per Windows session and reuse its window when the app is reopened.
 - **FR-004**. Keep **Arrancar al iniciar Windows** (Start with Windows) disabled by default. Save and apply the preference only for the account that changed it, without elevating the app.
 - **FR-005**. When enabled, start in the background at sign-in with the same checks and detection behavior as a manual launch.

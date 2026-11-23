@@ -6,8 +6,8 @@ A Windows app that connects up to four Wii Remotes over Bluetooth and lets you u
 
 ## Downloads
 
-- [MSI installer](https://github.com/Spontz/Wii2Xbox/releases/tag/v1.2.1-installer)
-- [Portable ZIP](https://github.com/Spontz/Wii2Xbox/releases/tag/v1.2.1-portable)
+- [MSI installer](https://github.com/Spontz/Wii2Xbox/releases/tag/v1.2.2-installer)
+- [Portable ZIP](https://github.com/Spontz/Wii2Xbox/releases/tag/v1.2.2-portable)
 
 ## Project Documentation
 
@@ -31,13 +31,13 @@ The Windows packages include the signed ViGEmBus 1.22.0 installer. [Maintainer's
 See the [installation guide](docs/installation.md) for setup and input checks.
 
 1. Open Wii2Xbox. If it asks to install the Xbox driver, accept and allow the installation in the Windows prompt.
-2. Select **Añadir mando…** (Add controller…). The window searches until you close it. Put your Wii Remote into sync mode with SYNC or 1+2. When it appears, select it, choose the buttons you used, and select **Asociar seleccionado** (Pair selected).
+2. Select **Añadir mando…** (Add controller…). The window searches until you close it. Press the red **SYNC** button inside the Wii Remote's battery compartment. When the remote appears, select it and choose **Asociar seleccionado** (Pair selected).
 3. Wii2Xbox automatically activates available controllers in **Xbox** mode. The **Xbox** column and the Wii Remote LED show the slot assigned by Windows.
 4. Check input in an XInput-compatible game or in the Windows Game Controllers panel.
 
 After Bluetooth disconnects or Windows resumes, Wii2Xbox tries to recover each active controller up to four times. If it runs out of retries, switch the controller on again so Windows can detect it. Windows may assign a different Xbox slot when the controller reconnects.
 
-Closing the window keeps Wii2Xbox running in the notification area. Open its icon to restore the window or select **Salir** (Exit) to release the controllers. Enable **Arrancar al iniciar Windows** (Start with Windows) to run Wii2Xbox in the background whenever you sign in.
+Closing the window keeps Wii2Xbox running in the notification area. Left-click its icon once to reopen the window. Right-click the icon and select **Salir** (Exit) to release the controllers. Enable **Arrancar al iniciar Windows** (Start with Windows) to run Wii2Xbox in the background whenever you sign in.
 
 The horizontal Wii Remote below the list lights up buttons from all controllers sending input. A number over a button indicates how many controllers are pressing it at once. On Windows 11, Wii2Xbox follows the Windows app theme at startup.
 

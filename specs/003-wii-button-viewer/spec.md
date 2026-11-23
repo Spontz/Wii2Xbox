@@ -33,7 +33,7 @@ As a player, I want to find the Xbox number in its own column and read each sess
 
 ## Requirements
 
-- **FR-001**. Show a realistic horizontal Wii Remote illustration at the bottom with A, B, 1, 2, −, +, HOME, and the four directions. Represent the rear B trigger outside the front view.
+- **FR-001**. Show a realistic horizontal Wii Remote illustration at the bottom with A, B, 1, 2, −, +, HOME, and the four directions. Represent the rear B trigger beside the front view. Keep all labels and messages above or beside the illustration.
 - **FR-002**. Highlight buttons based on physical input regardless of the profile or selected row.
 - **FR-003**. Combine presses from all controllers sending reports. Indicate when several controllers hold the same button and clear a controller's contribution when it disconnects.
 - **FR-004**. Keep button testing available for readable controllers waiting on the Xbox driver, a slot, or the IR mouse.
@@ -41,7 +41,7 @@ As a player, I want to find the Xbox number in its own column and read each sess
 - **FR-006**. Place **Arrancar al iniciar Windows** (Start with Windows) left-aligned between the list and the viewer.
 - **FR-007**. Open the output menu from the controller's row and apply the change only to that controller.
 - **FR-008**. Place **Invítame a un café** (Buy me a coffee) above the list, aligned to the right.
-- **FR-009**. Light the player indicator in blue while that controller presses a button. Show indicators from multiple controllers at once and assign free indicators to controllers without an Xbox slot.
+- **FR-009**. Light the player indicator in blue while that controller presses a button. Show indicators from multiple controllers at once and assign free indicators to controllers without an Xbox slot. Omit the numbers beside the illustration's player indicators.
 
 ## Success Criteria
 

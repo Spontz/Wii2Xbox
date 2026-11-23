@@ -5,7 +5,7 @@
 ## Technical Design
 
 - `Program.cs` keeps the message loop running without requiring a visible window. A session-scoped mutex and event coordinate concurrent launches and restore the existing instance.
-- `MainForm.cs` keeps the same detection and conversion loop running while hidden. A notification-area icon offers **Abrir Wii2Xbox** (Open Wii2Xbox) and **Salir** (Exit). Exiting uses the existing session neutralization and shutdown logic.
+- `MainForm.cs` keeps the same detection and conversion loop running while hidden. A single left-click on the notification-area icon restores the window. The icon's context menu offers **Abrir Wii2Xbox** (Open Wii2Xbox) and **Salir** (Exit). Exiting uses the existing session neutralization and shutdown logic.
 - `StartupRegistration.cs` adds or removes one startup entry for the current account. The command quotes the executable path and adds the `--background` argument.
 - The engine initializes once whether the window starts visible or hidden. Driver notices are shown in the window and requested through the notification area while the window is hidden.
 

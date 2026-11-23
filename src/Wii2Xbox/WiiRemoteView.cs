@@ -79,18 +79,21 @@ internal sealed class WiiRemoteView : Control
     protected override void OnPaint(PaintEventArgs e)
     {
         base.OnPaint(e);
-        const float drawingWidth = 600;
-        const float drawingHeight = 184;
+        const float artworkWidth = 600;
+        const float triggerSpace = 106;
+        const float drawingWidth = artworkWidth + triggerSpace;
+        float drawingHeight = artworkWidth * ArtworkCrop.Height / ArtworkCrop.Width;
         float scale = Math.Min(Width / drawingWidth, Height / drawingHeight);
         if (scale <= 0) return;
 
         var canvas = e.Graphics;
         canvas.TranslateTransform((Width - drawingWidth * scale) / 2, (Height - drawingHeight * scale) / 2);
         canvas.ScaleTransform(scale, scale);
+        canvas.TranslateTransform(triggerSpace, 0);
         canvas.SmoothingMode = SmoothingMode.AntiAlias;
         canvas.InterpolationMode = InterpolationMode.HighQualityBicubic;
-        float imageScale = drawingWidth / ArtworkCrop.Width;
-        canvas.DrawImage(artwork, new RectangleF(0, 0, drawingWidth, ArtworkCrop.Height * imageScale),
+        float imageScale = artworkWidth / ArtworkCrop.Width;
+        canvas.DrawImage(artwork, new RectangleF(0, 0, artworkWidth, drawingHeight),
             ArtworkCrop, GraphicsUnit.Pixel);
 
         bool highContrast = SystemInformation.HighContrast;
@@ -102,7 +105,6 @@ internal sealed class WiiRemoteView : Control
         using var badge = new SolidBrush(highContrast ? SystemColors.Highlight : Color.FromArgb(21, 92, 55));
         using var badgeText = new SolidBrush(highContrast ? SystemColors.HighlightText : Color.White);
         using var font = new Font("Segoe UI", 12, FontStyle.Bold, GraphicsUnit.Pixel);
-        using var ledFont = new Font("Segoe UI", 9, FontStyle.Bold, GraphicsUnit.Pixel);
         using var align = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
 
         foreach (var (button, pixels, round) in Hotspots)
@@ -125,7 +127,7 @@ internal sealed class WiiRemoteView : Control
             DrawBadge(total, area);
         }
 
-        var trigger = new RectangleF(147, 157, 100, 24);
+        var trigger = new RectangleF(-triggerSpace + 3, (drawingHeight - 24) / 2, 92, 24);
         int triggerCount = Count(WiiButtons.B);
         using var triggerShape = RoundedRectangle(trigger, 12);
         using var triggerEdge = new Pen(ForeColor);
@@ -140,7 +142,6 @@ internal sealed class WiiRemoteView : Control
 
         using var led = new SolidBrush(highContrast ? SystemColors.Highlight : Color.FromArgb(36, 201, 255));
         using var ledGlow = new SolidBrush(Color.FromArgb(90, led.Color));
-        using var ledLabel = new SolidBrush(Color.FromArgb(37, 52, 70));
         for (int player = 0; player < 4; player++)
         {
             float x = 1988 * imageScale;
@@ -153,8 +154,6 @@ internal sealed class WiiRemoteView : Control
                 using var indicator = RoundedRectangle(diode, 1.5f);
                 canvas.FillPath(led, indicator);
             }
-            var number = new RectangleF(diode.Right + 2, diode.Y - 2, 12, diode.Height + 4);
-            canvas.DrawString((player + 1).ToString(), ledFont, ledLabel, number, align);
         }
 
         int Count(WiiButtons button) => counts[BitOperations.TrailingZeroCount((uint)button)];

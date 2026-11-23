@@ -258,23 +258,14 @@
   <data name="PairSelected" xml:space="preserve">
     <value>Pair selected</value>
   </data>
-  <data name="PairingButtons" xml:space="preserve">
-    <value>Buttons pressed on the controller</value>
-  </data>
-  <data name="PairingConfirmed" xml:space="preserve">
-    <value>Windows confirmed pairing. Select the controller in the list if it appears.</value>
-  </data>
   <data name="PairingInProgress" xml:space="preserve">
     <value>Windows is pairing the controller. Keep its LEDs flashing.</value>
   </data>
   <data name="PairingInstructions" xml:space="preserve">
-    <value>Press SYNC next to the batteries or hold 1+2 until the LEDs flash.</value>
+    <value>Press the red SYNC button inside the battery compartment. The LEDs will start flashing.</value>
   </data>
   <data name="PairingRetry" xml:space="preserve">
-    <value>{0} Put the controller in sync mode and try again.</value>
-  </data>
-  <data name="PairingSuccess" xml:space="preserve">
-    <value>Controller paired. Output activates automatically when available.</value>
+    <value>{0} Press the red SYNC button and try again.</value>
   </data>
   <data name="ProfileColumn" xml:space="preserve">
     <value>Profile</value>
@@ -319,13 +310,10 @@
     <value>Searching for Wii controllers…</value>
   </data>
   <data name="SearchingChooseController" xml:space="preserve">
-    <value>Search is still running. Select a controller and choose SYNC or 1+2.</value>
+    <value>Select a controller and choose Pair selected.</value>
   </data>
   <data name="SearchingPaired" xml:space="preserve">
     <value>Looking for Wii controllers paired with Windows…</value>
-  </data>
-  <data name="SearchingPressSync" xml:space="preserve">
-    <value>Searching for Wii controllers. Press SYNC or hold 1+2.</value>
   </data>
   <data name="SearchingSupportedModels" xml:space="preserve">
     <value>Searching for a compatible Wii Remote. Supported models: RVL-CNT-01 and RVL-CNT-01-TR.</value>
@@ -386,9 +374,6 @@
   </data>
   <data name="WaitUntilDriverInstalled" xml:space="preserve">
     <value>Wait for ViGEmBus installation to finish before exiting.</value>
-  </data>
-  <data name="WaitingForHid" xml:space="preserve">
-    <value>Bluetooth paired. Waiting for Windows to expose the HID controller…</value>
   </data>
   <data name="WaitingForIrMouse" xml:space="preserve">
     <value>Waiting for the IR mouse</value>

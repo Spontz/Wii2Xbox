@@ -258,23 +258,14 @@
   <data name="PairSelected" xml:space="preserve">
     <value>Asociar seleccionado</value>
   </data>
-  <data name="PairingButtons" xml:space="preserve">
-    <value>Botones pulsados en el mando</value>
-  </data>
-  <data name="PairingConfirmed" xml:space="preserve">
-    <value>Windows confirmó la asociación. Si el mando aparece en la lista, selecciónalo allí.</value>
-  </data>
   <data name="PairingInProgress" xml:space="preserve">
     <value>Windows está asociando el mando. Mantén las luces parpadeando.</value>
   </data>
   <data name="PairingInstructions" xml:space="preserve">
-    <value>Pulsa SYNC junto a las pilas o mantén 1+2 hasta que parpadeen las luces.</value>
+    <value>Pulsa el botón rojo SYNC dentro del compartimento de las pilas. Los LED empezarán a parpadear.</value>
   </data>
   <data name="PairingRetry" xml:space="preserve">
-    <value>{0} Pon el mando en sincronización y vuelve a intentar.</value>
-  </data>
-  <data name="PairingSuccess" xml:space="preserve">
-    <value>Mando asociado. La salida se activa automáticamente cuando está disponible.</value>
+    <value>{0} Pulsa el botón rojo SYNC y vuelve a intentarlo.</value>
   </data>
   <data name="ProfileColumn" xml:space="preserve">
     <value>Perfil</value>
@@ -319,13 +310,10 @@
     <value>Buscando mandos Wii…</value>
   </data>
   <data name="SearchingChooseController" xml:space="preserve">
-    <value>La búsqueda sigue activa. Selecciona un mando y elige SYNC o 1+2.</value>
+    <value>Selecciona un mando y pulsa Asociar seleccionado.</value>
   </data>
   <data name="SearchingPaired" xml:space="preserve">
     <value>Buscando mandos Wii asociados en Windows…</value>
-  </data>
-  <data name="SearchingPressSync" xml:space="preserve">
-    <value>Buscando mandos Wii. Pulsa SYNC o mantén 1+2.</value>
   </data>
   <data name="SearchingSupportedModels" xml:space="preserve">
     <value>Buscando un Wii Remote compatible. Modelos admitidos: RVL-CNT-01 y RVL-CNT-01-TR.</value>
@@ -386,9 +374,6 @@
   </data>
   <data name="WaitUntilDriverInstalled" xml:space="preserve">
     <value>Espera a que termine la instalación de ViGEmBus antes de salir.</value>
-  </data>
-  <data name="WaitingForHid" xml:space="preserve">
-    <value>Bluetooth asociado. Esperando a que Windows publique el mando HID…</value>
   </data>
   <data name="WaitingForIrMouse" xml:space="preserve">
     <value>Esperando al ratón IR</value>

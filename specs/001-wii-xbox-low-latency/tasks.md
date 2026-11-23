@@ -47,7 +47,7 @@ Each task lists its ID, story, and relevant file. `[x]` indicates that the task 
 
 - [x] T022 [US2] Implement radio inventory, discovery, and pairing for Nintendo models in `src/Wii2Xbox/BluetoothService.cs` (FR-002). Real pairing remains in T026.
 - [ ] T023 [US2] Implement cancellation within 5 s and report radio, access, and pairing errors (FR-002). An active search stopped in about 2.3 s with the local adapter. Other adapters still need verification.
-- [x] T024 [US2] Add SYNC/1+2 guidance and Windows pairing fallback in `src/Wii2Xbox/MainForm.cs` and `docs/troubleshooting.md` (FR-002/018).
+- [x] T024 [US2] Guide users through pairing with the red SYNC button in `src/Wii2Xbox/PairingDialog.cs` and `docs/troubleshooting/bluetooth.md` (FR-002/018).
 - [x] T025 [US2] Implement manual reconnection, up to four retries, device events, and re-enumeration after sleep in `SessionRecovery.cs` and `MainForm.cs` (FR-012). Physical testing remains pending.
 - [ ] T026 [US2] Test -01/-TR models, 10 attempts per combination, cancellation, and absent radios in `docs/compatibility.md` (SC-001/010).
 

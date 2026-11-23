@@ -120,7 +120,7 @@ As a user, I want to run without the SDK and recover from disconnections without
 ### Functional Requirements
 
 - **FR-001**: Run on Windows 10/11 x64 with a Spanish UI and no required console.
-- **FR-002**: Discover controllers automatically while the wizard is open. Pause discovery to pair the selected controller and cancel on close. Distinguish an absent radio, failed pairing, and denied access.
+- **FR-002**: Discover controllers automatically while the wizard is open. Pair the selected controller using the red SYNC button as the sole method. Pause discovery during pairing and cancel on close. Distinguish an absent radio, failed pairing, and denied access.
 - **FR-003**: Enumerate connected controllers and deduplicate by physical identity.
 - **FR-004**: Activate available Wii Remotes automatically, with up to four independent Xbox 360 outputs for XInput games. Default to Xbox output and apply an output change only to the selected controller.
 - **FR-005**: Show each controller's physical connection, state, errors, and profile. When Windows assigns an Xbox output, show its slot 1–4 in **Xbox** and light only the matching LED on the Wii Remote. Use the actual assignment after reconnection.

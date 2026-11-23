@@ -12,9 +12,9 @@
 
 1. Put charged batteries in the Wii Remote and keep it near the PC.
 2. Open Wii2Xbox and choose **Add controller…** (**Añadir mando…**). The window searches automatically while it is open.
-3. Press the red **SYNC** button inside the battery compartment, or hold **1 + 2** until the LEDs flash. If they stop flashing before the controller appears, start pairing mode again.
-4. Select the Wii Remote in the list. Set the method to **SYNC** if you pressed the red button, or **1+2** if you held those two buttons. Choose **Pair selected** (**Asociar seleccionado**).
-5. If pairing fails, put the Wii Remote back into pairing mode and retry with the matching method. If Windows still has a stale entry for that remote, remove that entry under **Settings → Bluetooth & devices → Devices** in Windows 11 or **Settings → Devices → Bluetooth & other devices** in Windows 10, then repeat from step 2.
+3. Press the red **SYNC** button inside the battery compartment. If the LEDs stop flashing before the controller appears, press **SYNC** again.
+4. Select the Wii Remote in the list and choose **Pair selected** (**Asociar seleccionado**).
+5. If pairing fails, press the red **SYNC** button again and retry. If Windows still has a stale entry for that remote, remove that entry under **Settings → Bluetooth & devices → Devices** in Windows 11 or **Settings → Devices → Bluetooth & other devices** in Windows 10, then repeat from step 2.
 
 The pairing window supports Wii Remotes that advertise as `Nintendo RVL-CNT-01` or `Nintendo RVL-CNT-01-TR`. Other detected Wii devices, including the Balance Board, can appear as unsupported. Some third-party remotes use the same names. [XWiimote device names](https://xwiimote.github.io/xwiimote/index.html)
 

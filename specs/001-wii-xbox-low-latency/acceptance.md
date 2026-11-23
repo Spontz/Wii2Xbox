@@ -19,7 +19,7 @@
 
 ## Built-in Bluetooth Pairing
 
-- The **Añadir mando** (Add controller) dialog discovers devices over the radio, lists supported Nintendo models, and lets the user choose a controller and the SYNC or 1+2 method. Authentication uses the six-byte PIN for the selected method. [Dolphin on Windows](https://github.com/dolphin-emu/dolphin/blob/master/Source/Core/Core/HW/WiimoteReal/IOWin.cpp) · [HID service API](https://learn.microsoft.com/en-us/windows/win32/api/bluetoothapis/nf-bluetoothapis-bluetoothsetservicestate)
+- The **Añadir mando** (Add controller) dialog discovers devices over the radio and lets the user select a supported controller. The red SYNC button is the sole method, and authentication uses the Bluetooth radio address as a six-byte PIN. [Dolphin on Windows](https://github.com/dolphin-emu/dolphin/blob/master/Source/Core/Core/HW/WiimoteReal/IOWin.cpp) · [HID service API](https://learn.microsoft.com/en-us/windows/win32/api/bluetoothapis/nf-bluetoothapis-bluetoothsetservicestate)
 - The native Bluetooth API completed a search with no controllers in 2,644 ms. A second search, with cancellation requested at 300 ms, ended 2,619 ms after it began. The existing 11 button tests still passed.
 
 ## Latency Instrumentation

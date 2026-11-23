@@ -13,7 +13,7 @@
 ## The Xbox controller is missing from the Windows test
 
 1. In Wii2Xbox, check that the remote uses **Xbox** or **Xbox and IR mouse**. The **IR mouse** output controls the pointer and mouse clicks.
-2. Check the Xbox status at the bottom of the window. If Wii2Xbox says ViGEmBus is missing or incompatible, select **Exit** (**Salir**) from its notification-area icon and reopen the app. Accept the driver installation when Wii2Xbox offers it, then allow it in the Windows prompt. Restart Windows if Wii2Xbox asks you to.
+2. If Wii2Xbox says ViGEmBus is missing or incompatible, select **Exit** (**Salir**) from its notification-area icon and reopen the app. Accept the driver installation when Wii2Xbox offers it, then allow it in the Windows prompt. Restart Windows if Wii2Xbox asks you to.
 3. If all four XInput slots are occupied, disconnect an unused physical Xbox controller or close another app that creates virtual Xbox controllers. Check the Wii2Xbox **Xbox** column again, then reopen `joy.cpl`.
 
 ## The virtual controller appears, but a button does not respond

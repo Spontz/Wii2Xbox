@@ -5,7 +5,6 @@ internal sealed class PairingDialog : Form
     private readonly ListBox found = new() { Dock = DockStyle.Fill, AccessibleName = UiText.Get("FoundWiiControllers") };
     private readonly Button pair = new() { Text = UiText.Get("PairSelected"), AutoSize = true };
     private readonly Button close = new() { Text = UiText.Get("Close"), AutoSize = true, DialogResult = DialogResult.Cancel };
-    private readonly ComboBox method = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 85, AccessibleName = UiText.Get("PairingButtons") };
     private readonly Label status = new() { Text = UiText.Get("SearchingBluetooth"), AutoSize = true };
     private readonly Dictionary<ulong, BluetoothService.Candidate> discovered = new();
     private CancellationTokenSource? scanCancellation;
@@ -20,23 +19,18 @@ internal sealed class PairingDialog : Form
         ScrollableLayout.ConfigureForm(this, new Size(575, 375), new Size(520, 340));
         StartPosition = FormStartPosition.CenterParent;
         ShowInTaskbar = false;
-        var layout = new TableLayoutPanel { Padding = new Padding(14), ColumnCount = 1, RowCount = 5 };
+        var layout = new TableLayoutPanel { Padding = new Padding(14), ColumnCount = 1, RowCount = 4 };
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         var instructions = new Label { Text = UiText.Get("PairingInstructions"), AutoSize = true };
         layout.Controls.Add(instructions, 0, 0);
         layout.Controls.Add(found, 0, 1);
         var buttons = new FlowLayoutPanel { AutoSize = true, Dock = DockStyle.Fill };
-        method.Items.AddRange(new object[] { "SYNC", "1+2" });
-        method.SelectedIndex = 0;
-        ScrollableLayout.FitChoices(method, 85);
         buttons.Controls.AddRange([pair, close]);
-        layout.Controls.Add(method, 0, 2);
-        layout.Controls.Add(buttons, 0, 3);
-        layout.Controls.Add(status, 0, 4);
+        layout.Controls.Add(buttons, 0, 2);
+        layout.Controls.Add(status, 0, 3);
         Controls.Add(new ScrollableLayout(layout, 1, 120, instructions, status));
         CancelButton = close;
         Shown += (_, _) => StartScanning();
@@ -66,7 +60,7 @@ internal sealed class PairingDialog : Form
                     var batch = await Task.Run(() => BluetoothService.Find(cancellation), cancellation);
                     cancellation.ThrowIfCancellationRequested();
                     UpdateResults(batch);
-                    status.Text = discovered.Count == 0 ? UiText.Get("SearchingPressSync")
+                    status.Text = discovered.Count == 0 ? UiText.Get("SearchingBluetooth")
                         : discovered.Values.Any(item => item.CanPair)
                             ? UiText.Get("SearchingChooseController")
                             : UiText.Get("SearchingSupportedModels");
@@ -135,7 +129,6 @@ internal sealed class PairingDialog : Form
     private async Task Pair()
     {
         if (found.SelectedItem is not BluetoothService.Candidate { CanPair: true } device) return;
-        bool sync = method.SelectedIndex == 0;
         pairing = true;
         UpdateButtons();
         status.Text = UiText.Get("PairingInProgress");
@@ -144,7 +137,7 @@ internal sealed class PairingDialog : Form
             scanCancellation?.Cancel();
             await scanTask;
             var current = discovered[device.Device.Address];
-            await Task.Run(() => BluetoothService.Pair(current, sync));
+            await Task.Run(() => BluetoothService.Pair(current));
             PairedAddress = device.Device.Address;
         }
         catch (Exception error)
@@ -163,9 +156,8 @@ internal sealed class PairingDialog : Form
     private void UpdateButtons()
     {
         bool canSelect = !pairing && !closing;
-        method.Enabled = canSelect && found.SelectedItem is BluetoothService.Candidate { CanPair: true };
         found.Enabled = canSelect;
-        pair.Enabled = method.Enabled;
-        close.Enabled = !pairing && !closing;
+        pair.Enabled = canSelect && found.SelectedItem is BluetoothService.Candidate { CanPair: true };
+        close.Enabled = canSelect;
     }
 }
