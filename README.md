@@ -2,6 +2,8 @@
 
 A Windows app that connects up to four Wii Remotes over Bluetooth and lets you use them as independent Xbox 360/XInput controllers. Designed for minimal latency.
 
+![Wii2Xbox in dark mode, showing the controller list and Wii Remote button viewer](docs/images/wii2xbox.png)
+
 ## Downloads
 
 - [MSI installer](https://github.com/Spontz/Wii2Xbox/releases/tag/v1.2.0-installer)
