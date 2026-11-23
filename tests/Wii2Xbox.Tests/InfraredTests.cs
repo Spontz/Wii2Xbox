@@ -99,7 +99,7 @@ public sealed class InfraredTests
         var transport = new InfraredTransport(expectExtension: true);
         var events = new List<uint>();
         var xbox = new OutputTrace();
-        var session = new ControllerSession("Wii IR", () => transport, () => xbox, new CoreInputMap(new Profile()),
+        var session = new ControllerSession("Wii IR", () => transport, _ => xbox, new CoreInputMap(new Profile()),
             mode: SessionMode.XboxAndMouse, openMouse: () => new InfraredMouse((flags, _) => { events.Add(flags); return true; }));
         await session.Completion.WaitAsync(TimeSpan.FromSeconds(3));
         Assert.Equal(Enum.GetValues<InfraredCommand>(), transport.Initialization);
@@ -119,7 +119,7 @@ public sealed class InfraredTests
         var events = new List<uint>();
         int xboxRequests = 0;
         var session = new ControllerSession("Wii IR", () => transport,
-            () => { xboxRequests++; throw new InvalidOperationException("Xbox no debe abrirse"); },
+            _ => { xboxRequests++; throw new InvalidOperationException("Xbox no debe abrirse"); },
             new CoreInputMap(new Profile()), collectLatency: true, mode: SessionMode.Mouse,
             openMouse: () => new InfraredMouse((flags, _) => { events.Add(flags); return true; }));
         await session.Completion.WaitAsync(TimeSpan.FromSeconds(3));

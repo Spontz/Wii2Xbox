@@ -4,6 +4,60 @@ namespace Wii2Xbox.Tests;
 
 public sealed class RecoveryTests
 {
+    [Fact]
+    public void RumbleReportAndLedReportsUseTheSameMotorBit()
+    {
+        var report = new byte[22];
+        WiiDevice.EncodeCommand(report, WiiCommand.Rumble);
+        WiiDevice.ApplyRumble(report, enabled: true);
+        Assert.Equal(new byte[] { 0x10, 0x01 }, report[..2]);
+        WiiDevice.ApplyRumble(report, enabled: false);
+        Assert.Equal(new byte[] { 0x10, 0x00 }, report[..2]);
+
+        WiiDevice.EncodeCommand(report, WiiCommand.PlayerLed2);
+        WiiDevice.ApplyRumble(report, enabled: true);
+        Assert.Equal(new byte[] { 0x11, 0x21 }, report[..2]);
+
+        InfraredSetup.Encode(report, InfraredCommand.Clock);
+        byte flags = report[1];
+        WiiDevice.ApplyRumble(report, enabled: true);
+        Assert.Equal(flags | 1, report[1]);
+    }
+
+    [Fact]
+    public async Task XboxRumbleReachesTheAssignedRemoteWhileInputIsWaiting()
+    {
+        var waiting = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var released = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var motorStates = new List<bool>();
+        var transport = new ScriptedTransport(() =>
+        {
+            waiting.TrySetResult();
+            released.Task.GetAwaiter().GetResult();
+            return 0;
+        }, () => released.TrySetResult(), motorStates.Add);
+        Action<bool>? feedback = null;
+        var session = new ControllerSession("Wii", () => transport, setRumble =>
+        {
+            feedback = setRumble;
+            return new RecordingOutput();
+        }, new CoreInputMap(new Profile()));
+        try
+        {
+            await waiting.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            Assert.NotNull(feedback);
+            feedback(true);
+            feedback(false);
+            Assert.Equal(new[] { true, false }, motorStates);
+            Assert.Equal(1, session.Reports);
+        }
+        finally
+        {
+            session.Stop();
+            await session.Completion.WaitAsync(TimeSpan.FromSeconds(3));
+        }
+    }
+
     [Theory]
     [InlineData(1, 0x10)]
     [InlineData(2, 0x20)]
@@ -13,7 +67,7 @@ public sealed class RecoveryTests
     {
         var transport = new FrameSequence([[0x30, 0, 1], [0x30, 0, 0]]);
         var output = new RecordingOutput(slot);
-        var session = new ControllerSession("prueba", () => transport, () => output, new CoreInputMap(new Profile()));
+        var session = new ControllerSession("prueba", () => transport, _ => output, new CoreInputMap(new Profile()));
         await session.Completion.WaitAsync(TimeSpan.FromSeconds(3));
         Assert.Equal(slot, session.Player);
         var command = Assert.Single(transport.Commands, command => command >= WiiCommand.PlayerLed1);
@@ -35,7 +89,7 @@ public sealed class RecoveryTests
             return 0;
         }, () => released.TrySetResult());
         var session = new ControllerSession("prueba", () => transport,
-            () => throw new InvalidOperationException("El visor no debe abrir una salida Xbox."),
+            _ => throw new InvalidOperationException("El visor no debe abrir una salida Xbox."),
             new CoreInputMap(new Profile()), mode: SessionMode.Buttons);
         try
         {
@@ -43,7 +97,7 @@ public sealed class RecoveryTests
             Assert.Equal("Active", session.Status);
             Assert.Null(session.Player);
             var counts = new int[WiiButtonState.BitCount];
-            session.Buttons.Accumulate(long.MaxValue, counts);
+            session.Buttons.Accumulate(long.MaxValue, counts, out _, out _);
             Assert.Equal(1, counts[System.Numerics.BitOperations.TrailingZeroCount((uint)WiiButtons.Two)]);
         }
         finally
@@ -51,6 +105,33 @@ public sealed class RecoveryTests
             session.Stop();
             await session.Completion.WaitAsync(TimeSpan.FromSeconds(3));
         }
+    }
+
+    [Fact]
+    public async Task ButtonPreviewReadsNunchukWithoutAnXboxOutput()
+    {
+        var transport = new FrameSequence([
+            [0x20, 0, 0, 2, 0, 0, 0],
+            [0x30, 0, 0],
+            [0x22, 0, 0, 0x16, 0],
+            [0x22, 0, 0, 0x16, 0],
+            [0x21, 0, 0, 0x50, 0, 0xfa, 0, 0, 0xa4, 0x20, 0, 0],
+            [0x21, 0, 0, 0xf0, 0, 0x20, 0, 0, 0, 0, 0, 0, 0, 0, 225, 40, 130, 204, 50, 120, 0, 0],
+            [0x32, 0, 0, 141, 144, 0, 0, 0, 0, 0, 0]
+        ]);
+        var session = new ControllerSession("prueba", () => transport,
+            _ => throw new InvalidOperationException("The preview must not open an Xbox output."),
+            new CoreInputMap(new Profile()), mode: SessionMode.Buttons);
+
+        await session.Completion.WaitAsync(TimeSpan.FromSeconds(3));
+        var counts = new int[WiiButtonState.BitCount];
+        Assert.True(session.Buttons.Accumulate(long.MaxValue, counts, out bool hasNunchuk, out var stick));
+        Assert.True(hasNunchuk);
+        Assert.Equal(1, counts[WiiButtonState.CIndex]);
+        Assert.Equal(1, counts[WiiButtonState.ZIndex]);
+        Assert.Equal(1, counts[WiiButtonState.StickIndex]);
+        Assert.Equal(new System.Numerics.Vector2(11, 24), stick);
+        Assert.Null(session.Player);
     }
 
     [Fact]
@@ -168,7 +249,7 @@ public sealed class RecoveryTests
     {
         var session = new ControllerSession("prueba",
             () => new ScriptedTransport(() => throw new InvalidOperationException()),
-            () => throw new IOException("Error de salida"),
+            _ => throw new IOException("Error de salida"),
             new CoreInputMap(new Profile()));
         await session.Completion.WaitAsync(TimeSpan.FromSeconds(3));
         Assert.False(session.ReconnectRecommended);
@@ -207,7 +288,7 @@ public sealed class RecoveryTests
             [0x30, 0, 0]
         ];
         var output = new RecordingOutput();
-        var session = new ControllerSession("prueba", () => new FrameSequence(input), () => output,
+        var session = new ControllerSession("prueba", () => new FrameSequence(input), _ => output,
             new CoreInputMap(new Profile()));
         await session.Completion.WaitAsync(TimeSpan.FromSeconds(3));
         Assert.Equal(2, session.Reports);
@@ -230,7 +311,7 @@ public sealed class RecoveryTests
             profile.Bindings["Two"] = targets[i];
             var transport = new TogglingTransport(framesPerController);
             var output = outputs[i] = new RecordingOutput();
-            sessions[i] = new ControllerSession("prueba", () => transport, () => output, new CoreInputMap(profile));
+            sessions[i] = new ControllerSession("prueba", () => transport, _ => output, new CoreInputMap(profile));
         }
         await Task.WhenAll(sessions.Select(session => session.Completion)).WaitAsync(TimeSpan.FromSeconds(10));
         for (int i = 0; i < outputs.Length; i++)
@@ -288,9 +369,10 @@ public sealed class RecoveryTests
     }
 
     private static ControllerSession Start(ScriptedTransport transport, RecordingOutput output) =>
-        new("prueba", () => transport, () => output, new CoreInputMap(new Profile()));
+        new("prueba", () => transport, _ => output, new CoreInputMap(new Profile()));
 
-    private sealed class ScriptedTransport(Func<int> afterFirst, Action? onClose = null) : IControllerTransport
+    private sealed class ScriptedTransport(Func<int> afterFirst, Action? onClose = null, Action<bool>? rumble = null)
+        : IControllerTransport
     {
         private bool first = true;
         public int InputLength => 22;
@@ -305,6 +387,7 @@ public sealed class RecoveryTests
         }
         public void Send(WiiCommand command, bool infrared) { }
         public void Send(InfraredCommand command) { }
+        public void SetRumble(bool enabled) => rumble?.Invoke(enabled);
         public void Dispose() => onClose?.Invoke();
     }
 

@@ -51,13 +51,31 @@ internal sealed class ScrollableLayout : Panel
         finally { fitting = false; }
     }
 
-    internal static void ConfigureForm(Form form, Size initialClientSize, Size minimumWindowSize)
+    internal static void ConfigureForm(Form form, Size initialClientSize, Size minimumWindowSize, bool expandOnLargeDisplays = false)
     {
         form.AutoScaleDimensions = new SizeF(96, 96);
         form.AutoScaleMode = AutoScaleMode.Dpi;
         form.ClientSize = initialClientSize;
         form.MinimumSize = minimumWindowSize;
-        form.Load += (_, _) => FitWorkingArea();
+        form.Load += (_, _) =>
+        {
+            if (expandOnLargeDisplays && form.WindowState == FormWindowState.Normal)
+            {
+                var area = Screen.FromControl(form.Owner ?? form).WorkingArea;
+                var frame = form.Size - form.ClientSize;
+                var expanded = PreferredClientSize(form.ClientSize, area.Size - frame);
+                if (expanded != form.ClientSize)
+                {
+                    var previous = form.Bounds;
+                    form.ClientSize = expanded;
+                    if (form.StartPosition != FormStartPosition.Manual)
+                        form.Location = new Point(
+                            Math.Clamp(previous.Left - (form.Width - previous.Width) / 2, area.Left, Math.Max(area.Left, area.Right - form.Width)),
+                            Math.Clamp(previous.Top - (form.Height - previous.Height) / 2, area.Top, Math.Max(area.Top, area.Bottom - form.Height)));
+                }
+            }
+            FitWorkingArea();
+        };
         form.DpiChanged += (_, _) => form.BeginInvoke(FitWorkingArea);
 
         void FitWorkingArea()
@@ -68,6 +86,13 @@ internal sealed class ScrollableLayout : Panel
             if (form.WindowState == FormWindowState.Normal)
                 form.Size = new Size(Math.Min(form.Width, area.Width), Math.Min(form.Height, area.Height));
         }
+    }
+
+    internal static Size PreferredClientSize(Size baseline, Size available)
+    {
+        int width = Math.Clamp(Math.Max(baseline.Width, available.Width * 28 / 100), 1, Math.Max(1, available.Width));
+        int height = baseline.Height + Math.Max(0, width - baseline.Width) / 2;
+        return new Size(width, Math.Clamp(height, 1, Math.Max(1, available.Height)));
     }
 
     internal static void FitChoices(ComboBox combo, int minimumWidth)

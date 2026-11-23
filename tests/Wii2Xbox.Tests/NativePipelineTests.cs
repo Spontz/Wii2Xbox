@@ -25,7 +25,7 @@ public sealed class NativePipelineTests
                 for (int index = 0; index < 4; index++)
                 {
                     var transport = new PulseTransport(traffic: true);
-                    sessions.Add(new ControllerSession("Wii simulado", () => transport, static () => new XboxOutput(),
+                    sessions.Add(new ControllerSession("Wii simulado", () => transport, static setRumble => new XboxOutput(setRumble),
                         map, collectLatency: true));
                 }
                 await WaitForSlots(sessions);
@@ -104,7 +104,7 @@ public sealed class NativePipelineTests
                     var samples = new LatencyMetrics(1024);
                     independent.Add(samples);
                     sessions.Add(new ControllerSession("Wii simulado", () => transport,
-                        () => new InstrumentedXbox(transport, samples), map, collectLatency: captureEnabled));
+                        _ => new InstrumentedXbox(transport, samples), map, collectLatency: captureEnabled));
                 }
                 await WaitForSlots(sessions);
                 Assert.Equal(4, sessions.Select(session => session.Player).Distinct().Count());
@@ -172,7 +172,7 @@ public sealed class NativePipelineTests
             for (int index = 0; index < count; index++)
             {
                 var transport = new PulseTransport(traffic: true);
-                sessions.Add(new ControllerSession("Wii simulado", () => transport, static () => new XboxOutput(),
+                sessions.Add(new ControllerSession("Wii simulado", () => transport, static setRumble => new XboxOutput(setRumble),
                     map, collectLatency: true));
             }
             await WaitForSlots(sessions);
@@ -227,7 +227,7 @@ public sealed class NativePipelineTests
             {
                 var transport = new PulseTransport(traffic: index > 0);
                 transports.Add(transport);
-                sessions.Add(new ControllerSession("Wii simulado", () => transport, static () => new XboxOutput(),
+                sessions.Add(new ControllerSession("Wii simulado", () => transport, static setRumble => new XboxOutput(setRumble),
                     map, collectLatency: true));
             }
 

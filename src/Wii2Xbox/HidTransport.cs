@@ -1,5 +1,6 @@
 using HidSharp;
 using Microsoft.Win32.SafeHandles;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace Wii2Xbox;
@@ -11,6 +12,7 @@ internal interface IControllerTransport : IDisposable
     int Read(byte[] buffer);
     void Send(WiiCommand command, bool infrared = false);
     void Send(InfraredCommand command);
+    void SetRumble(bool enabled) { }
 }
 
 internal sealed record WiiDevice(HidDevice Device, ulong? BluetoothAddress)
@@ -43,25 +45,77 @@ internal sealed record WiiDevice(HidDevice Device, ulong? BluetoothAddress)
     private sealed class Connection(WiiDevice device, HidStream stream) : IControllerTransport
     {
         private readonly byte[] report = new byte[Math.Max(22, device.Device.GetMaxOutputReportLength())];
-        private int disposed;
+        private readonly object writes = new();
+        private bool disposed;
+        private bool rumbleRequested;
+        private bool? rumbleSent = false;
         public int InputLength => device.Device.GetMaxInputReportLength();
         public int ReadTimeout { get => stream.ReadTimeout; set => stream.ReadTimeout = value; }
         public int Read(byte[] buffer) => stream.Read(buffer, 0, buffer.Length);
         public void Dispose()
         {
-            if (Interlocked.Exchange(ref disposed, 1) == 0) stream.Dispose();
+            lock (writes)
+            {
+                if (disposed) return;
+                disposed = true;
+                try
+                {
+                    if (rumbleSent != false) WriteRumble(false);
+                }
+                finally { stream.Dispose(); }
+            }
         }
 
         public void Send(WiiCommand command, bool infrared)
         {
-            EncodeCommand(report, command, infrared);
-            device.Write(stream, report);
+            lock (writes)
+            {
+                ObjectDisposedException.ThrowIf(disposed, this);
+                EncodeCommand(report, command, infrared);
+                WriteReport(rumbleRequested);
+            }
         }
 
         public void Send(InfraredCommand command)
         {
-            InfraredSetup.Encode(report, command);
+            lock (writes)
+            {
+                ObjectDisposedException.ThrowIf(disposed, this);
+                InfraredSetup.Encode(report, command);
+                WriteReport(rumbleRequested);
+            }
+        }
+
+        public void SetRumble(bool enabled)
+        {
+            // ViGEm delivers feedback independently of the HID reader.
+            lock (writes)
+            {
+                if (disposed) return;
+                rumbleRequested = enabled;
+                if (rumbleSent != enabled) WriteRumble(enabled);
+            }
+        }
+
+        private void WriteRumble(bool enabled)
+        {
+            EncodeCommand(report, WiiCommand.Rumble);
+            try
+            {
+                WriteReport(enabled);
+            }
+            catch (Exception error) when (error is IOException or TimeoutException or ObjectDisposedException)
+            {
+                Debug.WriteLine(error);
+            }
+        }
+
+        private void WriteReport(bool rumbleEnabled)
+        {
+            ApplyRumble(report, rumbleEnabled);
+            if (rumbleSent != rumbleEnabled) rumbleSent = null;
             device.Write(stream, report);
+            rumbleSent = rumbleEnabled;
         }
     }
 
@@ -84,6 +138,9 @@ internal sealed record WiiDevice(HidDevice Device, ulong? BluetoothAddress)
         report.Clear();
         switch (command)
         {
+            case WiiCommand.Rumble:
+                report[0] = 0x10;
+                break;
             case WiiCommand.PlayerLed1:
             case WiiCommand.PlayerLed2:
             case WiiCommand.PlayerLed3:
@@ -121,6 +178,9 @@ internal sealed record WiiDevice(HidDevice Device, ulong? BluetoothAddress)
                 throw new ArgumentOutOfRangeException(nameof(command));
         }
     }
+
+    internal static void ApplyRumble(Span<byte> report, bool enabled) =>
+        report[1] = (byte)((report[1] & ~1) | (enabled ? 1 : 0));
 
     private bool TryControlReport(byte[] report)
     {

@@ -6,8 +6,8 @@ A Windows app that connects up to four Wii Remotes over Bluetooth and lets you u
 
 ## Downloads
 
-- [MSI installer](https://github.com/Spontz/Wii2Xbox/releases/tag/v1.2.3-installer)
-- [Portable ZIP](https://github.com/Spontz/Wii2Xbox/releases/tag/v1.2.3-portable)
+- [MSI installer](https://github.com/Spontz/Wii2Xbox/releases/tag/v1.2.4-installer)
+- [Portable ZIP](https://github.com/Spontz/Wii2Xbox/releases/tag/v1.2.4-portable)
 
 ## Project Documentation
 
@@ -42,6 +42,8 @@ Closing the window keeps Wii2Xbox running in the notification area. Left-click i
 The horizontal Wii Remote below the list lights up buttons from all controllers sending input. A number over a button indicates how many controllers are pressing it at once. On Windows 11, Wii2Xbox follows the Windows app theme at startup.
 
 To change a controller's output, open **Salida** (Output) in its row. Choose **Xbox**, **Ratón IR** (IR mouse), or **Xbox y ratón IR** (Xbox and IR mouse).
+
+Xbox vibration from a game activates the corresponding Wii Remote's motor in either mode with Xbox output.
 
 See the [troubleshooting guide](docs/troubleshooting.md) and [physical controller test protocol](docs/hardware-validation.md).
 

@@ -43,13 +43,15 @@ internal sealed class XboxOutput : IXboxOutput
     private readonly ViGEmClient client;
     private readonly IXbox360Controller controller;
 
-    public XboxOutput()
+    public XboxOutput(Action<bool>? setRumble = null)
     {
         client = new ViGEmClient();
         try
         {
             controller = client.CreateXbox360Controller();
             controller.AutoSubmitReport = false;
+            if (setRumble is not null)
+                controller.FeedbackReceived += (_, feedback) => setRumble(feedback.LargeMotor != 0 || feedback.SmallMotor != 0);
             controller.Connect();
         }
         catch

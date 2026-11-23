@@ -18,7 +18,7 @@ To remove a Wii Remote, click the red **X** at the end of its row in the main wi
 4. Select the Wii Remote in the list and choose **Pair selected** (**Asociar seleccionado**).
 5. If pairing fails, press the red **SYNC** button again and retry. If Windows still has a stale entry for that remote, remove that entry under **Settings → Bluetooth & devices → Devices** in Windows 11 or **Settings → Devices → Bluetooth & other devices** in Windows 10, then repeat from step 2.
 
-The pairing window supports Wii Remotes that advertise as `Nintendo RVL-CNT-01` or `Nintendo RVL-CNT-01-TR`. Other detected Wii devices, including the Balance Board, can appear as unsupported. Some third-party remotes use the same names. [XWiimote device names](https://xwiimote.github.io/xwiimote/index.html)
+The default view searches for Wii devices, including Wii Remotes named `Nintendo RVL-CNT-01` or `Nintendo RVL-CNT-01-TR`. If your third-party remote uses another name, turn on **Display all devices** (**Mostrar todos los dispositivos**) to see nearby devices found by Bluetooth Classic inquiries. Devices reported without a name appear as **Unnamed Bluetooth device**. Recent results stay visible briefly even if a scan misses them. Select the remote and choose **Pair selected**. Wii2Xbox closes the wizard after finding a compatible Wii Remote input interface. If it cannot recognize the selected device, the wizard displays the result and keeps the list open. [XWiimote device names](https://xwiimote.github.io/xwiimote/index.html)
 
 ## Windows remembers the Wii Remote, but the main window is empty
 

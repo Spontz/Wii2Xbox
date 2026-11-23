@@ -150,8 +150,8 @@
   <data name="Export" xml:space="preserve">
     <value>Export…</value>
   </data>
-  <data name="FoundWiiControllers" xml:space="preserve">
-    <value>Wii controllers found</value>
+  <data name="FoundBluetoothDevices" xml:space="preserve">
+    <value>Bluetooth devices found</value>
   </data>
   <data name="Import" xml:space="preserve">
     <value>Import…</value>
@@ -321,6 +321,24 @@
   <data name="SearchingBluetooth" xml:space="preserve">
     <value>Searching for Wii controllers…</value>
   </data>
+  <data name="DisplayAllDevices" xml:space="preserve">
+    <value>Display all devices</value>
+  </data>
+  <data name="SearchingAllBluetooth" xml:space="preserve">
+    <value>Searching for nearby Bluetooth devices…</value>
+  </data>
+  <data name="SearchingChooseDevice" xml:space="preserve">
+    <value>Select a device and choose Pair selected.</value>
+  </data>
+  <data name="UnnamedBluetoothDevice" xml:space="preserve">
+    <value>Unnamed Bluetooth device</value>
+  </data>
+  <data name="NotAWiiRemote" xml:space="preserve">
+    <value>This device was not recognized as a compatible Wii Remote. Select another device or try again.</value>
+  </data>
+  <data name="UnknownControllerPairingFailed" xml:space="preserve">
+    <value>Could not verify that this device is a compatible Wii Remote. {0}</value>
+  </data>
   <data name="SearchingChooseController" xml:space="preserve">
     <value>Select a controller and choose Pair selected.</value>
   </data>
@@ -400,7 +418,7 @@
     <value>Wii controllers</value>
   </data>
   <data name="WiiRemoteButtons" xml:space="preserve">
-    <value>Wii Remote buttons</value>
+    <value>Wii Remote and Nunchuk buttons</value>
   </data>
   <data name="WindowsCannotLaunchDriver" xml:space="preserve">
     <value>Windows could not open the ViGEmBus installer.</value>

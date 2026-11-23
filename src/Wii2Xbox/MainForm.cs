@@ -85,7 +85,7 @@ public sealed class MainForm : Form
             appIcon = new Icon(icon);
         Text = "Wii2Xbox";
         Icon = appIcon;
-        ScrollableLayout.ConfigureForm(this, new Size(850, 520), MinimumWindow);
+        ScrollableLayout.ConfigureForm(this, new Size(850, 520), MinimumWindow, expandOnLargeDisplays: true);
         StartPosition = FormStartPosition.CenterScreen;
         Font = new Font("Segoe UI", 10);
         bool fitPending = false;
@@ -261,13 +261,14 @@ public sealed class MainForm : Form
         int[] rows = layout.GetRowHeights();
         int fixedHeight = layout.Padding.Vertical + rows.Sum() - rows[DeviceListRow] - rows[RemoteRow];
         int minList = LogicalToDeviceUnits(DeviceListHeight);
-        int preferredRemote = LogicalToDeviceUnits(RemoteHeight);
+        int baselineRemote = LogicalToDeviceUnits(RemoteHeight);
+        int preferredRemote = Math.Max(baselineRemote, layout.ClientSize.Width / 5);
         int widestAction = actions.Controls.Cast<Control>().Max(button => button.PreferredSize.Width + button.Margin.Horizontal);
         var baseline = LogicalToDeviceUnits(MinimumWindow);
         var area = Screen.FromControl(this).WorkingArea;
         int minWidth = layout.Padding.Horizontal + actions.Margin.Horizontal + widestAction
             + support.PreferredSize.Width + support.Margin.Horizontal + Width - ClientSize.Width;
-        int minHeight = fixedHeight + minList + preferredRemote + Height - ClientSize.Height;
+        int minHeight = fixedHeight + minList + baselineRemote + Height - ClientSize.Height;
         var minimum = new Size(Math.Min(area.Width, Math.Max(baseline.Width, minWidth)),
             Math.Min(area.Height, Math.Max(baseline.Height, minHeight)));
         if (MinimumSize != minimum) MinimumSize = minimum;

@@ -37,7 +37,7 @@ internal readonly record struct StickCalibration(StickAxis X, StickAxis Y)
 internal enum WiiCommand
 {
     None, Status, CoreMode, ExtensionMode, Init, DisableEncryption, Identify, ReadCalibration,
-    PlayerLed1, PlayerLed2, PlayerLed3, PlayerLed4
+    Rumble, PlayerLed1, PlayerLed2, PlayerLed3, PlayerLed4
 }
 
 internal sealed class NunchukProtocol(bool enableExtension = true)

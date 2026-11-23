@@ -8,12 +8,14 @@ The application provides no network API. These names identify boundaries to refi
 - Open and configure support cancellation and return typed errors.
 - Read writes into a reusable buffer and returns the actual length and availability timestamp.
 - ACK, status, and memory responses stay separate from input reports.
+- Vibration changes serialize with other HID writes and preserve the rumble bit on ordinary commands.
 - Close cancels pending reads and releases the handle. Repeated calls are safe.
 
 ## IXboxOutput
 
 - Connect creates one owned output and returns the actual index when available.
 - Submit accepts a complete state and sends one report.
+- Feedback invokes the session's vibration callback when Xbox motor or LED feedback arrives. The Wii Remote motor is on when either Xbox motor is active.
 - Neutralize sends zeros. Disconnect releases only that output, even if Neutralize fails.
 - Failures propagate to the session, which stops reporting itself as active.
 

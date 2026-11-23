@@ -27,6 +27,34 @@ public sealed class BluetoothIdentityTests
         });
         Assert.Contains("unsupported", balanceBoard.ToString());
         Assert.Throws<NotSupportedException>(() => BluetoothService.Pair(balanceBoard));
+        Assert.Throws<NotSupportedException>(() => BluetoothService.Pair(balanceBoard, tryUnknown: true));
+    }
+
+    [Theory]
+    [InlineData("Generic Wii Controller", 0x0508, true)]
+    [InlineData("Generic joystick", 0x0504, true)]
+    [InlineData("Headphones", 0x0404, false)]
+    [InlineData("Keyboard", 0x0540, false)]
+    [InlineData("Nintendo RVL-WBC-01", 0x0508, false)]
+    public void OnlyPlausibleControllersMayBeTriedWithAnUnknownName(string name, uint deviceClass, bool allowed)
+    {
+        var candidate = new BluetoothService.Candidate(0, new BluetoothService.DeviceInfo
+        {
+            Name = name, ClassOfDevice = deviceClass
+        });
+        Assert.Equal(allowed, candidate.CanTryPair);
+        if (!allowed)
+            Assert.Throws<NotSupportedException>(() => BluetoothService.Pair(candidate, tryUnknown: true));
+    }
+
+    [Fact]
+    public void RecentInquiryRejectsOldOrMissingSightings()
+    {
+        var cutoff = new DateTime(2026, 11, 23, 15, 42, 0, DateTimeKind.Utc);
+        var seen = new BluetoothService.SystemTime { Year = 2026, Month = 11, Day = 23, Hour = 15, Minute = 42 };
+        Assert.True(seen.IsAtOrAfter(cutoff));
+        Assert.False(seen.IsAtOrAfter(cutoff.AddSeconds(1)));
+        Assert.False(default(BluetoothService.SystemTime).IsAtOrAfter(cutoff));
     }
 
     [Theory]

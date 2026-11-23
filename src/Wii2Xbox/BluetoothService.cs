@@ -15,8 +15,10 @@ internal static class BluetoothService
     internal sealed record Candidate(ulong RadioAddress, DeviceInfo Device)
     {
         public bool CanPair => IsSupportedModel(Device.Name);
+        public bool CanTryPair => CanPair || !IsWiiFamily(Device.Name) && IsPossibleController(Device.ClassOfDevice);
+        private string DisplayName => string.IsNullOrWhiteSpace(Device.Name) ? UiText.Get("UnnamedBluetoothDevice") : Device.Name;
         public override string ToString() =>
-            $"{Device.Name} · {Device.Address:X12}{(CanPair ? "" : UiText.Get("UnsupportedControllerSuffix"))}";
+            $"{DisplayName} · {Device.Address:X12}{(!CanTryPair && IsWiiFamily(Device.Name) ? UiText.Get("UnsupportedControllerSuffix") : "")}";
     }
 
     internal static bool IsSupportedModel(string? name)
@@ -33,7 +35,15 @@ internal static class BluetoothService
             normalized?.StartsWith("Nintendo RVL_", StringComparison.OrdinalIgnoreCase) == true;
     }
 
-    public static Candidate[] Find(CancellationToken cancellation)
+    private static bool IsPossibleController(uint deviceClass)
+    {
+        uint major = (deviceClass >> 8) & 0x1f;
+        uint minor = (deviceClass >> 2) & 0x3f;
+        // Accept uncategorized devices and the peripheral types used by joystick, gamepad, or wand hardware.
+        return major is 0 or 0x1f || major == 5 && minor is 0 or 1 or 2 or 3 or 9;
+    }
+
+    public static Candidate[] Find(CancellationToken cancellation, bool showAll = false)
     {
         var found = new Dictionary<ulong, Candidate>();
         bool hasRadio = false;
@@ -50,10 +60,11 @@ internal static class BluetoothService
                 ReturnAuthenticated = 1,
                 ReturnConnected = 1,
                 IssueInquiry = 1,
-                TimeoutMultiplier = 2, // 2.56 seconds per radio.
+                TimeoutMultiplier = showAll ? (byte)3 : (byte)2, // Inquiry duration in 1.28-second units.
                 Radio = radio.DangerousGetHandle()
             };
             var device = EmptyDevice();
+            var recentlySeen = DateTime.UtcNow.AddSeconds(-1);
             var find = BluetoothFindFirstDevice(ref search, ref device);
             if (find == IntPtr.Zero)
             {
@@ -67,7 +78,7 @@ internal static class BluetoothService
                 do
                 {
                     cancellation.ThrowIfCancellationRequested();
-                    if (IsWiiFamily(device.Name))
+                    if (showAll ? device.LastSeen.IsAtOrAfter(recentlySeen) : IsWiiFamily(device.Name))
                         found.TryAdd(device.Address, new Candidate(info.Address, device));
                 } while (BluetoothFindNextDevice(find, ref device));
                 var error = Marshal.GetLastWin32Error();
@@ -80,9 +91,9 @@ internal static class BluetoothService
         return found.Values.ToArray();
     }
 
-    public static bool Pair(Candidate candidate, bool afterRemovingPairing = false)
+    public static bool Pair(Candidate candidate, bool afterRemovingPairing = false, bool tryUnknown = false)
     {
-        if (!candidate.CanPair)
+        if (!candidate.CanPair && !(tryUnknown && candidate.CanTryPair))
             throw new NotSupportedException(UiText.Get("UnsupportedWiiModel"));
 
         foreach (var radio in Radios())
@@ -96,19 +107,29 @@ internal static class BluetoothService
                 device = candidate.Device;
             bool alreadyKnown = device.Remembered != 0 || device.Authenticated != 0;
 
-            if (device.Authenticated == 0)
+            bool authenticatedHere = false;
+            try
             {
-                // Red SYNC uses the Bluetooth radio's raw address bytes, least significant first.
-                var pin = new ushort[6];
-                for (int index = 0; index < pin.Length; index++)
-                    pin[index] = (ushort)((candidate.RadioAddress >> (8 * index)) & 0xff);
+                if (device.Authenticated == 0)
+                {
+                    // Red SYNC uses the Bluetooth radio's raw address bytes, least significant first.
+                    var pin = new ushort[6];
+                    for (int index = 0; index < pin.Length; index++)
+                        pin[index] = (ushort)((candidate.RadioAddress >> (8 * index)) & 0xff);
 
-                Check(BluetoothAuthenticateDevice(IntPtr.Zero, radio, ref device, pin, (uint)pin.Length), UiText.Get("BluetoothPairOperation"));
-                uint serviceCount = 0;
-                int result = BluetoothEnumerateInstalledServices(radio, ref device, ref serviceCount, null);
-                if (result != MoreData) Check(result, UiText.Get("BluetoothServicesOperation"));
+                    Check(BluetoothAuthenticateDevice(IntPtr.Zero, radio, ref device, pin, (uint)pin.Length), UiText.Get("BluetoothPairOperation"));
+                    authenticatedHere = true;
+                    uint serviceCount = 0;
+                    int result = BluetoothEnumerateInstalledServices(radio, ref device, ref serviceCount, null);
+                    if (result != MoreData) Check(result, UiText.Get("BluetoothServicesOperation"));
+                }
+                Check(EnableHid(radio, ref device), UiText.Get("BluetoothHidOperation"));
             }
-            Check(EnableHid(radio, ref device), UiText.Get("BluetoothHidOperation"));
+            catch when (tryUnknown && !alreadyKnown && authenticatedHere)
+            {
+                ForgetPairing(candidate.Device.Address);
+                throw;
+            }
             return alreadyKnown;
         }
         throw new InvalidOperationException(UiText.Get("BluetoothRadioDisconnected"));
@@ -232,6 +253,12 @@ internal static class BluetoothService
     internal struct SystemTime
     {
         public ushort Year, Month, DayOfWeek, Day, Hour, Minute, Second, Milliseconds;
+
+        public readonly bool IsAtOrAfter(DateTime cutoff)
+        {
+            if (Year == 0) return false;
+            return new DateTime(Year, Month, Day, Hour, Minute, Second, Milliseconds, DateTimeKind.Utc) >= cutoff;
+        }
     }
 
     private const string Library = "bthprops.cpl";

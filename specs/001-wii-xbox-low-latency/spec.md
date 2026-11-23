@@ -121,6 +121,7 @@ As a user, I want to run without the SDK and recover from disconnections without
 
 - **FR-001**: Run on Windows 10/11 x64 with a Spanish UI and no required console.
 - **FR-002**: Discover controllers automatically while the wizard is open. Illustrate the red SYNC button and use it as the sole pairing method. Pause discovery during pairing and cancel on close. Close the wizard on success only when the selected remote appears in the main list. If Windows still has a disconnected association for that remote and does not publish its HID interface in time, clear that association and retry pairing the same remote once without user intervention. Distinguish an absent radio, failed pairing, and denied access.
+- **FR-002a**: Provide a **Display all devices** switch, off by default, to show and select recently detected Bluetooth Classic devices regardless of their reported name. Keep a result available for up to 15 seconds after it was last seen so a missed inquiry does not immediately clear the selection. Reject devices that do not qualify for a Wii Remote pairing attempt. For other names, confirm a compatible Wii Remote HID interface before completing pairing. On failure, keep the list open and remove only a temporary association created by that attempt.
 - **FR-003**: Enumerate connected controllers and deduplicate by physical identity.
 - **FR-004**: Activate available Wii Remotes automatically, with up to four independent Xbox 360 outputs for XInput games. Default to Xbox output and apply an output change only to the selected controller.
 - **FR-005**: Show each controller's physical connection, state, errors, and profile. When Windows assigns an Xbox output, show its slot 1–4 in **Xbox** and light only the matching LED on the Wii Remote. Use the actual assignment after reconnection.
@@ -138,7 +139,8 @@ As a user, I want to run without the SDK and recover from disconnections without
 - **FR-017**: Check virtual driver availability at startup and report absence, incompatibility, or blocked access. If installation is available, ask once when the main window opens. Start installation only after the user accepts. Embed the signed official installer and support offline installation with Windows elevation. Recheck afterward and report cancellation, failure, or a required restart. Keep **Ratón IR** (IR mouse) available without the Xbox driver.
 - **FR-018**: Ship a Windows package with the runtime, licenses, and guides. Keep the XInput observer and comparison tool in development tests.
 - **FR-019**: Keep configuration and diagnostics local. Allow offline play without an account after installing prerequisites.
-- **FR-020**: Leave sensors, rumble, and global changes disabled by default. Optional improvements must respect the latency budget.
+- **FR-020**: Leave unused sensors and global changes disabled by default. Optional improvements must respect the latency budget.
+- **FR-020a**: Route Xbox vibration feedback to the Wii Remote assigned to that output. Run its motor while either Xbox motor is active, and turn it off when both return to zero or the session stops while the remote is reachable. Preserve the motor state in other HID output reports and handle feedback outside the input reader.
 - **FR-021**: Report unsupported models or accessories and retain safe basic input when possible.
 - **FR-022**: Record a matrix of models, accessories, adapters, Windows versions, drivers, and games actually tested.
 

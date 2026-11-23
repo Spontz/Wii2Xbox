@@ -23,15 +23,16 @@ internal sealed class WiiRemoteView : Control
     ];
 
     private readonly Bitmap artwork;
+    private readonly Bitmap nunchukArtwork;
     private readonly int[] counts = new int[WiiButtonState.BitCount];
     private int litPlayers;
+    private bool showNunchuk;
+    private Vector2 stickDirection;
 
     public WiiRemoteView()
     {
-        using var resource = typeof(WiiRemoteView).Assembly.GetManifestResourceStream("Wii2Xbox.WiiRemoteImage")
-            ?? throw new InvalidOperationException(UiText.Get("MissingViewerImage"));
-        using var image = Image.FromStream(resource);
-        artwork = new Bitmap(image);
+        artwork = LoadArtwork("Wii2Xbox.WiiRemoteImage");
+        nunchukArtwork = LoadArtwork("Wii2Xbox.NunchukImage");
         AccessibleName = UiText.Get("WiiRemoteButtons");
         SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
         Margin = new Padding(0, 3, 0, 0);
@@ -45,11 +46,15 @@ internal sealed class WiiRemoteView : Control
         int withoutSlotCount = 0;
         int assigned = 0;
         int lit = 0;
+        bool hasNunchuk = false;
+        Vector2 strongestStick = Vector2.Zero;
         long cutoff = Stopwatch.GetTimestamp() - PulseTicks;
         foreach (var session in sessions)
         {
             if (session.Completion.IsCompleted) continue;
-            bool active = session.Buttons.Accumulate(cutoff, next);
+            bool active = session.Buttons.Accumulate(cutoff, next, out bool attached, out var stick);
+            hasNunchuk |= attached;
+            if (stick.LengthSquared() > strongestStick.LengthSquared()) strongestStick = stick;
             if (session.Player is int player)
             {
                 int slot = 1 << (player - 1);
@@ -70,9 +75,12 @@ internal sealed class WiiRemoteView : Control
             available &= ~slot;
         }
 
-        if (lit == litPlayers && next.SequenceEqual(counts)) return;
+        if (lit == litPlayers && hasNunchuk == showNunchuk && strongestStick == stickDirection
+            && next.SequenceEqual(counts)) return;
         next.CopyTo(counts);
         litPlayers = lit;
+        showNunchuk = hasNunchuk;
+        stickDirection = strongestStick;
         Invalidate();
     }
 
@@ -81,7 +89,8 @@ internal sealed class WiiRemoteView : Control
         base.OnPaint(e);
         const float artworkWidth = 600;
         const float triggerSpace = 106;
-        const float drawingWidth = artworkWidth + triggerSpace;
+        const float nunchukSpace = 178;
+        float drawingWidth = artworkWidth + triggerSpace + (showNunchuk ? nunchukSpace : 0);
         float drawingHeight = artworkWidth * ArtworkCrop.Height / ArtworkCrop.Width;
         float scale = Math.Min(Width / drawingWidth, Height / drawingHeight);
         if (scale <= 0) return;
@@ -156,6 +165,89 @@ internal sealed class WiiRemoteView : Control
             }
         }
 
+        if (showNunchuk)
+        {
+            float size = Math.Min(nunchukSpace - 12, drawingHeight);
+            float left = artworkWidth + (nunchukSpace - size) / 2;
+            float top = (drawingHeight - size) / 2;
+            canvas.DrawImage(nunchukArtwork, left, top, size, size);
+            using var transform = new Matrix(size / nunchukArtwork.Width, 0, 0, size / nunchukArtwork.Height, left, top);
+            using var buttonText = new SolidBrush(Color.FromArgb(43, 49, 58));
+            if (counts[WiiButtonState.StickIndex] > 0)
+            {
+                using var stick = new GraphicsPath();
+                stick.AddEllipse(278, 138, 223, 74);
+                HighlightNunchukControl(WiiButtonState.StickIndex, stick);
+                if (stickDirection != Vector2.Zero) DrawStickArrow(stick.GetBounds());
+            }
+            if (counts[WiiButtonState.CIndex] > 0)
+            {
+                using var button = new GraphicsPath();
+                button.AddBeziers([
+                    new Point(89, 481), new Point(106, 446), new Point(145, 453), new Point(164, 478),
+                    new Point(181, 500), new Point(185, 542), new Point(162, 561),
+                    new Point(139, 578), new Point(105, 566), new Point(91, 543),
+                    new Point(80, 525), new Point(80, 501), new Point(89, 481)
+                ]);
+                button.CloseFigure();
+                HighlightNunchukControl(WiiButtonState.CIndex, button);
+            }
+            if (counts[WiiButtonState.ZIndex] > 0)
+            {
+                using var triggerSurface = new GraphicsPath();
+                triggerSurface.AddBeziers([
+                    new Point(113, 585), new Point(140, 603), new Point(192, 603), new Point(226, 594),
+                    new Point(240, 590), new Point(244, 602), new Point(249, 615),
+                    new Point(256, 634), new Point(265, 655), new Point(270, 673),
+                    new Point(274, 688), new Point(249, 695), new Point(231, 701),
+                    new Point(202, 710), new Point(168, 709), new Point(151, 697),
+                    new Point(134, 685), new Point(116, 633), new Point(108, 613),
+                    new Point(103, 600), new Point(106, 589), new Point(113, 585)
+                ]);
+                triggerSurface.CloseFigure();
+                HighlightNunchukControl(WiiButtonState.ZIndex, triggerSurface);
+            }
+
+            DrawNunchukLabel("C", WiiButtonState.CIndex, 116, 518);
+            DrawNunchukLabel("Z", WiiButtonState.ZIndex, 180, 659);
+
+            void DrawNunchukLabel(string text, int index, float x, float y)
+            {
+                var position = new PointF(left + x * size / nunchukArtwork.Width, top + y * size / nunchukArtwork.Height);
+                canvas.DrawString(text, font, counts[index] != 0 ? litLabel : buttonText, position, align);
+            }
+
+            void HighlightNunchukControl(int index, GraphicsPath shape)
+            {
+                shape.Transform(transform);
+                canvas.FillPath(wash, shape);
+                canvas.DrawPath(edge, shape);
+                DrawBadge(counts[index], shape.GetBounds());
+            }
+
+            void DrawStickArrow(RectangleF cap)
+            {
+                var center = new Vector2(cap.X + cap.Width / 2, cap.Y + cap.Height / 2);
+                var forward = Vector2.Normalize(new Vector2(stickDirection.X, -stickDirection.Y));
+                var side = new Vector2(-forward.Y, forward.X);
+                PointF[] arrow =
+                [
+                    ArrowPoint(9, 0), ArrowPoint(1, 5), ArrowPoint(1, 2), ArrowPoint(-7, 2),
+                    ArrowPoint(-7, -2), ArrowPoint(1, -2), ArrowPoint(1, -5)
+                ];
+                using var outline = new Pen(highContrast ? SystemColors.Highlight : Color.White, 1.2f);
+                outline.LineJoin = LineJoin.Round;
+                canvas.DrawPolygon(outline, arrow);
+                canvas.FillPolygon(litLabel, arrow);
+
+                PointF ArrowPoint(float along, float across)
+                {
+                    var point = center + forward * along + side * across;
+                    return new PointF(point.X, point.Y);
+                }
+            }
+        }
+
         int Count(WiiButtons button) => counts[BitOperations.TrailingZeroCount((uint)button)];
 
         void DrawBadge(int total, RectangleF area)
@@ -165,6 +257,14 @@ internal sealed class WiiRemoteView : Control
             canvas.FillEllipse(badge, marker);
             canvas.DrawString(total.ToString(), font, badgeText, marker, align);
         }
+    }
+
+    private static Bitmap LoadArtwork(string resourceName)
+    {
+        using var resource = typeof(WiiRemoteView).Assembly.GetManifestResourceStream(resourceName)
+            ?? throw new InvalidOperationException(UiText.Get("MissingViewerImage"));
+        using var image = Image.FromStream(resource);
+        return new Bitmap(image);
     }
 
     private static GraphicsPath RoundedRectangle(RectangleF area, float radius)
@@ -181,7 +281,11 @@ internal sealed class WiiRemoteView : Control
 
     protected override void Dispose(bool disposing)
     {
-        if (disposing) artwork.Dispose();
+        if (disposing)
+        {
+            artwork.Dispose();
+            nunchukArtwork.Dispose();
+        }
         base.Dispose(disposing);
     }
 }

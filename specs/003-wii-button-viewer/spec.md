@@ -13,6 +13,10 @@ As a player, I want to see which buttons Wii2Xbox recognizes before trying a gam
 
 **Independent test**. Turn on a Wii Remote and press A, B, 1, 2, −, +, HOME, and each direction. Verify that the corresponding position lights up even with a profile that remaps the button.
 
+Connect a Nunchuk and press **C** and **Z**. Both buttons should light on the Nunchuk illustration. Disconnect it while holding a button and check that its input clears.
+
+Move the Nunchuk stick in any direction. Verify that the illustrated stick lights up green and that the arrow follows the direction, including diagonals. Center the stick and check that the arrow disappears and the green highlight clears.
+
 ### US2. Test several controllers at once (P1)
 
 As a player, I want to press buttons on different controllers and see their inputs at the same time.
@@ -45,9 +49,12 @@ As a player, I want to find the Xbox number in its own column and read each sess
 - **FR-010**. Show the app version in the bottom-right corner of the main window, beside the controller illustration.
 - **FR-011**. Show a standalone circled question mark in the top-right corner. Open the GitHub troubleshooting guide on click or keyboard activation.
 - **FR-012**. Show a red X at the right of each controller row. Activate it by clicking or by pressing **Delete** on the selected row. Stop that controller's session, remove its saved Windows Bluetooth pairing when it has one, and remove its row. Keep its profile and leave other controllers active. Report removal errors and keep the row so the user can retry.
+- **FR-013**. Show a Nunchuk illustration alongside the Wii Remote when at least one active session reports a Nunchuk. Highlight the physical C and Z buttons and combine inputs across connected accessories. Clear the contribution when the accessory or remote disconnects.
+- **FR-014**. Highlight the illustrated Nunchuk stick while any connected accessory deflects it beyond the viewer's neutral range. Use each accessory's calibrated center and clear the highlight when all sticks return to neutral or disconnect.
+- **FR-015**. Draw an arrow over the highlighted stick that follows its direction. If multiple Nunchuk sticks are deflected, show the direction of the one furthest from its calibrated center.
 
 ## Success Criteria
 
-- **SC-001**. Each of the eleven inputs lights up when pressed and goes dark after release or disconnection.
+- **SC-001**. Each of the eleven Wii Remote inputs and the two Nunchuk buttons lights up when pressed and goes dark after release or disconnection.
 - **SC-002**. Two controllers display distinct and shared buttons in the same view. Captured short presses remain visible long enough to distinguish them.
 - **SC-003**. The viewer works when resized and with sessions in Xbox, IR mouse, or read-only mode. Status and slot remain separate.

@@ -1,7 +1,7 @@
 param(
     [string]$Dotnet = 'dotnet',
     [string]$OutputDirectory = 'artifacts/win-x64',
-    [string]$Version = '1.2.3'
+    [string]$Version = '1.2.4'
 )
 $ErrorActionPreference = 'Stop'
 

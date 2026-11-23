@@ -80,6 +80,9 @@ public sealed class LocalizationTests
                     button => button.Text == "Install Xbox driver");
                 Assert.Equal("Add controller", pairing.Text);
                 var pairingLayout = Assert.Single(Assert.Single(pairing.Controls.OfType<ScrollableLayout>()).Controls.OfType<TableLayoutPanel>());
+                var displayAll = Assert.Single(pairingLayout.Controls.OfType<CheckBox>());
+                Assert.Equal("Display all devices", displayAll.Text);
+                Assert.False(displayAll.Checked);
                 Assert.Empty(pairingLayout.Controls.OfType<ComboBox>());
                 Assert.Single(pairingLayout.Controls.OfType<Button>(), button => button.Text == UiText.Get("PairSelected"));
                 Assert.Single(pairingLayout.Controls.OfType<Button>());
@@ -106,6 +109,19 @@ public sealed class LocalizationTests
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
         await done.Task.WaitAsync(TimeSpan.FromSeconds(5));
+    }
+
+    [Theory]
+    [InlineData(620, 510, 1904, 1000, 620, 510)]
+    [InlineData(620, 510, 3824, 2100, 1070, 735)]
+    [InlineData(1240, 1020, 3808, 2050, 1240, 1020)]
+    [InlineData(1240, 1020, 1000, 800, 1000, 800)]
+    public void InitialDialogSizeUsesDisplaySpaceAndDpi(int width, int height, int availableWidth, int availableHeight,
+        int expectedWidth, int expectedHeight)
+    {
+        var baseline = new System.Drawing.Size(width, height);
+        var available = new System.Drawing.Size(availableWidth, availableHeight);
+        Assert.Equal(new System.Drawing.Size(expectedWidth, expectedHeight), ScrollableLayout.PreferredClientSize(baseline, available));
     }
 
     [Theory]

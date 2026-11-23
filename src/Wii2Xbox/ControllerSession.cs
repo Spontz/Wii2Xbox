@@ -7,7 +7,7 @@ internal enum SessionMode { Xbox, Mouse, XboxAndMouse, Buttons }
 internal sealed class ControllerSession
 {
     private readonly Func<IControllerTransport> openTransport;
-    private readonly Func<IXboxOutput> openXbox;
+    private readonly Func<Action<bool>, IXboxOutput> openXbox;
     private readonly Func<InfraredMouse>? openMouse;
     private readonly SessionMode mode;
     private CoreInputMap activeMap;
@@ -73,11 +73,11 @@ internal sealed class ControllerSession
     public int UnknownReports => Volatile.Read(ref unknownReports);
 
     public ControllerSession(WiiDevice device, CoreInputMap map, bool collectLatency = false, SessionMode mode = SessionMode.Xbox)
-        : this(device.Model, device.Open, static () => new XboxOutput(), map, collectLatency, mode)
+        : this(device.Model, device.Open, static setRumble => new XboxOutput(setRumble), map, collectLatency, mode)
     {
     }
 
-    internal ControllerSession(string model, Func<IControllerTransport> openTransport, Func<IXboxOutput> openXbox,
+    internal ControllerSession(string model, Func<IControllerTransport> openTransport, Func<Action<bool>, IXboxOutput> openXbox,
         CoreInputMap map, bool collectLatency = false, SessionMode mode = SessionMode.Xbox, Func<InfraredMouse>? openMouse = null)
     {
         Model = model;
@@ -120,7 +120,7 @@ internal sealed class ControllerSession
             }
 
             var buffer = new byte[input.InputLength];
-            var protocol = new NunchukProtocol(enableExtension: UsesXbox);
+            var protocol = new NunchukProtocol(enableExtension: mode != SessionMode.Mouse);
             input.Send(WiiCommand.CoreMode);
             var infrared = UsesMouse ? new InfraredSetup(Stopwatch.GetTimestamp()) : null;
             if (infrared is not null) input.Send(InfraredCommand.Clock);
@@ -169,7 +169,7 @@ internal sealed class ControllerSession
                     bool initial = reports == 0;
                     if (UsesXbox)
                     {
-                        output ??= openXbox();
+                        output ??= openXbox(input.SetRumble);
                         var xboxState = map.Map(state, protocol.Calibration);
                         output.Submit(xboxState);
                         if (!initial && Volatile.Read(ref activeMetrics) is { } metrics)
@@ -180,7 +180,7 @@ internal sealed class ControllerSession
                     }
                     if (infrared is { Enabled: true })
                         mouse!.Update(frame, state.Buttons, map.InfraredCalibration, Volatile.Read(ref calibrationCapture));
-                    Buttons.Publish(state.Buttons, received);
+                    Buttons.Publish(state, received, protocol.Calibration);
                     int reportNumber = Interlocked.Increment(ref reports);
                     bool retryPlayer = output is not null && (player == 0 || player != indicatedPlayer) &&
                         (reportNumber is 32 or 128 || (reportNumber & 511) == 0);

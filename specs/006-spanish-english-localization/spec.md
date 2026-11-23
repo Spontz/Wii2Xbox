@@ -42,7 +42,7 @@ As a player, I want installation and removal to use a setup wizard in Spanish or
 ## Success Criteria
 
 - **SC-001**. Both distributions use the correct language for Spanish regional variants, English variants, and an unsupported Windows display language.
-- **SC-002**. Main, pairing, profiles, IR setup and calibration, and notification-area controls display readable localized text. At enlarged text sizes the main window fits its rows without window-level scrollbars, and the controller list scrolls vertically when it has extra rows. The profile editor fits both controller groups without vertical scrolling. The pairing window keeps its rows separate and makes overflow reachable.
+- **SC-002**. Main, pairing, profiles, IR setup and calibration, and notification-area controls display readable localized text. At enlarged text sizes the main window fits its rows without window-level scrollbars, and the controller list scrolls vertically when it has extra rows. The profile editor fits both controller groups without vertical scrolling. The main and pairing windows use more space on large displays, and the controller illustrations scale proportionally. The pairing window keeps its rows separate and makes overflow reachable.
 - **SC-003**. Manual and background launch agree. Neither shows a language selection prompt or restart notice.
 - **SC-004**. One MSI shows Spanish and English wizard text, including English fallback for unsupported display languages.
 - **SC-005**. Profile import and export preserve existing names and mappings under both app languages.
