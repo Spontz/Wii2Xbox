@@ -19,5 +19,5 @@ Resolve the UI language once at startup and keep localized lookups outside the c
 1. Resolve the primary Windows display language and use English for any non-Spanish value.
 2. Use named English and Spanish resources. Keep profile names, mapping keys, and identities independent of the display language.
 3. Use separate resource sets for the setup wizard within one MSI. Leave controller sessions and application settings untouched by localization.
-4. Size desktop forms for per-monitor DPI, keep a minimum window size, and allow scroll overflow instead of collapsing rows.
+4. Size desktop forms for per-monitor DPI and keep a minimum window size. Fit the main window to its contents, size the controller columns to the list width, and allow overflow scrolling in the pairing and profile dialogs.
 5. Verify the UI and packages using the [quickstart](quickstart.md).

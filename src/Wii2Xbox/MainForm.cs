@@ -3,6 +3,11 @@ namespace Wii2Xbox;
 public sealed class MainForm : Form
 {
     private const int OutputColumn = 4;
+    private const int DeviceListRow = 2;
+    private const int RemoteRow = 4;
+    private const int RemoteHeight = 165;
+    private const int DeviceListHeight = 114;
+    private static readonly Size MinimumWindow = new(690, 450);
     private readonly string[] outputLabels = ["Xbox", UiText.Get("OutputIr"), UiText.Get("OutputCombined")];
     private readonly ListView devices = new()
     {
@@ -39,6 +44,7 @@ public sealed class MainForm : Form
     private bool finding;
     private bool recovering;
     private bool deviceRefreshRequested;
+    private bool resizingColumns;
     private bool pairingTransition;
     private bool installingXbox;
     private bool driverOfferPending;
@@ -73,17 +79,19 @@ public sealed class MainForm : Form
             appIcon = new Icon(icon);
         Text = "Wii2Xbox";
         Icon = appIcon;
-        ScrollableLayout.ConfigureForm(this, new Size(850, 520), new Size(690, 450));
+        ScrollableLayout.ConfigureForm(this, new Size(850, 520), MinimumWindow);
         StartPosition = FormStartPosition.CenterScreen;
         Font = new Font("Segoe UI", 10);
-        var layout = new TableLayoutPanel { Padding = new Padding(16), ColumnCount = 2, RowCount = 7 };
+        bool fitPending = false;
+        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(16), ColumnCount = 2, RowCount = 8 };
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 165));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, RemoteHeight));
+        layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         layout.Controls.Add(new Label
@@ -91,14 +99,37 @@ public sealed class MainForm : Form
             Text = UiText.Get("WiiControllers"), Font = new Font("Segoe UI", 16, FontStyle.Bold),
             Dock = DockStyle.Fill, AutoEllipsis = true, AutoSize = true, TextAlign = ContentAlignment.MiddleLeft
         }, 0, 0);
+        string helpText = UiText.Get("TroubleshootingHelp");
+        var help = Action("?", () => OpenWebPage(
+            "https://github.com/Spontz/Wii2Xbox/blob/main/docs/troubleshooting.md", "TroubleshootingPageFailed"));
+        help.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        help.Padding = new Padding(4, 0, 4, 0);
+        help.AccessibleName = helpText;
+        help.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        help.Margin = new Padding(3, 3, 6, 3);
+        var helpTip = new ToolTip();
+        helpTip.SetToolTip(help, helpText);
+        help.Disposed += (_, _) => helpTip.Dispose();
+        layout.Controls.Add(help, 1, 0);
         var actions = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Dock = DockStyle.Fill };
         actions.Controls.Add(Action(UiText.Get("AddControllerButton"), () => _ = PairDevice()));
-        actions.Controls.Add(Action(UiText.Get("EditProfileButton"), EditProfile));
+        var profile = Action(UiText.Get("EditProfileButton"), EditProfile);
+        profile.Enabled = false;
+        devices.SelectedIndexChanged += (_, _) => profile.Enabled = SelectedId is not null;
+        actions.Controls.Add(profile);
         actions.Controls.Add(Action(UiText.Get("CalibrateIrButton"), CalibrateInfrared));
-        AddFullWidth(actions, 1);
-        var support = Action(UiText.Get("CoffeeButton"), OpenSupportPage);
+        layout.Controls.Add(actions, 0, 1);
+        var support = Action(UiText.Get("CoffeeButton"), () => OpenWebPage(
+            "https://ko-fi.com/ivanfernandezgarcia", "SupportPageFailed"));
         support.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-        layout.Controls.Add(support, 1, 0);
+        // Match the first button's inset inside the neighboring flow panel.
+        support.Margin = new Padding(3, 6, 6, 3);
+        support.TextImageRelation = TextImageRelation.ImageBeforeText;
+        support.FontChanged += (_, _) => RefreshCoffeeIcon(support);
+        support.DpiChangedAfterParent += (_, _) => RefreshCoffeeIcon(support);
+        support.Disposed += (_, _) => support.Image?.Dispose();
+        RefreshCoffeeIcon(support);
+        layout.Controls.Add(support, 1, 1);
         startup.Click += (_, _) => UpdateStartup();
         info.TextChanged += (_, _) => info.Visible = info.Text.Length != 0;
         xboxStatus.TextChanged += (_, _) => xboxStatus.Visible = xboxStatus.Text.Length != 0;
@@ -127,15 +158,26 @@ public sealed class MainForm : Form
             args.Handled = true;
             ShowOutputMenu(devices.SelectedItems[0]);
         };
-        devices.ClientSizeChanged += (_, _) => ResizeDeviceColumns();
-        devices.HandleCreated += (_, _) => ResizeDeviceColumns();
-        devices.FontChanged += (_, _) => ResizeDeviceColumns();
-        AddFullWidth(devices, 2);
+        devices.ClientSizeChanged += (_, _) => QueueFit();
+        devices.HandleCreated += (_, _) => QueueFit();
+        devices.FontChanged += (_, _) => QueueFit();
+        devices.ColumnWidthChanging += (_, args) => args.Cancel = !resizingColumns;
+        AddFullWidth(devices, DeviceListRow);
         AddFullWidth(startup, 3);
-        AddFullWidth(remoteView, 4);
+        AddFullWidth(remoteView, RemoteRow);
         AddFullWidth(info, 5);
         AddFullWidth(xboxStatus, 6);
-        Controls.Add(new ScrollableLayout(layout, 2, 114, info, xboxStatus));
+        var version = typeof(MainForm).Assembly.GetName().Version!;
+        AddFullWidth(new Label
+        {
+            Text = $"v{version.ToString(3)}", AutoSize = true, Anchor = AnchorStyles.Right,
+            Margin = new Padding(3, 3, 6, 0)
+        }, 7);
+        Controls.Add(layout);
+        layout.Layout += (_, _) => QueueFit();
+        HandleCreated += (_, _) => QueueFit();
+        Load += (_, _) => QueueFit();
+        DpiChanged += (_, _) => QueueFit();
         display.Tick += async (_, _) =>
         {
             StartAvailableSessions();
@@ -160,6 +202,43 @@ public sealed class MainForm : Form
             layout.Controls.Add(control, 0, row);
             layout.SetColumnSpan(control, 2);
         }
+
+        void QueueFit()
+        {
+            if (fitPending || !IsHandleCreated || Disposing || IsDisposed) return;
+            fitPending = true;
+            BeginInvoke(() =>
+            {
+                fitPending = false;
+                if (!IsDisposed) FitMainLayout(layout, actions, support);
+            });
+        }
+    }
+
+    private void FitMainLayout(TableLayoutPanel layout, FlowLayoutPanel actions, Button support)
+    {
+        int wrapWidth = layout.ClientSize.Width - layout.Padding.Horizontal;
+        info.MaximumSize = new Size(Math.Max(1, wrapWidth - info.Margin.Horizontal), 0);
+        xboxStatus.MaximumSize = new Size(Math.Max(1, wrapWidth - xboxStatus.Margin.Horizontal), 0);
+
+        int[] rows = layout.GetRowHeights();
+        int fixedHeight = layout.Padding.Vertical + rows.Sum() - rows[DeviceListRow] - rows[RemoteRow];
+        int minList = LogicalToDeviceUnits(DeviceListHeight);
+        int preferredRemote = LogicalToDeviceUnits(RemoteHeight);
+        int widestAction = actions.Controls.Cast<Control>().Max(button => button.PreferredSize.Width + button.Margin.Horizontal);
+        var baseline = LogicalToDeviceUnits(MinimumWindow);
+        var area = Screen.FromControl(this).WorkingArea;
+        int minWidth = layout.Padding.Horizontal + actions.Margin.Horizontal + widestAction
+            + support.PreferredSize.Width + support.Margin.Horizontal + Width - ClientSize.Width;
+        int minHeight = fixedHeight + minList + preferredRemote + Height - ClientSize.Height;
+        var minimum = new Size(Math.Min(area.Width, Math.Max(baseline.Width, minWidth)),
+            Math.Min(area.Height, Math.Max(baseline.Height, minHeight)));
+        if (MinimumSize != minimum) MinimumSize = minimum;
+
+        int viewerHeight = Math.Clamp(layout.ClientSize.Height - fixedHeight - minList, 0, preferredRemote);
+        if (layout.RowStyles[RemoteRow].Height != viewerHeight)
+            layout.RowStyles[RemoteRow].Height = viewerHeight;
+        ResizeDeviceColumns();
     }
 
     internal void StartResident(bool background)
@@ -389,16 +468,40 @@ public sealed class MainForm : Form
         return button;
     }
 
-    private void OpenSupportPage()
+    private static void RefreshCoffeeIcon(Button button)
+    {
+        int size = button.Font.Height;
+        var icon = new Bitmap(size, size);
+        using (var canvas = Graphics.FromImage(icon))
+        using (var pen = new Pen(!SystemInformation.HighContrast && Application.IsDarkModeEnabled
+            ? Color.White : SystemColors.ControlText, 1.8f))
+        {
+            canvas.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            canvas.ScaleTransform(size / 24f, size / 24f);
+            pen.StartCap = pen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
+            pen.LineJoin = System.Drawing.Drawing2D.LineJoin.Round;
+            canvas.DrawLines(pen, [new Point(3, 8), new Point(16, 8), new Point(16, 14),
+                new Point(13, 18), new Point(6, 18), new Point(3, 14), new Point(3, 8)]);
+            canvas.DrawArc(pen, 13, 9, 8, 7, -90, 180);
+            canvas.DrawLine(pen, 2, 21, 19, 21);
+            canvas.DrawLine(pen, 7, 5, 7, 2);
+            canvas.DrawLine(pen, 12, 5, 12, 2);
+        }
+        var previous = button.Image;
+        button.Image = icon;
+        previous?.Dispose();
+        button.Padding = new Padding(button.LogicalToDeviceUnits(6), 0, button.LogicalToDeviceUnits(6), 0);
+    }
+
+    private void OpenWebPage(string url, string failureMessage)
     {
         try
         {
-            using var browser = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(
-                "https://ko-fi.com/ivanfernandezgarcia") { UseShellExecute = true });
+            using var browser = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
         }
         catch (Exception error) when (error is System.ComponentModel.Win32Exception or InvalidOperationException)
         {
-            info.Text = UiText.Get("SupportPageFailed");
+            info.Text = UiText.Get(failureMessage);
         }
     }
 
@@ -436,7 +539,6 @@ public sealed class MainForm : Form
                 var row = AddDeviceRow(device.Id, name);
                 row.Selected = device.Id == selected;
             }
-            ResizeDeviceColumns();
             if (devices.SelectedItems.Count == 0 && devices.Items.Count > 0) devices.Items[0].Selected = true;
             StartAvailableSessions();
             if (announce) info.Text = "";
@@ -583,7 +685,7 @@ public sealed class MainForm : Form
     private void ResizeDeviceColumns()
     {
         int width = devices.ClientSize.Width;
-        if (width <= 0) return;
+        if (width <= 0 || resizingColumns) return;
 
         int padding = LogicalToDeviceUnits(14);
         int[] minimum = devices.Columns.Cast<ColumnHeader>()
@@ -617,8 +719,15 @@ public sealed class MainForm : Form
             }
             minimum[OutputColumn] = available;
         }
-        for (int i = 0; i < minimum.Length; i++)
-            devices.Columns[i].Width = minimum[i];
+        resizingColumns = true;
+        try
+        {
+            for (int i = 0; i < minimum.Length; i++)
+                if (devices.Columns[i].Width > minimum[i]) devices.Columns[i].Width = minimum[i];
+            for (int i = 0; i < minimum.Length; i++)
+                if (devices.Columns[i].Width < minimum[i]) devices.Columns[i].Width = minimum[i];
+        }
+        finally { resizingColumns = false; }
     }
 
     private bool HasCapacity(SessionMode mode) =>
@@ -693,11 +802,7 @@ public sealed class MainForm : Form
 
     private void EditProfile()
     {
-        if (SelectedId is not { } id)
-        {
-            info.Text = UiText.Get("SelectProfileController");
-            return;
-        }
+        if (SelectedId is not { } id) return;
         using var dialog = new ProfileDialog(GetProfile(id));
         if (ShowOwnedDialog(dialog) != DialogResult.OK || dialog.Result is not { } updated) return;
         SaveProfile(id, updated, UiText.Get("ProfileSaved"));

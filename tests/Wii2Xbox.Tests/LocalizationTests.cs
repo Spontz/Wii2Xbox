@@ -53,7 +53,22 @@ public sealed class LocalizationTests
                 using var main = new MainForm(static () => []);
                 using var pairing = new PairingDialog();
                 using var profile = new ProfileDialog(new Profile { Name = "Perfil personalizado" });
-                var layout = Assert.Single(Assert.Single(main.Controls.OfType<ScrollableLayout>()).Controls.OfType<TableLayoutPanel>());
+                var layout = Assert.Single(main.Controls.OfType<TableLayoutPanel>());
+                Assert.False(main.AutoScroll);
+                Assert.False(layout.AutoScroll);
+                var toolbar = Assert.Single(layout.Controls.OfType<FlowLayoutPanel>());
+                var profileButton = Assert.Single(toolbar.Controls.OfType<Button>(), button => button.Text == UiText.Get("EditProfileButton"));
+                Assert.False(profileButton.Enabled);
+                var coffee = Assert.Single(layout.Controls.OfType<Button>(), button => button.Text == UiText.Get("CoffeeButton"));
+                Assert.NotNull(coffee.Image);
+                Assert.Equal(layout.GetRow(toolbar), layout.GetRow(coffee));
+                var help = Assert.Single(layout.Controls.OfType<Button>(), button => button.AccessibleName == UiText.Get("TroubleshootingHelp"));
+                Assert.Equal(0, layout.GetRow(help));
+                Assert.Equal(1, layout.GetColumn(help));
+                var version = Assert.Single(layout.Controls.OfType<Label>(), label => label.Text.StartsWith("v"));
+                Assert.Equal($"v{typeof(MainForm).Assembly.GetName().Version!.ToString(3)}", version.Text);
+                Assert.Equal(layout.RowCount - 1, layout.GetRow(version));
+                Assert.Equal(AnchorStyles.Right, version.Anchor);
                 Assert.Empty(layout.Controls.OfType<FlowLayoutPanel>().SelectMany(panel => panel.Controls.OfType<ComboBox>()));
                 Assert.DoesNotContain(layout.Controls.OfType<FlowLayoutPanel>().SelectMany(panel => panel.Controls.OfType<Button>()),
                     button => button.Text == "Install Xbox driver");
@@ -99,16 +114,22 @@ public sealed class LocalizationTests
     private static void VerifyRows(Form form, System.Drawing.Font font)
     {
         form.Font = font;
-        var viewport = Assert.Single(form.Controls.OfType<ScrollableLayout>());
-        var table = Assert.Single(viewport.Controls.OfType<TableLayoutPanel>());
+        var viewport = form.Controls.OfType<ScrollableLayout>().SingleOrDefault();
+        var table = Assert.Single((viewport ?? (Control)form).Controls.OfType<TableLayoutPanel>());
         foreach (var label in table.Controls.OfType<Label>().Where(label => label.Text.Length > 0))
             label.Font = font;
         form.Size = new System.Drawing.Size(200, 150);
         Assert.Equal(form.MinimumSize, form.Size);
         form.CreateControl();
         form.PerformLayout();
-        viewport.PerformLayout();
+        viewport?.PerformLayout();
         table.PerformLayout();
+        if (viewport is null)
+        {
+            _ = form.Handle;
+            Application.DoEvents();
+            Assert.Equal(form.ClientSize, table.Size);
+        }
         var rows = table.GetRowHeights();
         var list = Assert.Single(table.Controls.OfType<ListBox>().Cast<Control>().Concat(table.Controls.OfType<ListView>()));
         Assert.True(rows[table.GetRow(list)] >= 114);

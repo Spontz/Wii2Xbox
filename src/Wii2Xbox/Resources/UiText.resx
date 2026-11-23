@@ -330,8 +330,11 @@
   <data name="SearchingSupportedModels" xml:space="preserve">
     <value>Searching for a compatible Wii Remote. Supported models: RVL-CNT-01 and RVL-CNT-01-TR.</value>
   </data>
-  <data name="SelectProfileController" xml:space="preserve">
-    <value>Select the controller whose profile you want to edit.</value>
+  <data name="TroubleshootingHelp" xml:space="preserve">
+    <value>Troubleshooting on GitHub</value>
+  </data>
+  <data name="TroubleshootingPageFailed" xml:space="preserve">
+    <value>Could not open the troubleshooting guide. Check that you have a default browser.</value>
   </data>
   <data name="SensorBarDetected" xml:space="preserve">
     <value>Sensor bar detected. Hold the controller upright.</value>
