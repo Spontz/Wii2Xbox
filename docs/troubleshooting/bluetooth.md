@@ -2,6 +2,8 @@
 
 [Troubleshooting index](../troubleshooting.md)
 
+To remove a Wii Remote, click the red **X** at the end of its row in the main window. Wii2Xbox stops that controller and removes its saved Bluetooth pairing from Windows when present. The controller's profile is retained.
+
 ## Wii2Xbox cannot find a Bluetooth adapter
 
 1. In Windows 11, open **Start → Settings → Bluetooth & devices** and turn on **Bluetooth**. In Windows 10, use **Start → Settings → Devices → Bluetooth & other devices**.
@@ -18,8 +20,9 @@
 
 The pairing window supports Wii Remotes that advertise as `Nintendo RVL-CNT-01` or `Nintendo RVL-CNT-01-TR`. Other detected Wii devices, including the Balance Board, can appear as unsupported. Some third-party remotes use the same names. [XWiimote device names](https://xwiimote.github.io/xwiimote/index.html)
 
-## Pairing succeeded, but the main window is empty
+## Windows remembers the Wii Remote, but the main window is empty
 
-1. Keep the Wii Remote on while Windows makes it available to apps. Wii2Xbox adds it to the main list as soon as Windows exposes its HID interface.
-2. If the LEDs turn off and the remote stays missing, press a button to wake it and check the list again.
-3. Once a row appears, press a button and check whether it lights up in the Wii Remote preview. If the preview responds, continue with [Xbox output](xbox-output.md) or the [IR mouse](ir-mouse.md).
+1. Keep the Wii Remote on while Windows makes it available to apps. **Add controller…** stays open until Wii2Xbox can see the selected remote in the main list.
+2. If Windows still reports the selected remote as disconnected and its input interface has not appeared, Wii2Xbox can remove its old pairing and immediately try pairing the same remote again. Keep the wizard open during the retry. If the retry fails and the LEDs have stopped flashing, press **SYNC** and try again.
+3. If the LEDs turn off and the remote stays missing, press a button to wake it and check the list again. Once the row appears, press a button and check whether it lights up in the Wii Remote preview.
+4. If the preview responds, continue with [Xbox output](xbox-output.md) or the [IR mouse](ir-mouse.md).

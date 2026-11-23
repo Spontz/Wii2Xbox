@@ -9,8 +9,10 @@
 3. In the Wii Remote's **Output** (**Salida**) column, choose **IR mouse** (**Ratón IR**) or **Xbox and IR mouse** (**Xbox y ratón IR**). If another Wii Remote is already controlling the pointer, change that remote's output to **Xbox** first.
 4. Hold the Wii Remote upright, point it toward the bar, and make sure both ends of the bar are unobstructed. Move the remote and try **A** for a left-click or **B** for a right-click.
 
+The setup dialog closes when the Wii Remote confirms that its camera is ready. If it remains open, check that the remote is still connected. You can close the dialog and try again.
+
 ## The pointer jumps or cannot reach the edges
 
 1. Keep both ends of the bar in view from the position where you will use the Wii Remote. Move any strong light source that points at the remote or reflects off the screen and try again.
-2. Select the Wii Remote in Wii2Xbox and choose **Calibrate IR…** (**Calibrar IR…**).
+2. Select the Wii Remote in Wii2Xbox and choose **Calibrate IR…** (**Calibrar IR…**). If needed, Wii2Xbox enables IR mouse output and waits for the camera before opening the calibration targets. The sensor bar instructions appear only when the camera takes longer to respond.
 3. Aim at the upper-left crosshair on the primary display and press **A**, then repeat at the lower-right crosshair. The calibration is saved with that controller's profile. Press **Esc** to cancel or **R** in the calibration window to restore the default calibration.

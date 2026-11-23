@@ -23,7 +23,7 @@ As a player, I want to press buttons on different controllers and see their inpu
 
 As a player, I want to find the Xbox number in its own column and read each session's status separately.
 
-**Independent test**. With a Wii Remote assigned to Xbox 2, verify that its basic status is **Activo** (Active) and the **Xbox** column shows **2**. Resize the window and verify that the four columns fill the list.
+**Independent test**. With a Wii Remote assigned to Xbox 2, verify that its basic status is **Activo** (Active) and the **Xbox** column shows **2**. Resize the window and verify that the columns, including the trailing remove action, fill the list.
 
 ### Edge Cases
 
@@ -42,6 +42,9 @@ As a player, I want to find the Xbox number in its own column and read each sess
 - **FR-007**. Open the output menu from the controller's row and apply the change only to that controller.
 - **FR-008**. Place **Invítame a un café** (Buy me a coffee) above the list, aligned to the right.
 - **FR-009**. Light the player indicator in blue while that controller presses a button. Show indicators from multiple controllers at once and assign free indicators to controllers without an Xbox slot. Omit the numbers beside the illustration's player indicators.
+- **FR-010**. Show the app version in the bottom-right corner of the main window, beside the controller illustration.
+- **FR-011**. Show a standalone circled question mark in the top-right corner. Open the GitHub troubleshooting guide on click or keyboard activation.
+- **FR-012**. Show a red X at the right of each controller row. Activate it by clicking or by pressing **Delete** on the selected row. Stop that controller's session, remove its saved Windows Bluetooth pairing when it has one, and remove its row. Keep its profile and leave other controllers active. Report removal errors and keep the row so the user can retry.
 
 ## Success Criteria
 

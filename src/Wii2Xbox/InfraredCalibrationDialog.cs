@@ -84,9 +84,12 @@ internal sealed class InfraredCalibrationDialog : Form
         var detail = invalid ? UiText.Get("CalibrationPointsTooClose")
             : tracking ? UiText.Get("SensorBarDetected") : UiText.Get("SensorBarNotVisible");
         var box = new Rectangle(16, ClientSize.Height / 2 - 70, ClientSize.Width - 32, 140);
+        var footer = new Rectangle(16, ClientSize.Height - 62, ClientSize.Width - 32, 48);
         using var instructions = new Font("Segoe UI", 16, FontStyle.Regular);
-        TextRenderer.DrawText(e.Graphics, $"{text}\n{detail}\n{UiText.Get("CalibrationShortcuts")}",
+        TextRenderer.DrawText(e.Graphics, $"{text}\n{detail}",
             instructions, box, ForeColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak);
+        TextRenderer.DrawText(e.Graphics, UiText.Get("CalibrationShortcuts"), Font, footer, ForeColor,
+            TextFormatFlags.HorizontalCenter | TextFormatFlags.Bottom | TextFormatFlags.WordBreak);
     }
 
     protected override void Dispose(bool disposing)

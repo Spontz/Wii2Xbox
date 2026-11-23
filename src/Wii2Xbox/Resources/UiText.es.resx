@@ -70,16 +70,10 @@
     <value>Se perdió la sesión durante la calibración.</value>
   </data>
   <data name="CalibrationShortcuts" xml:space="preserve">
-    <value>Esc para cancelar   ·   R para restaurar el ajuste de fábrica</value>
-  </data>
-  <data name="Cancel" xml:space="preserve">
-    <value>Cancelar</value>
+    <value>Pulsa Esc para cancelar la calibración   ·   Pulsa R para restaurar el ajuste de fábrica</value>
   </data>
   <data name="CannotOpenController" xml:space="preserve">
     <value>Windows no ha podido abrir el mando. Comprueba que esté encendido y cierra otras aplicaciones que lo utilicen.</value>
-  </data>
-  <data name="Close" xml:space="preserve">
-    <value>Cerrar</value>
   </data>
   <data name="CoffeeButton" xml:space="preserve">
     <value>Invítame a un café</value>
@@ -147,9 +141,6 @@
   <data name="EmptyProfile" xml:space="preserve">
     <value>Perfil vacío.</value>
   </data>
-  <data name="EnableIrBeforeCalibration" xml:space="preserve">
-    <value>Activa el ratón IR y espera a que el mando confirme la cámara antes de calibrar.</value>
-  </data>
   <data name="EnumerateBluetoothRadiosOperation" xml:space="preserve">
     <value>enumerar adaptadores Bluetooth</value>
   </data>
@@ -198,8 +189,14 @@
   <data name="IrCalibrationSaved" xml:space="preserve">
     <value>Calibración IR guardada.</value>
   </data>
-  <data name="IrControlsHint" xml:space="preserve">
-    <value>Enciende la barra, apunta con el mando en vertical y usa A para clic izquierdo y B para derecho.</value>
+  <data name="IrActivationTitle" xml:space="preserve">
+    <value>Configurar el ratón IR</value>
+  </data>
+  <data name="IrActivationInstructions" xml:space="preserve">
+    <value>Enciende la barra de sensores. Sujeta el Wii Remote en vertical y apunta a la barra. Esta ventana se cerrará cuando el mando confirme que su cámara está lista.</value>
+  </data>
+  <data name="IrActivationTimedOut" xml:space="preserve">
+    <value>El Wii Remote aún no ha confirmado la cámara. Comprueba que el mando siga conectado o cierra esta ventana para volver a intentarlo.</value>
   </data>
   <data name="IrStartingSuffix" xml:space="preserve">
     <value> · iniciando IR</value>
@@ -262,7 +259,22 @@
     <value>Windows está asociando el mando. Mantén las luces parpadeando.</value>
   </data>
   <data name="PairingInstructions" xml:space="preserve">
-    <value>Pulsa el botón rojo SYNC dentro del compartimento de las pilas. Los LED empezarán a parpadear.</value>
+    <value>Retira la tapa de las pilas y pulsa el botón rojo SYNC. Los LED empezarán a parpadear.</value>
+  </data>
+  <data name="WaitingForPairedInput" xml:space="preserve">
+    <value>Esperando a que Windows haga disponible el mando…</value>
+  </data>
+  <data name="PairingAgain" xml:space="preserve">
+    <value>Reintentando la conexión Bluetooth…</value>
+  </data>
+  <data name="PairingInputUnavailable" xml:space="preserve">
+    <value>Windows aún no permite usar el mando. Pulsa el botón rojo SYNC y vuelve a intentarlo.</value>
+  </data>
+  <data name="BluetoothRemovePairingOperation" xml:space="preserve">
+    <value>Quitar la asociación Bluetooth</value>
+  </data>
+  <data name="RemoveControllerFailed" xml:space="preserve">
+    <value>No se pudo quitar el mando. {0}</value>
   </data>
   <data name="PairingRetry" xml:space="preserve">
     <value>{0} Pulsa el botón rojo SYNC y vuelve a intentarlo.</value>

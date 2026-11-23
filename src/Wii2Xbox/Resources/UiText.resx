@@ -70,16 +70,10 @@
     <value>The session disconnected during calibration.</value>
   </data>
   <data name="CalibrationShortcuts" xml:space="preserve">
-    <value>Esc to cancel   ·   R to restore factory settings</value>
-  </data>
-  <data name="Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>Press Esc to cancel calibration   ·   Press R to restore factory settings</value>
   </data>
   <data name="CannotOpenController" xml:space="preserve">
     <value>Windows could not open the controller. Check that it is on and close other apps using it.</value>
-  </data>
-  <data name="Close" xml:space="preserve">
-    <value>Close</value>
   </data>
   <data name="CoffeeButton" xml:space="preserve">
     <value>Buy me a coffee</value>
@@ -147,9 +141,6 @@
   <data name="EmptyProfile" xml:space="preserve">
     <value>Empty profile.</value>
   </data>
-  <data name="EnableIrBeforeCalibration" xml:space="preserve">
-    <value>Enable the IR mouse and wait for the controller to confirm the camera before calibrating.</value>
-  </data>
   <data name="EnumerateBluetoothRadiosOperation" xml:space="preserve">
     <value>list Bluetooth adapters</value>
   </data>
@@ -198,8 +189,14 @@
   <data name="IrCalibrationSaved" xml:space="preserve">
     <value>IR calibration saved.</value>
   </data>
-  <data name="IrControlsHint" xml:space="preserve">
-    <value>Turn on the sensor bar and point the controller upright. Press A to left-click and B to right-click.</value>
+  <data name="IrActivationTitle" xml:space="preserve">
+    <value>Set up the IR mouse</value>
+  </data>
+  <data name="IrActivationInstructions" xml:space="preserve">
+    <value>Turn on the sensor bar. Hold the Wii Remote upright and point it at the bar. This window closes when the remote confirms that its camera is ready.</value>
+  </data>
+  <data name="IrActivationTimedOut" xml:space="preserve">
+    <value>The Wii Remote has not confirmed its camera yet. Check that the remote is still connected or close this window to try again.</value>
   </data>
   <data name="IrStartingSuffix" xml:space="preserve">
     <value> · starting IR</value>
@@ -262,7 +259,22 @@
     <value>Windows is pairing the controller. Keep its LEDs flashing.</value>
   </data>
   <data name="PairingInstructions" xml:space="preserve">
-    <value>Press the red SYNC button inside the battery compartment. The LEDs will start flashing.</value>
+    <value>Remove the battery cover and press the red SYNC button. The LEDs will start flashing.</value>
+  </data>
+  <data name="WaitingForPairedInput" xml:space="preserve">
+    <value>Waiting for Windows to make the controller available…</value>
+  </data>
+  <data name="PairingAgain" xml:space="preserve">
+    <value>Retrying the Bluetooth connection…</value>
+  </data>
+  <data name="PairingInputUnavailable" xml:space="preserve">
+    <value>Windows did not make the controller available. Press the red SYNC button and try again.</value>
+  </data>
+  <data name="BluetoothRemovePairingOperation" xml:space="preserve">
+    <value>Remove the Bluetooth pairing</value>
+  </data>
+  <data name="RemoveControllerFailed" xml:space="preserve">
+    <value>Could not remove the controller. {0}</value>
   </data>
   <data name="PairingRetry" xml:space="preserve">
     <value>{0} Press the red SYNC button and try again.</value>

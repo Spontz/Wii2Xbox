@@ -51,7 +51,7 @@ public sealed class LocalizationTests
             try
             {
                 using var main = new MainForm(static () => []);
-                using var pairing = new PairingDialog();
+                using var pairing = new PairingDialog(static _ => Task.FromResult<bool?>(false));
                 using var profile = new ProfileDialog(new Profile { Name = "Perfil personalizado" });
                 var layout = Assert.Single(main.Controls.OfType<TableLayoutPanel>());
                 Assert.False(main.AutoScroll);
@@ -62,29 +62,40 @@ public sealed class LocalizationTests
                 var coffee = Assert.Single(layout.Controls.OfType<Button>(), button => button.Text == UiText.Get("CoffeeButton"));
                 Assert.NotNull(coffee.Image);
                 Assert.Equal(layout.GetRow(toolbar), layout.GetRow(coffee));
-                var help = Assert.Single(layout.Controls.OfType<Button>(), button => button.AccessibleName == UiText.Get("TroubleshootingHelp"));
+                var help = Assert.Single(layout.Controls.Cast<Control>(), control => control.AccessibleName == UiText.Get("TroubleshootingHelp"));
                 Assert.Equal(0, layout.GetRow(help));
                 Assert.Equal(1, layout.GetColumn(help));
-                Assert.Equal(FlatStyle.Flat, help.FlatStyle);
-                Assert.Equal(0, help.FlatAppearance.BorderSize);
-                var options = Assert.Single(layout.Controls.OfType<TableLayoutPanel>());
-                var version = Assert.Single(options.Controls.OfType<Label>(), label => label.Text.StartsWith("v"));
+                Assert.IsNotAssignableFrom<Button>(help);
+                Assert.Equal(AccessibleRole.Link, help.AccessibleRole);
+                var preview = Assert.Single(layout.Controls.OfType<TableLayoutPanel>());
+                var version = Assert.Single(preview.Controls.OfType<Label>(), label => label.Text.StartsWith("v"));
                 Assert.Equal($"v{typeof(MainForm).Assembly.GetName().Version!.ToString(3)}", version.Text);
-                var viewer = Assert.Single(layout.Controls.OfType<WiiRemoteView>());
-                Assert.Equal(layout.RowCount - 1, layout.GetRow(viewer));
-                Assert.All(layout.Controls.OfType<Label>().Cast<Control>().Append(options),
-                    control => Assert.True(layout.GetRow(control) < layout.GetRow(viewer)));
-                Assert.Equal(AnchorStyles.Right, version.Anchor);
+                var viewer = Assert.Single(preview.Controls.OfType<WiiRemoteView>());
+                Assert.Equal(layout.RowCount - 1, layout.GetRow(preview));
+                Assert.All(layout.Controls.OfType<Label>(), label => Assert.True(layout.GetRow(label) < layout.GetRow(preview)));
+                Assert.Equal(preview.GetRow(viewer), preview.GetRow(version));
+                Assert.Equal(AnchorStyles.Bottom | AnchorStyles.Right, version.Anchor);
                 Assert.Empty(layout.Controls.OfType<FlowLayoutPanel>().SelectMany(panel => panel.Controls.OfType<ComboBox>()));
                 Assert.DoesNotContain(layout.Controls.OfType<FlowLayoutPanel>().SelectMany(panel => panel.Controls.OfType<Button>()),
                     button => button.Text == "Install Xbox driver");
                 Assert.Equal("Add controller", pairing.Text);
                 var pairingLayout = Assert.Single(Assert.Single(pairing.Controls.OfType<ScrollableLayout>()).Controls.OfType<TableLayoutPanel>());
                 Assert.Empty(pairingLayout.Controls.OfType<ComboBox>());
-                Assert.Empty(pairingLayout.Controls.OfType<FlowLayoutPanel>().SelectMany(panel => panel.Controls.OfType<ComboBox>()));
+                Assert.Single(pairingLayout.Controls.OfType<Button>(), button => button.Text == UiText.Get("PairSelected"));
+                Assert.Single(pairingLayout.Controls.OfType<Button>());
+                Assert.NotNull(Assert.Single(pairingLayout.Controls.OfType<PictureBox>()).Image);
                 Assert.Contains(pairingLayout.Controls.OfType<Label>(), label => label.Text == UiText.Get("PairingInstructions"));
                 Assert.Equal("Wii controller profile", profile.Text);
-                var profileRoot = Assert.Single(Assert.Single(profile.Controls.OfType<ScrollableLayout>()).Controls.OfType<TableLayoutPanel>());
+                var profileRoot = Assert.Single(profile.Controls.OfType<TableLayoutPanel>());
+                Assert.False(profile.AutoScroll);
+                Assert.False(profileRoot.AutoScroll);
+                Assert.Null(profile.CancelButton);
+                var groups = profileRoot.Controls.OfType<GroupBox>().ToArray();
+                Assert.Equal(new[] { "Wii Remote", "Nunchuk" }, groups.Select(group => group.Text));
+                var mappings = groups.Select(group => Assert.Single(group.Controls.OfType<TableLayoutPanel>())).ToArray();
+                Assert.All(mappings, mapping => Assert.False(mapping.AutoScroll));
+                Assert.Equal(new[] { "C", "Z" }, mappings[1].Controls.OfType<ComboBox>().Select(box => box.AccessibleName));
+                Assert.Equal(Profile.Sources.Length, mappings.Sum(mapping => mapping.Controls.OfType<ComboBox>().Count()));
                 var profileName = Assert.Single(profileRoot.Controls
                     .OfType<TableLayoutPanel>().SelectMany(panel => panel.Controls.OfType<TextBox>()));
                 Assert.Equal("Perfil personalizado", profileName.Text);
@@ -109,7 +120,7 @@ public sealed class LocalizationTests
             {
                 using var font = new System.Drawing.Font("Segoe UI", fontPoints);
                 using var main = new MainForm(static () => []);
-                using var pairing = new PairingDialog();
+                using var pairing = new PairingDialog(static _ => Task.FromResult<bool?>(false));
                 VerifyRows(main, font);
                 VerifyRows(pairing, font);
                 done.SetResult();

@@ -120,14 +120,14 @@ As a user, I want to run without the SDK and recover from disconnections without
 ### Functional Requirements
 
 - **FR-001**: Run on Windows 10/11 x64 with a Spanish UI and no required console.
-- **FR-002**: Discover controllers automatically while the wizard is open. Pair the selected controller using the red SYNC button as the sole method. Pause discovery during pairing and cancel on close. Distinguish an absent radio, failed pairing, and denied access.
+- **FR-002**: Discover controllers automatically while the wizard is open. Illustrate the red SYNC button and use it as the sole pairing method. Pause discovery during pairing and cancel on close. Close the wizard on success only when the selected remote appears in the main list. If Windows still has a disconnected association for that remote and does not publish its HID interface in time, clear that association and retry pairing the same remote once without user intervention. Distinguish an absent radio, failed pairing, and denied access.
 - **FR-003**: Enumerate connected controllers and deduplicate by physical identity.
 - **FR-004**: Activate available Wii Remotes automatically, with up to four independent Xbox 360 outputs for XInput games. Default to Xbox output and apply an output change only to the selected controller.
 - **FR-005**: Show each controller's physical connection, state, errors, and profile. When Windows assigns an Xbox output, show its slot 1–4 in **Xbox** and light only the matching LED on the Wii Remote. Use the actual assignment after reconnection.
 - **FR-006**: Decode A/B/1/2/+/−/HOME/D-pad without treating sensor bits as buttons.
 - **FR-007**: Include horizontal and Wii Remote + Nunchuk profiles. Request only necessary sensors in button mode.
 - **FR-008**: Identify and initialize the Nunchuk, calibrate center, range, and dead zone, and neutralize its input on removal.
-- **FR-009**: Edit, validate, save, import, export, and apply profiles per controller. Keep the last valid profile on error.
+- **FR-009**: Edit, validate, save, import, export, and apply profiles per controller. Keep the last valid profile on error. Group Wii Remote bindings and Nunchuk bindings and dead zone separately. Fit the editor without vertical scrolling, display the app icon in its title bar, and close unsaved edits through the title-bar close control or Escape.
 - **FR-010**: Map buttons, D-pad, bumpers, stick clicks, and digital triggers. Read analog axes from the Nunchuk stick.
 - **FR-011**: Neutralize and release owned outputs when a session ends, communication fails, or the user selects **Salir** (Exit). Leave unrelated outputs independent.
 - **FR-012**: Support manual reconnection and bounded retries without duplicate sessions.
@@ -183,7 +183,8 @@ As a user, I want to run without the SDK and recover from disconnections without
 - **FR-023**: Choose Xbox, IR mouse, or both outputs for each Wii Remote. IR mouse-only mode must work without the virtual Xbox driver.
 - **FR-024**: With a powered IR bar, point at the primary screen, move the cursor using the controller's camera, and use A/B for left/right clicks, including holding to drag.
 - **FR-025**: At most one session controls the cursor. Losing tracking, stopping the session, or losing Bluetooth releases mouse buttons. Combined mode retains Xbox buttons and compatible Nunchuk input.
-- **FR-026**: Calibrate the cursor by pointing at two on-screen targets. Save the result with the controller profile and allow cancellation or factory reset. Capturing points releases and blocks mouse clicks.
+- **FR-026**: Calibrate the cursor by pointing at two on-screen targets. Save the result with the controller profile and allow cancellation or factory reset. Show at the bottom of the calibration screen that **Esc** cancels the calibration. Capturing points releases and blocks mouse clicks.
+- **FR-027**: Show sensor bar instructions when the user activates IR output and the camera is still pending. Enable IR output for the selected controller if calibration needs it. If the camera responds promptly, open the calibration targets directly. During calibration setup, show the instructions only after the grace period. Close the instructions when the controller confirms its camera is ready, then continue to calibration if requested. Explain a delayed confirmation in the modal and allow the user to dismiss it.
 
 ## Delivery and Acceptance
 

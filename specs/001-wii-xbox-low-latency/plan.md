@@ -77,7 +77,7 @@ Provisional local budget: decode and map within 0.15 ms p95. Submission takes th
 
 Enumerate Nintendo HID devices and recognize models. Use native Windows Bluetooth for radio access, discovery, and pairing. Cancellation within 5 seconds requires splitting or isolating blocking operations and stopping the underlying work. Preserve unrelated pairings.
 
-The wizard repeats short Bluetooth searches in the background and preserves selection as results arrive. Pairing waits until the current search ends and resumes discovery if pairing fails. Closing cancels the loop before disposing of the window.
+The wizard repeats short Bluetooth searches in the background and preserves selection as results arrive. Pairing waits until the current search ends and then verifies that the matching HID interface is visible in the main list. If the selected remote's existing association is disconnected and no matching HID interface appears, remove that association and immediately authenticate the same remote again using its Bluetooth address. Keep errors visible if discovery resumes. Closing cancels the search loop before disposing of the window.
 
 For each model, validate HID opening and write methods (`Write` versus control report) and report mode. Status, ACK, and memory belong to the control channel. Input belongs to the data channel. Nunchuk initialization requires negotiation, identification, and actual calibration. Hot removal neutralizes accessory input. Basic mode must work without an extension.
 
@@ -86,6 +86,8 @@ For each model, validate HID opening and write methods (`Write` versus control r
 `Discovered → Connecting → Configuring → Active → Stopping → Disconnected`. Any stage can enter `Faulted` after cleanup. Allow one session per controller. Reconnect with bounded backoff outside the reader and always allow manual action. Sleep safely cancels sessions and resume re-enumerates identities. Roll back resources acquired by a partial startup.
 
 Apply profile changes by atomically swapping a validated snapshot at a report boundary. Neutralize before using the new profile. Keep administrative disk writes from blocking the UI or reader.
+
+Fit the profile editor to two groups for Wii Remote and Nunchuk controls. Read the selected controller's camera-ready state from the UI when showing the IR setup modal. Start calibration only after that session confirms camera readiness.
 
 HID enumeration and driver checking enable automatic activation. The app defaults to one Xbox output for each available controller. Choosing a different output changes only that controller and waits for the old session to release its resources. Tests can change latency capture without restarting the output.
 

@@ -12,6 +12,7 @@
     <PackageReference Include="Nefarius.ViGEm.Client" Version="1.21.256" />
     <EmbeddedResource Include="Resources/Wii2Xbox.ico" LogicalName="Wii2Xbox.AppIcon" />
     <EmbeddedResource Include="Resources/WiiRemote.png" LogicalName="Wii2Xbox.WiiRemoteImage" />
+    <EmbeddedResource Include="Resources/WiiRemoteSync.png" LogicalName="Wii2Xbox.SyncButtonImage" />
     <EmbeddedResource Include="Resources/ApplyUpdate.ps1" LogicalName="Wii2Xbox.ApplyUpdate" />
   </ItemGroup>
   <ItemGroup Condition="'$(ViGEmBusInstaller)' != ''">

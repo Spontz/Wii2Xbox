@@ -11,7 +11,7 @@
 
 ## An update did not finish
 
-1. Check the version displayed to the right above the Wii Remote preview and compare it with the latest release for your package type. If Wii2Xbox reports that Windows needs to restart, save your work, restart Windows, and check the version again.
+1. Check the version displayed in the bottom-right corner of the main window and compare it with the latest release for your package type. If Wii2Xbox reports that Windows needs to restart, save your work, restart Windows, and check the version again.
 2. If **Restart to update** (**Reiniciar para actualizar**) is available in the notification-area menu, select it when you are ready for Wii2Xbox to close and reopen.
 3. If you need to update manually, choose **Exit** (**Salir**) from that menu first. For an installed copy, run the newer MSI. For a portable copy, extract the new ZIP into a separate writable folder and run Wii2Xbox from there. Keep the existing folder until you have confirmed the new copy works.
 4. If your portable copy was set to launch at sign-in, turn **Start with Windows** (**Arrancar al iniciar Windows**) off and back on in the new copy to update the startup path.

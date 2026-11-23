@@ -4,40 +4,57 @@ internal sealed class PairingDialog : Form
 {
     private readonly ListBox found = new() { Dock = DockStyle.Fill, AccessibleName = UiText.Get("FoundWiiControllers") };
     private readonly Button pair = new() { Text = UiText.Get("PairSelected"), AutoSize = true };
-    private readonly Button close = new() { Text = UiText.Get("Close"), AutoSize = true, DialogResult = DialogResult.Cancel };
     private readonly Label status = new() { Text = UiText.Get("SearchingBluetooth"), AutoSize = true };
     private readonly Dictionary<ulong, BluetoothService.Candidate> discovered = new();
+    private readonly Func<ulong, Task<bool?>> waitForDevice;
     private CancellationTokenSource? scanCancellation;
     private Task scanTask = Task.CompletedTask;
     private bool pairing;
     private bool closing;
-    public ulong? PairedAddress { get; private set; }
+    private string? pairingFailure;
 
-    public PairingDialog()
+    public PairingDialog(Func<ulong, Task<bool?>> waitForDevice)
     {
+        this.waitForDevice = waitForDevice;
         Text = UiText.Get("AddControllerTitle");
-        ScrollableLayout.ConfigureForm(this, new Size(575, 375), new Size(520, 340));
+        ScrollableLayout.ConfigureForm(this, new Size(575, 450), new Size(520, 415));
         StartPosition = FormStartPosition.CenterParent;
         ShowInTaskbar = false;
-        var layout = new TableLayoutPanel { Padding = new Padding(14), ColumnCount = 1, RowCount = 4 };
+        var layout = new TableLayoutPanel { Padding = new Padding(14), ColumnCount = 1, RowCount = 5 };
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 112));
         layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         var instructions = new Label { Text = UiText.Get("PairingInstructions"), AutoSize = true };
         layout.Controls.Add(instructions, 0, 0);
-        layout.Controls.Add(found, 0, 1);
-        var buttons = new FlowLayoutPanel { AutoSize = true, Dock = DockStyle.Fill };
-        buttons.Controls.AddRange([pair, close]);
-        layout.Controls.Add(buttons, 0, 2);
-        layout.Controls.Add(status, 0, 3);
-        Controls.Add(new ScrollableLayout(layout, 1, 120, instructions, status));
-        CancelButton = close;
+        using var illustration = typeof(PairingDialog).Assembly.GetManifestResourceStream("Wii2Xbox.SyncButtonImage")
+            ?? throw new InvalidOperationException(UiText.Get("MissingViewerImage"));
+        using var source = Image.FromStream(illustration);
+        var picture = new PictureBox
+        {
+            Dock = DockStyle.Fill, SizeMode = PictureBoxSizeMode.Zoom,
+            Image = new Bitmap(source), AccessibleName = UiText.Get("PairingInstructions")
+        };
+        picture.Disposed += (_, _) => picture.Image?.Dispose();
+        layout.Controls.Add(picture, 0, 1);
+        found.Dock = DockStyle.Fill;
+        layout.Controls.Add(found, 0, 2);
+        layout.Controls.Add(pair, 0, 3);
+        layout.Controls.Add(status, 0, 4);
+        Controls.Add(new ScrollableLayout(layout, 2, 120, instructions, status));
         Shown += (_, _) => StartScanning();
         pair.Click += async (_, _) => await Pair();
         found.SelectedIndexChanged += (_, _) => UpdateButtons();
         FormClosing += StopBeforeClosing;
         UpdateButtons();
+    }
+
+    protected override bool ProcessDialogKey(Keys keyData)
+    {
+        if (keyData != Keys.Escape) return base.ProcessDialogKey(keyData);
+        Close();
+        return true;
     }
 
     private void StartScanning()
@@ -60,15 +77,15 @@ internal sealed class PairingDialog : Form
                     var batch = await Task.Run(() => BluetoothService.Find(cancellation), cancellation);
                     cancellation.ThrowIfCancellationRequested();
                     UpdateResults(batch);
-                    status.Text = discovered.Count == 0 ? UiText.Get("SearchingBluetooth")
+                    status.Text = pairingFailure ?? (discovered.Count == 0 ? UiText.Get("SearchingBluetooth")
                         : discovered.Values.Any(item => item.CanPair)
                             ? UiText.Get("SearchingChooseController")
-                            : UiText.Get("SearchingSupportedModels");
+                            : UiText.Get("SearchingSupportedModels"));
                 }
                 catch (Exception error) when (error is System.ComponentModel.Win32Exception or InvalidOperationException)
                 {
                     cancellation.ThrowIfCancellationRequested();
-                    status.Text = error.Message;
+                    status.Text = pairingFailure ?? error.Message;
                     delay = 1500;
                 }
                 await Task.Delay(delay, cancellation);
@@ -130,6 +147,8 @@ internal sealed class PairingDialog : Form
     {
         if (found.SelectedItem is not BluetoothService.Candidate { CanPair: true } device) return;
         pairing = true;
+        pairingFailure = null;
+        var result = DialogResult.None;
         UpdateButtons();
         status.Text = UiText.Get("PairingInProgress");
         try
@@ -137,20 +156,47 @@ internal sealed class PairingDialog : Form
             scanCancellation?.Cancel();
             await scanTask;
             var current = discovered[device.Device.Address];
-            await Task.Run(() => BluetoothService.Pair(current));
-            PairedAddress = device.Device.Address;
+            bool alreadyKnown = await Task.Run(() => BluetoothService.Pair(current));
+            if (IsDisposed) return;
+            bool? ready = await WaitForInput();
+            if (IsDisposed) return;
+            if (ready is false && alreadyKnown && await Task.Run(() => BluetoothService.RemoveDisconnectedPairing(current)))
+            {
+                if (IsDisposed) return;
+                discovered.Remove(device.Device.Address);
+                found.Items.Remove(device);
+                status.Text = UiText.Get("PairingAgain");
+                await Task.Run(() => BluetoothService.Pair(current, afterRemovingPairing: true));
+                if (IsDisposed) return;
+                ready = await WaitForInput();
+            }
+            if (ready is true) result = DialogResult.OK;
+            else if (ready is null) result = DialogResult.Cancel;
+            else pairingFailure = UiText.Get("PairingInputUnavailable");
         }
         catch (Exception error)
         {
-            status.Text = UiText.Format("PairingRetry", error.Message);
+            pairingFailure = UiText.Format("PairingRetry", error.Message);
         }
         finally
         {
             pairing = false;
-            UpdateButtons();
+            if (!IsDisposed) UpdateButtons();
         }
-        if (PairedAddress.HasValue) DialogResult = DialogResult.OK;
-        else StartScanning();
+        if (IsDisposed) return;
+        if (result != DialogResult.None)
+        {
+            DialogResult = result;
+            return;
+        }
+        status.Text = pairingFailure;
+        StartScanning();
+
+        Task<bool?> WaitForInput()
+        {
+            status.Text = UiText.Get("WaitingForPairedInput");
+            return waitForDevice(device.Device.Address);
+        }
     }
 
     private void UpdateButtons()
@@ -158,6 +204,5 @@ internal sealed class PairingDialog : Form
         bool canSelect = !pairing && !closing;
         found.Enabled = canSelect;
         pair.Enabled = canSelect && found.SelectedItem is BluetoothService.Candidate { CanPair: true };
-        close.Enabled = canSelect;
     }
 }

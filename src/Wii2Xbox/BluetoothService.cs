@@ -9,6 +9,7 @@ internal static class BluetoothService
     private const int NoMoreItems = 259;
     private const int MoreData = 234;
     private const int ServiceAlreadyEnabled = 87;
+    private const int NotFound = 1168;
     private static readonly Guid HidService = new("00001124-0000-1000-8000-00805f9b34fb");
 
     internal sealed record Candidate(ulong RadioAddress, DeviceInfo Device)
@@ -79,7 +80,7 @@ internal static class BluetoothService
         return found.Values.ToArray();
     }
 
-    public static void Pair(Candidate candidate)
+    public static bool Pair(Candidate candidate, bool afterRemovingPairing = false)
     {
         if (!candidate.CanPair)
             throw new NotSupportedException(UiText.Get("UnsupportedWiiModel"));
@@ -89,8 +90,11 @@ internal static class BluetoothService
             if (ReadRadio(radio).Address != candidate.RadioAddress) continue;
             var device = EmptyDevice();
             device.Address = candidate.Device.Address;
-            var getInfo = BluetoothGetDeviceInfo(radio, ref device);
-            if (getInfo != 0) device = candidate.Device;
+            if (afterRemovingPairing)
+                device.Name = candidate.Device.Name;
+            else if (BluetoothGetDeviceInfo(radio, ref device) != 0)
+                device = candidate.Device;
+            bool alreadyKnown = device.Remembered != 0 || device.Authenticated != 0;
 
             if (device.Authenticated == 0)
             {
@@ -105,9 +109,33 @@ internal static class BluetoothService
                 if (result != MoreData) Check(result, UiText.Get("BluetoothServicesOperation"));
             }
             Check(EnableHid(radio, ref device), UiText.Get("BluetoothHidOperation"));
-            return;
+            return alreadyKnown;
         }
         throw new InvalidOperationException(UiText.Get("BluetoothRadioDisconnected"));
+    }
+
+    public static bool RemoveDisconnectedPairing(Candidate candidate)
+    {
+        if (!candidate.CanPair) return false;
+        foreach (var radio in Radios())
+        {
+            if (ReadRadio(radio).Address != candidate.RadioAddress) continue;
+            var device = EmptyDevice();
+            device.Address = candidate.Device.Address;
+            if (BluetoothGetDeviceInfo(radio, ref device) != 0 || device.Connected != 0 ||
+                (device.Remembered == 0 && device.Authenticated == 0))
+                return false;
+
+            ForgetPairing(device.Address);
+            return true;
+        }
+        return false;
+    }
+
+    public static void ForgetPairing(ulong address)
+    {
+        int result = BluetoothRemoveDevice(in address);
+        if (result != NotFound) Check(result, UiText.Get("BluetoothRemovePairingOperation"));
     }
 
     private static int EnableHid(SafeFileHandle radio, ref DeviceInfo device)
@@ -134,7 +162,7 @@ internal static class BluetoothService
         {
             var error = Marshal.GetLastWin32Error();
             handle?.Dispose();
-            if (error is not (NoMoreItems or 1168)) Check(error, UiText.Get("OpenBluetoothRadioOperation"));
+            if (error is not (NoMoreItems or NotFound)) Check(error, UiText.Get("OpenBluetoothRadioOperation"));
             yield break;
         }
         try
@@ -215,6 +243,7 @@ internal static class BluetoothService
     [DllImport(Library, SetLastError = true)] private static extern bool BluetoothFindNextDevice(IntPtr find, ref DeviceInfo device);
     [DllImport(Library)] private static extern bool BluetoothFindDeviceClose(IntPtr find);
     [DllImport(Library)] private static extern int BluetoothGetDeviceInfo(SafeFileHandle radio, ref DeviceInfo device);
+    [DllImport(Library)] private static extern int BluetoothRemoveDevice(in ulong address);
     [DllImport(Library)] private static extern int BluetoothAuthenticateDevice(IntPtr parent, SafeFileHandle radio, ref DeviceInfo device, [In] ushort[] pin, uint length);
     [DllImport(Library)] private static extern int BluetoothEnumerateInstalledServices(SafeFileHandle radio, ref DeviceInfo device, ref uint count, [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] Guid[]? services);
     [DllImport(Library)] private static extern int BluetoothSetServiceState(SafeFileHandle radio, ref DeviceInfo device, in Guid service, uint flags);

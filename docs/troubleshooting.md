@@ -15,4 +15,4 @@ To see whether Windows receives input from Wii2Xbox, press **Windows + R**, type
 
 ## Get More Help
 
-If the problem continues, [open a GitHub issue](https://github.com/Spontz/Wii2Xbox/issues). Include the Wii2Xbox version shown to the right above the Wii Remote preview, your Windows version, whether you use the MSI or portable ZIP, and the exact steps and error message. For input problems, report whether the Wii Remote preview lights up and whether the input appears in the Windows test.
+If the problem continues, [open a GitHub issue](https://github.com/Spontz/Wii2Xbox/issues). Include the Wii2Xbox version shown in the bottom-right corner of the main window, your Windows version, whether you use the MSI or portable ZIP, and the exact steps and error message. For input problems, report whether the Wii Remote preview lights up and whether the input appears in the Windows test.

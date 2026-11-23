@@ -1,7 +1,7 @@
 param(
     [string]$Dotnet = 'dotnet',
     [ValidatePattern('^(0|[1-9][0-9]{0,2})\.(0|[1-9][0-9]{0,2})\.(0|[1-9][0-9]{0,4})$')]
-    [string]$Version = '1.2.2'
+    [string]$Version = '1.2.3'
 )
 $ErrorActionPreference = 'Stop'
 

@@ -6,8 +6,8 @@ A Windows app that connects up to four Wii Remotes over Bluetooth and lets you u
 
 ## Downloads
 
-- [MSI installer](https://github.com/Spontz/Wii2Xbox/releases/tag/v1.2.2-installer)
-- [Portable ZIP](https://github.com/Spontz/Wii2Xbox/releases/tag/v1.2.2-portable)
+- [MSI installer](https://github.com/Spontz/Wii2Xbox/releases/tag/v1.2.3-installer)
+- [Portable ZIP](https://github.com/Spontz/Wii2Xbox/releases/tag/v1.2.3-portable)
 
 ## Project Documentation
 

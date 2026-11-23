@@ -3,11 +3,14 @@ namespace Wii2Xbox;
 public sealed class MainForm : Form
 {
     private const int OutputColumn = 4;
+    private const int RemoveColumn = 5;
+    private const string BluetoothIdPrefix = "bluetooth:";
     private const int DeviceListRow = 2;
     private const int StartupRow = 3;
     private const int RemoteRow = 6;
     private const int RemoteHeight = 165;
     private const int DeviceListHeight = 114;
+    private const int CalibrationSetupGraceMs = 1500;
     private static readonly Size MinimumWindow = new(690, 450);
     private readonly string[] outputLabels = ["Xbox", UiText.Get("OutputIr"), UiText.Get("OutputCombined")];
     private readonly ListView devices = new()
@@ -19,6 +22,8 @@ public sealed class MainForm : Form
     private readonly Dictionary<string, WiiDevice> discovered = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, SessionMode> outputModes = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> unavailableXboxOutputs = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> removingDevices = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> hiddenDevices = new(StringComparer.OrdinalIgnoreCase);
     private readonly Func<WiiDevice[]> enumerateDevices;
     private readonly Icon appIcon;
     private readonly System.Windows.Forms.Timer display = new() { Interval = 200 };
@@ -46,7 +51,6 @@ public sealed class MainForm : Form
     private bool recovering;
     private bool deviceRefreshRequested;
     private bool resizingColumns;
-    private bool pairingTransition;
     private bool installingXbox;
     private bool driverOfferPending;
     private bool xboxChecked;
@@ -60,6 +64,7 @@ public sealed class MainForm : Form
     private bool checkingUpdate;
     private bool updateHandoff;
     private bool modalOperation;
+    private bool preparingCalibration;
     private StagedUpdate? stagedUpdate;
     private ToolStripMenuItem? restartUpdate;
     private NotifyIcon? trayIcon;
@@ -100,7 +105,7 @@ public sealed class MainForm : Form
             Dock = DockStyle.Fill, AutoEllipsis = true, AutoSize = true, TextAlign = ContentAlignment.MiddleLeft
         }, 0, 0);
         string helpText = UiText.Get("TroubleshootingHelp");
-        var help = new HelpIconButton
+        var help = new HelpIcon
         {
             AccessibleName = helpText, Anchor = AnchorStyles.Top | AnchorStyles.Right, Margin = new Padding(3, 3, 6, 3)
         };
@@ -114,12 +119,15 @@ public sealed class MainForm : Form
         help.Disposed += (_, _) => helpTip.Dispose();
         layout.Controls.Add(help, 1, 0);
         var actions = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Dock = DockStyle.Fill };
-        actions.Controls.Add(Action(UiText.Get("AddControllerButton"), () => _ = PairDevice()));
+        actions.Controls.Add(Action(UiText.Get("AddControllerButton"), PairDevice));
         var profile = Action(UiText.Get("EditProfileButton"), EditProfile);
+        var calibrate = new Button { Text = UiText.Get("CalibrateIrButton"), AutoSize = true };
+        calibrate.Click += async (_, _) => await CalibrateInfrared();
         profile.Enabled = false;
-        devices.SelectedIndexChanged += (_, _) => profile.Enabled = SelectedId is not null;
+        calibrate.Enabled = false;
+        devices.SelectedIndexChanged += (_, _) => profile.Enabled = calibrate.Enabled = SelectedId is not null;
         actions.Controls.Add(profile);
-        actions.Controls.Add(Action(UiText.Get("CalibrateIrButton"), CalibrateInfrared));
+        actions.Controls.Add(calibrate);
         layout.Controls.Add(actions, 0, 1);
         var support = Action(UiText.Get("CoffeeButton"), () => OpenWebPage(
             "https://ko-fi.com/ivanfernandezgarcia", "SupportPageFailed"));
@@ -140,48 +148,62 @@ public sealed class MainForm : Form
         devices.Columns.Add(UiText.Get("StatusColumn"));
         devices.Columns.Add(UiText.Get("ProfileColumn"));
         devices.Columns.Add(UiText.Get("OutputColumn"));
+        devices.Columns.Add("", 0, HorizontalAlignment.Center);
         for (int index = 0; index < outputLabels.Length; index++)
         {
             var mode = (SessionMode)index;
             outputMenu.Items.Add(outputLabels[index], null, (_, _) =>
             {
-                if (outputMenuDevice is { } id) SetOutputMode(id, mode);
+                if (outputMenuDevice is not { } id) return;
+                SetOutputMode(id, mode);
+                if (mode is SessionMode.Mouse or SessionMode.XboxAndMouse) WaitForInfrared(id);
             });
         }
-        devices.MouseClick += (_, args) =>
+        devices.MouseClick += async (_, args) =>
         {
             var hit = devices.HitTest(args.Location);
-            if (args.Button == MouseButtons.Left && hit.Item is { } row && hit.SubItem == row.SubItems[OutputColumn])
-                ShowOutputMenu(row);
+            if (args.Button != MouseButtons.Left || hit.Item is not { Tag: string id } row) return;
+            if (hit.SubItem == row.SubItems[RemoveColumn]) await RemoveController(id);
+            else if (hit.SubItem == row.SubItems[OutputColumn]) ShowOutputMenu(row);
         };
-        devices.KeyDown += (_, args) =>
+        devices.KeyDown += async (_, args) =>
         {
-            if (args.KeyCode != Keys.F4 || devices.SelectedItems.Count == 0) return;
-            args.Handled = true;
-            ShowOutputMenu(devices.SelectedItems[0]);
+            if (devices.SelectedItems.Count == 0) return;
+            var row = devices.SelectedItems[0];
+            if (args.KeyCode == Keys.Delete && row.Tag is string id)
+            {
+                args.SuppressKeyPress = true;
+                await RemoveController(id);
+            }
+            else if (args.KeyCode == Keys.F4)
+            {
+                args.Handled = true;
+                ShowOutputMenu(row);
+            }
         };
         devices.ClientSizeChanged += (_, _) => QueueFit();
         devices.HandleCreated += (_, _) => QueueFit();
         devices.FontChanged += (_, _) => QueueFit();
         devices.ColumnWidthChanging += (_, args) => args.Cancel = !resizingColumns;
         AddFullWidth(devices, DeviceListRow);
-        var options = new TableLayoutPanel
-        {
-            AutoSize = true, Dock = DockStyle.Fill, Margin = Padding.Empty, ColumnCount = 2, RowCount = 1
-        };
-        options.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        options.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        options.Controls.Add(startup, 0, 0);
-        AddFullWidth(options, StartupRow);
+        AddFullWidth(startup, StartupRow);
         AddFullWidth(info, 4);
         AddFullWidth(xboxStatus, 5);
-        AddFullWidth(remoteView, RemoteRow);
-        var version = typeof(MainForm).Assembly.GetName().Version!;
-        options.Controls.Add(new Label
+        var preview = new TableLayoutPanel
         {
-            Text = $"v{version.ToString(3)}", AutoSize = true, Anchor = AnchorStyles.Right,
-            Margin = new Padding(3, 8, 6, 0)
+            Dock = DockStyle.Fill, Margin = Padding.Empty, ColumnCount = 2, RowCount = 1
+        };
+        preview.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        preview.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        preview.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        preview.Controls.Add(remoteView, 0, 0);
+        var version = typeof(MainForm).Assembly.GetName().Version!;
+        preview.Controls.Add(new Label
+        {
+            Text = $"v{version.ToString(3)}", AutoSize = true, Anchor = AnchorStyles.Bottom | AnchorStyles.Right,
+            Margin = new Padding(3, 0, 0, 0)
         }, 1, 0);
+        AddFullWidth(preview, RemoteRow);
         Controls.Add(layout);
         layout.Layout += (_, _) => QueueFit();
         HandleCreated += (_, _) => QueueFit();
@@ -395,7 +417,8 @@ public sealed class MainForm : Form
     }
 
     private bool UpdateBlocked(bool explicitRestart) =>
-        closing || suspended || installingXbox || modalOperation || pairingTransition || finding || recovering ||
+        closing || suspended || installingXbox || modalOperation || preparingCalibration || finding || recovering ||
+        removingDevices.Count != 0 ||
         !explicitRestart && sessions.Values.Any(session => !session.Completion.IsCompleted);
 
     private DialogResult ShowOwnedDialog(Form dialog)
@@ -486,27 +509,68 @@ public sealed class MainForm : Form
         return button;
     }
 
-    private sealed class HelpIconButton : Button
+    private sealed class HelpIcon : Control
     {
-        public HelpIconButton()
+        public HelpIcon()
         {
-            Text = "?";
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer |
+                ControlStyles.ResizeRedraw | ControlStyles.Selectable, true);
+            SetStyle(ControlStyles.StandardClick, false);
+            TabStop = true;
             Cursor = Cursors.Hand;
-            FlatStyle = FlatStyle.Flat;
-            FlatAppearance.BorderSize = 0;
-            SetStyle(ControlStyles.SupportsTransparentBackColor, true);
-            BackColor = Color.Transparent;
+            AccessibleRole = AccessibleRole.Link;
         }
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            int inset = LogicalToDeviceUnits(3);
-            var circle = Rectangle.Inflate(ClientRectangle, -inset, -inset);
-            using var outline = new Pen(ForeColor, LogicalToDeviceUnits(Focused && ShowFocusCues ? 2 : 1));
-            e.Graphics.DrawEllipse(outline, circle);
-            TextRenderer.DrawText(e.Graphics, Text, Font, ClientRectangle, ForeColor,
-                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
+            var canvas = e.Graphics;
+            canvas.Clear(BackColor);
+            canvas.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            canvas.ScaleTransform(Width / 24f, Height / 24f);
+            using var stroke = new Pen(ForeColor, Focused && ShowFocusCues ? 1.8f : 1.25f);
+            stroke.StartCap = stroke.EndCap = System.Drawing.Drawing2D.LineCap.Round;
+            canvas.DrawEllipse(stroke, 2.5f, 2.5f, 19, 19);
+            canvas.DrawBeziers(stroke, [
+                new PointF(9, 9), new PointF(9, 5.8f), new PointF(15, 5.8f), new PointF(15, 9),
+                new PointF(15, 11.5f), new PointF(12, 11.3f), new PointF(12, 14)
+            ]);
+            using var dot = new SolidBrush(ForeColor);
+            canvas.FillEllipse(dot, 11.2f, 16.3f, 1.6f, 1.6f);
+        }
+
+        protected override void OnMouseUp(MouseEventArgs e)
+        {
+            base.OnMouseUp(e);
+            if (e.Button == MouseButtons.Left && ClientRectangle.Contains(e.Location)) OnClick(EventArgs.Empty);
+        }
+
+        protected override bool IsInputKey(Keys keyData) =>
+            keyData is Keys.Enter or Keys.Space || base.IsInputKey(keyData);
+
+        protected override void OnKeyUp(KeyEventArgs e)
+        {
+            base.OnKeyUp(e);
+            if (e.KeyData is Keys.Enter or Keys.Space) OnClick(EventArgs.Empty);
+        }
+
+        protected override void OnGotFocus(EventArgs e)
+        {
+            base.OnGotFocus(e);
+            Invalidate();
+        }
+
+        protected override void OnLostFocus(EventArgs e)
+        {
+            base.OnLostFocus(e);
+            Invalidate();
+        }
+
+        protected override AccessibleObject CreateAccessibilityInstance() => new HelpLinkAccessibility(this);
+
+        private sealed class HelpLinkAccessibility(HelpIcon owner) : ControlAccessibleObject(owner)
+        {
+            public override string? DefaultAction => owner.AccessibleName;
+            public override void DoDefaultAction() => owner.OnClick(EventArgs.Empty);
         }
     }
 
@@ -556,6 +620,9 @@ public sealed class MainForm : Form
         {
             var found = await Task.Run(enumerateDevices);
             if (closing || suspended) return;
+            hiddenDevices.RemoveWhere(id => !id.StartsWith(BluetoothIdPrefix, StringComparison.OrdinalIgnoreCase) &&
+                !found.Any(device => string.Equals(device.Id, id, StringComparison.OrdinalIgnoreCase)));
+            found = found.Where(device => !hiddenDevices.Contains(device.Id)).ToArray();
             var selected = SelectedId;
             foreach (var device in found)
             {
@@ -596,44 +663,79 @@ public sealed class MainForm : Form
         }
     }
 
-    private async Task PairDevice()
+    private void PairDevice()
     {
-        if (pairingTransition) return;
-        pairingTransition = true;
-        try { await PairAndSelectDevice(); }
-        finally { pairingTransition = false; }
+        using var dialog = new PairingDialog(WaitForPairedDevice);
+        ShowOwnedDialog(dialog);
     }
 
-    private async Task PairAndSelectDevice()
+    private async Task<bool?> WaitForPairedDevice(ulong address)
     {
-        using var dialog = new PairingDialog();
-        if (ShowOwnedDialog(dialog) != DialogResult.OK || dialog.PairedAddress is not ulong address) return;
-        info.Text = "";
-        string id = $"bluetooth:{address:X12}";
+        string id = $"{BluetoothIdPrefix}{address:X12}";
+        hiddenDevices.Remove(id);
         long deadline = Environment.TickCount64 + 5000;
         while (!closing && !suspended)
         {
             await FindDevices(announce: false);
-            if (closing || suspended) return;
+            if (closing || suspended) return null;
             if (discovered.ContainsKey(id) && devices.Items[id] is { } row)
             {
                 row.Selected = true;
                 row.Focused = true;
                 row.EnsureVisible();
-                return;
+                return true;
             }
-            if (Environment.TickCount64 >= deadline) break;
+            if (Environment.TickCount64 >= deadline) return false;
             await Task.Delay(300);
         }
+        return null;
     }
 
     private string? SelectedId => devices.SelectedItems.Count == 0 ? null : devices.SelectedItems[0].Tag as string;
+
+    private async Task RemoveController(string id)
+    {
+        if (closing || !devices.Items.ContainsKey(id) || !removingDevices.Add(id)) return;
+        try
+        {
+            recovery.Remove(id);
+            if (sessions.TryGetValue(id, out var session))
+            {
+                await Task.Run(session.Stop);
+                await session.Completion;
+            }
+            if (closing || IsDisposed) return;
+
+            ulong? address = discovered.GetValueOrDefault(id)?.BluetoothAddress;
+            if (address is null && id.StartsWith(BluetoothIdPrefix, StringComparison.OrdinalIgnoreCase) &&
+                ulong.TryParse(id.AsSpan(BluetoothIdPrefix.Length), System.Globalization.NumberStyles.AllowHexSpecifier,
+                    System.Globalization.CultureInfo.InvariantCulture, out ulong parsed))
+                address = parsed;
+            if (address is ulong bluetoothAddress)
+                await Task.Run(() => BluetoothService.ForgetPairing(bluetoothAddress));
+
+            hiddenDevices.Add(id);
+            discovered.Remove(id);
+            sessions.Remove(id);
+            unavailableXboxOutputs.Remove(id);
+            if (!closing && !IsDisposed)
+            {
+                devices.Items.RemoveByKey(id);
+                remoteView.UpdateButtons(sessions.Values);
+            }
+        }
+        catch (Exception error)
+        {
+            if (!closing && !IsDisposed) info.Text = UiText.Format("RemoveControllerFailed", error.Message);
+        }
+        finally { removingDevices.Remove(id); }
+    }
 
     private SessionMode GetOutputMode(string id) => outputModes.GetValueOrDefault(id, SessionMode.Xbox);
 
     private void ShowOutputMenu(ListViewItem row)
     {
-        if (closing || row.Tag is not string id) return;
+        if (closing || row.Tag is not string id || removingDevices.Contains(id)) return;
         outputMenuDevice = id;
         var current = GetOutputMode(id);
         for (int index = 0; index < outputMenu.Items.Count; index++)
@@ -645,7 +747,7 @@ public sealed class MainForm : Form
 
     private void SetOutputMode(string id, SessionMode mode)
     {
-        if (closing || devices.Items[id] is not { } row || GetOutputMode(id) == mode) return;
+        if (closing || removingDevices.Contains(id) || devices.Items[id] is not { } row || GetOutputMode(id) == mode) return;
         outputModes[id] = mode;
         row.SubItems[OutputColumn].Text = $"{outputLabels[(int)mode]}  ▾";
         recovery.Remove(id);
@@ -653,8 +755,6 @@ public sealed class MainForm : Form
         if (sessions.TryGetValue(id, out var session) && !session.Completion.IsCompleted)
             _ = Task.Run(session.Stop);
         StartAvailableSessions();
-        if (mode is SessionMode.Mouse or SessionMode.XboxAndMouse)
-            info.Text = UiText.Get("IrControlsHint");
     }
 
     private void StartAvailableSessions()
@@ -663,6 +763,7 @@ public sealed class MainForm : Form
         bool promoting = false;
         foreach (var (id, device) in discovered)
         {
+            if (removingDevices.Contains(id)) continue;
             var desired = GetOutputMode(id);
             if (!xboxChecked && desired != SessionMode.Mouse) continue;
 
@@ -713,10 +814,12 @@ public sealed class MainForm : Form
 
     private ListViewItem AddDeviceRow(string id, string name)
     {
-        var row = new ListViewItem(new[] { name, "—", UiText.Get("Available"), "", $"{outputLabels[(int)GetOutputMode(id)]}  ▾" })
+        var row = new ListViewItem(new[] { name, "—", UiText.Get("Available"), "", $"{outputLabels[(int)GetOutputMode(id)]}  ▾", "✕" })
         {
-            Name = id, Tag = id
+            Name = id, Tag = id, UseItemStyleForSubItems = false
         };
+        row.SubItems[RemoveColumn].ForeColor = SystemInformation.HighContrast ? SystemColors.HotTrack
+            : Application.IsDarkModeEnabled ? Color.Salmon : Color.Firebrick;
         devices.Items.Add(row);
         return row;
     }
@@ -730,6 +833,7 @@ public sealed class MainForm : Form
         int[] minimum = devices.Columns.Cast<ColumnHeader>()
             .Select(column => TextRenderer.MeasureText(column.Text, devices.Font).Width + padding)
             .ToArray();
+        minimum[RemoveColumn] = Math.Max(LogicalToDeviceUnits(32), TextRenderer.MeasureText("✕", devices.Font).Width + padding);
         int total = minimum.Sum();
         if (total <= width)
         {
@@ -756,7 +860,7 @@ public sealed class MainForm : Form
                 minimum[i] = minimum[i] * width / total;
                 available -= minimum[i];
             }
-            minimum[OutputColumn] = available;
+            minimum[RemoveColumn] = available;
         }
         resizingColumns = true;
         try
@@ -842,19 +946,31 @@ public sealed class MainForm : Form
     private void EditProfile()
     {
         if (SelectedId is not { } id) return;
-        using var dialog = new ProfileDialog(GetProfile(id));
+        using var dialog = new ProfileDialog(GetProfile(id)) { Icon = appIcon };
         if (ShowOwnedDialog(dialog) != DialogResult.OK || dialog.Result is not { } updated) return;
         SaveProfile(id, updated, UiText.Get("ProfileSaved"));
     }
 
-    private void CalibrateInfrared()
+    private async Task CalibrateInfrared()
     {
-        if (SelectedId is not { } id || !sessions.TryGetValue(id, out var session) ||
-            session.Completion.IsCompleted || !session.InfraredReady)
+        if (preparingCalibration || closing || suspended || modalOperation || SelectedId is not { } id) return;
+        preparingCalibration = true;
+        try
         {
-            info.Text = UiText.Get("EnableIrBeforeCalibration");
-            return;
+            if (GetOutputMode(id) == SessionMode.Xbox)
+                SetOutputMode(id, XboxReady ? SessionMode.XboxAndMouse : SessionMode.Mouse);
+            long deadline = Environment.TickCount64 + CalibrationSetupGraceMs;
+            while (ReadyInfraredSession(id) is null && Environment.TickCount64 < deadline)
+            {
+                await Task.Delay(50);
+                if (closing || suspended || IsDisposed || !Visible || modalOperation ||
+                    SelectedId != id || GetOutputMode(id) == SessionMode.Xbox)
+                    return;
+            }
+            if (!WaitForInfrared(id)) return;
         }
+        finally { preparingCalibration = false; }
+        if (ReadyInfraredSession(id) is not { } session) return;
         var capture = session.StartInfraredCalibration();
         try
         {
@@ -875,6 +991,17 @@ public sealed class MainForm : Form
             SaveProfile(id, updated, dialog.Result is null ? UiText.Get("IrCalibrationReset") : UiText.Get("IrCalibrationSaved"));
         }
         finally { session.EndInfraredCalibration(capture); }
+    }
+
+    private ControllerSession? ReadyInfraredSession(string id) =>
+        sessions.TryGetValue(id, out var session) && !session.Completion.IsCompleted && session.InfraredReady
+            ? session : null;
+
+    private bool WaitForInfrared(string id)
+    {
+        if (ReadyInfraredSession(id) is not null) return true;
+        using var dialog = new InfraredActivationDialog(() => ReadyInfraredSession(id) is not null) { Icon = appIcon };
+        return ShowOwnedDialog(dialog) == DialogResult.OK;
     }
 
     private void SaveProfile(string id, Profile updated, string success)
