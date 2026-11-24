@@ -1,23 +1,28 @@
+using System.Drawing.Drawing2D;
+
 namespace Wii2Xbox;
 
 internal sealed class PairingDialog : Form
 {
     private const int RecentDeviceSeconds = 15;
-    private readonly ListBox found = new() { Dock = DockStyle.Fill, AccessibleName = UiText.Get("FoundBluetoothDevices") };
+    private readonly BluetoothDeviceList found = new() { Dock = DockStyle.Fill, AccessibleName = UiText.Get("FoundBluetoothDevices") };
     private readonly Button pair = new() { Text = UiText.Get("PairSelected"), AutoSize = true };
     private readonly DeviceScanSwitch displayAll = new() { Text = UiText.Get("DisplayAllDevices"), AutoSize = true };
     private readonly Label status = new() { Text = UiText.Get("SearchingBluetooth"), AutoSize = true };
+    private readonly SearchIndicator searchIndicator = new();
     private readonly Dictionary<ulong, BluetoothService.Candidate> discovered = new();
     private readonly Func<ulong, Task<bool?>> waitForDevice;
+    private readonly Func<ulong, bool> isAdded;
     private CancellationTokenSource? scanCancellation;
     private Task scanTask = Task.CompletedTask;
     private bool pairing;
     private bool closing;
     private string? pairingFailure;
 
-    public PairingDialog(Func<ulong, Task<bool?>> waitForDevice)
+    public PairingDialog(Func<ulong, Task<bool?>> waitForDevice, Func<ulong, bool> isAdded)
     {
         this.waitForDevice = waitForDevice;
+        this.isAdded = isAdded;
         Text = UiText.Get("AddControllerTitle");
         ScrollableLayout.ConfigureForm(this, new Size(620, 510), new Size(520, 415), expandOnLargeDisplays: true);
         StartPosition = FormStartPosition.CenterParent;
@@ -45,12 +50,18 @@ internal sealed class PairingDialog : Form
         layout.Controls.Add(displayAll, 0, 2);
         layout.Controls.Add(found, 0, 3);
         layout.Controls.Add(pair, 0, 4);
-        layout.Controls.Add(status, 0, 5);
-        var viewport = new ScrollableLayout(layout, 3, 120, instructions, status);
+        var footer = new TableLayoutPanel { AutoSize = true, ColumnCount = 2, Dock = DockStyle.Fill, Margin = Padding.Empty };
+        footer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        footer.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        status.Anchor = AnchorStyles.Left;
+        footer.Controls.Add(status, 0, 0);
+        footer.Controls.Add(searchIndicator, 1, 0);
+        layout.Controls.Add(footer, 0, 5);
+        var viewport = new ScrollableLayout(layout, 3, 120, instructions);
         Controls.Add(viewport);
-        viewport.ClientSizeChanged += (_, _) => FitPicture();
-        picture.DpiChangedAfterParent += (_, _) => FitPicture();
-        Load += (_, _) => FitPicture();
+        viewport.ClientSizeChanged += (_, _) => FitContent();
+        picture.DpiChangedAfterParent += (_, _) => FitContent();
+        Load += (_, _) => FitContent();
         Shown += (_, _) => StartScanning();
         displayAll.CheckedChanged += (_, _) =>
         {
@@ -65,9 +76,12 @@ internal sealed class PairingDialog : Form
         FormClosing += StopBeforeClosing;
         UpdateButtons();
 
-        void FitPicture()
+        void FitContent()
         {
             if (picture.IsDisposed || viewport.ClientSize.Width <= 0 || viewport.ClientSize.Height <= 0) return;
+            int footerWidth = viewport.ClientSize.Width - layout.Padding.Horizontal;
+            int indicatorWidth = searchIndicator.GetPreferredSize(Size.Empty).Width + searchIndicator.Margin.Horizontal;
+            status.MaximumSize = new Size(Math.Max(1, footerWidth - indicatorWidth - status.Margin.Horizontal), 0);
             int width = Math.Max(1, viewport.ClientSize.Width - layout.Padding.Horizontal - picture.Margin.Horizontal);
             int aspectHeight = (int)Math.Ceiling(width * (double)picture.Image.Height / picture.Image.Width);
             int limit = Math.Max(LogicalToDeviceUnits(112), viewport.ClientSize.Height / 2);
@@ -101,6 +115,7 @@ internal sealed class PairingDialog : Form
                 bool showAll = displayAll.Checked;
                 try
                 {
+                    searchIndicator.SetSearching(true);
                     var batch = await Task.Run(() => BluetoothService.Find(cancellation, showAll), cancellation);
                     cancellation.ThrowIfCancellationRequested();
                     if (showAll != displayAll.Checked) continue;
@@ -116,6 +131,7 @@ internal sealed class PairingDialog : Form
                 {
                     cancellation.ThrowIfCancellationRequested();
                     if (showAll != displayAll.Checked) continue;
+                    searchIndicator.SetSearching(false);
                     status.Text = pairingFailure ?? error.Message;
                     delay = 1500;
                 }
@@ -125,30 +141,30 @@ internal sealed class PairingDialog : Form
         catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
         finally
         {
+            if (!searchIndicator.IsDisposed) searchIndicator.SetSearching(false);
             scanCancellation = null;
             operation.Dispose();
         }
     }
 
-    private void UpdateResults(BluetoothService.Candidate[] batch, bool showAll)
+    internal void UpdateResults(BluetoothService.Candidate[] batch, bool showAll)
     {
         bool listChanged = false;
-        if (showAll)
+        var present = showAll ? batch.Select(item => item.Device.Address).ToHashSet() : null;
+        var cutoff = DateTime.UtcNow.AddSeconds(-RecentDeviceSeconds);
+        foreach (ulong address in discovered.Where(entry => isAdded(entry.Key) ||
+            present is not null && !present.Contains(entry.Key) &&
+            !entry.Value.Device.LastSeen.IsAtOrAfter(cutoff)).Select(entry => entry.Key).ToArray())
         {
-            var present = batch.Select(item => item.Device.Address).ToHashSet();
-            var cutoff = DateTime.UtcNow.AddSeconds(-RecentDeviceSeconds);
-            foreach (ulong address in discovered.Where(entry => !present.Contains(entry.Key) &&
-                !entry.Value.Device.LastSeen.IsAtOrAfter(cutoff)).Select(entry => entry.Key).ToArray())
-            {
-                discovered.Remove(address);
-                listChanged = true;
-            }
+            discovered.Remove(address);
+            listChanged = true;
         }
         foreach (var item in batch)
         {
             ulong address = item.Device.Address;
+            if (isAdded(address)) continue;
             if (!discovered.TryGetValue(address, out var previous) || previous.Device.Name != item.Device.Name ||
-                previous.CanTryPair != item.CanTryPair)
+                previous.CanTryPair != item.CanTryPair || previous.Kind != item.Kind)
                 listChanged = true;
             discovered[address] = item;
         }
@@ -172,7 +188,7 @@ internal sealed class PairingDialog : Form
     {
         if (args.CloseReason == CloseReason.WindowsShutDown)
         {
-            scanCancellation?.Cancel();
+            CancelScan();
             return;
         }
         if (!pairing && scanTask.IsCompleted) return;
@@ -182,7 +198,7 @@ internal sealed class PairingDialog : Form
         closing = true;
         UpdateButtons();
         status.Text = UiText.Get("StoppingBluetoothSearch");
-        scanCancellation?.Cancel();
+        CancelScan();
         await scanTask;
         if (!IsDisposed) Close();
     }
@@ -190,6 +206,11 @@ internal sealed class PairingDialog : Form
     private async Task Pair()
     {
         if (found.SelectedItem is not BluetoothService.Candidate device || !displayAll.Checked && !device.CanPair) return;
+        if (isAdded(device.Device.Address))
+        {
+            UpdateResults([], displayAll.Checked);
+            return;
+        }
         if (!device.CanTryPair)
         {
             status.Text = pairingFailure = UiText.Get("NotAWiiRemote");
@@ -203,8 +224,14 @@ internal sealed class PairingDialog : Form
         status.Text = UiText.Get("PairingInProgress");
         try
         {
-            scanCancellation?.Cancel();
+            CancelScan();
             await scanTask;
+            if (isAdded(device.Device.Address))
+            {
+                UpdateResults([], displayAll.Checked);
+                StartScanning();
+                return;
+            }
             var current = discovered[device.Device.Address];
             bool alreadyKnown = await Task.Run(() => BluetoothService.Pair(current, tryUnknown: tryUnknown));
             bool? ready = IsDisposed ? null : await WaitForInput();
@@ -257,6 +284,69 @@ internal sealed class PairingDialog : Form
         displayAll.Enabled = canSelect;
         pair.Enabled = canSelect && found.SelectedItem is BluetoothService.Candidate candidate &&
             (displayAll.Checked || candidate.CanPair);
+    }
+
+    private void CancelScan()
+    {
+        searchIndicator.SetSearching(false);
+        scanCancellation?.Cancel();
+    }
+
+    private sealed class SearchIndicator : Control
+    {
+        private readonly System.Windows.Forms.Timer blink = new() { Interval = 500 };
+        private bool lit;
+
+        public SearchIndicator()
+        {
+            AutoSize = true;
+            Anchor = AnchorStyles.Right | AnchorStyles.Bottom;
+            Margin = new Padding(6, 0, 0, 0);
+            TabStop = false;
+            SetStyle(ControlStyles.Selectable, false);
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint |
+                ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+            blink.Tick += (_, _) =>
+            {
+                lit = !lit;
+                Invalidate();
+            };
+        }
+
+        public override Size GetPreferredSize(Size proposedSize) => LogicalToDeviceUnits(new Size(24, 24));
+
+        public void SetSearching(bool searching)
+        {
+            if (blink.Enabled == searching) return;
+            lit = searching;
+            blink.Enabled = searching;
+            Invalidate();
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            if (!lit) return;
+            var canvas = e.Graphics;
+            canvas.SmoothingMode = SmoothingMode.AntiAlias;
+            canvas.TranslateTransform(Width / 2f, Height / 2f);
+            canvas.ScaleTransform(Width / 24f, Height / 24f);
+            bool highContrast = SystemInformation.HighContrast;
+            using var background = new SolidBrush(highContrast ? SystemColors.Highlight : Color.FromArgb(0, 92, 184));
+            using var stroke = new Pen(highContrast ? SystemColors.HighlightText : Color.White, 1.6f)
+            {
+                StartCap = LineCap.Round, EndCap = LineCap.Round, LineJoin = LineJoin.Round
+            };
+            canvas.FillEllipse(background, -11, -11, 22, 22);
+            canvas.DrawLines(stroke, [new Point(-5, -4), new Point(5, 4), new Point(0, 8),
+                new Point(0, -8), new Point(5, -4), new Point(-5, 4)]);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) blink.Dispose();
+            base.Dispose(disposing);
+        }
     }
 
     private sealed class DeviceScanSwitch : CheckBox

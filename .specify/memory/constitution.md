@@ -28,6 +28,10 @@ All feature specifications and their supporting artifacts must be written and ma
 
 Each Windows x64 release must produce both a portable ZIP and an MSI that supports installation and uninstallation. Both artifacts must come from the same Release build and include the project's license, attribution, and third-party notices.
 
+Every version must have English release notes committed to `CHANGELOG.md` before
+publication. Both GitHub releases for that version must include the same list of
+user-facing changes. Include upgrade or compatibility instructions when relevant.
+
 ## Quality Gates
 
 Require a Release build, meaningful protocol and mapping tests, four-output integration tests, reproducible latency percentiles, and physical acceptance tests. Before publishing a release, verify that the extracted ZIP launches and that the MSI installs, launches, and uninstalls on Windows without the SDK. Keep product acceptance open while physical tests are pending.
@@ -38,4 +42,4 @@ Document each exception in the specification with its rationale, impact, evidenc
 
 Record constitution amendments with their rationale and effective date. Use a major version for incompatible changes to governance, a minor version for new or substantially expanded rules, and a patch version for clarifications. Review compliance when preparing feature plans and before publishing a release.
 
-**Version**: 1.2.0 | **Ratified**: 2026-11-22 | **Last Amended**: 2026-11-22
+**Version**: 1.3.0 | **Ratified**: 2026-11-22 | **Last Amended**: 2026-11-24

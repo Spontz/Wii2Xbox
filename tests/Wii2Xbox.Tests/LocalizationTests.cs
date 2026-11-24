@@ -51,7 +51,7 @@ public sealed class LocalizationTests
             try
             {
                 using var main = new MainForm(static () => []);
-                using var pairing = new PairingDialog(static _ => Task.FromResult<bool?>(false));
+                using var pairing = new PairingDialog(static _ => Task.FromResult<bool?>(false), static _ => false);
                 using var profile = new ProfileDialog(new Profile { Name = "Perfil personalizado" });
                 var layout = Assert.Single(main.Controls.OfType<TableLayoutPanel>());
                 Assert.False(main.AutoScroll);
@@ -136,7 +136,7 @@ public sealed class LocalizationTests
             {
                 using var font = new System.Drawing.Font("Segoe UI", fontPoints);
                 using var main = new MainForm(static () => []);
-                using var pairing = new PairingDialog(static _ => Task.FromResult<bool?>(false));
+                using var pairing = new PairingDialog(static _ => Task.FromResult<bool?>(false), static _ => false);
                 VerifyRows(main, font);
                 VerifyRows(pairing, font);
                 done.SetResult();

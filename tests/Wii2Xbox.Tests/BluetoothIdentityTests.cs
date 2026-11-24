@@ -1,9 +1,72 @@
+using System.Windows.Forms;
 using Xunit;
 
 namespace Wii2Xbox.Tests;
 
 public sealed class BluetoothIdentityTests
 {
+    [Theory]
+    [InlineData(0x00204, "Phone", "Phone")]
+    [InlineData(0x4c043c, "TV", "Display")]
+    [InlineData(0x0010c, "Laptop", "Computer")]
+    [InlineData(0x40418, "Headphones", "Headphones")]
+    [InlineData(0x00508, "Game controller", "Gamepad")]
+    [InlineData(0x00540, "Keyboard", "Keyboard")]
+    [InlineData(0x00580, "Mouse", "Mouse")]
+    [InlineData(0x00000, "Nintendo RVL-CNT-01", "Gamepad")]
+    [InlineData(0x00000, "Uncategorized", "Unknown")]
+    public void CandidateIconUsesTheBluetoothDeviceClass(uint deviceClass, string name, string expected)
+    {
+        var candidate = new BluetoothService.Candidate(0, new BluetoothService.DeviceInfo
+        {
+            Name = name, ClassOfDevice = deviceClass
+        });
+        Assert.Equal(expected, candidate.Kind.ToString());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ScanHidesAddedRemotesAndKeepsWindowsPairingsEligible(bool showAll)
+    {
+        var done = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                const ulong existing = 0xaa1122334401;
+                const ulong remembered = 0xaa1122334402;
+                var added = new HashSet<ulong> { existing };
+                using var dialog = new PairingDialog(static _ => Task.FromResult<bool?>(false), added.Contains);
+                var table = Assert.Single(Assert.Single(dialog.Controls.OfType<ScrollableLayout>())
+                    .Controls.OfType<TableLayoutPanel>());
+                var results = Assert.Single(table.Controls.OfType<ListBox>());
+                var batch = new[] { Remote(existing), Remote(remembered) };
+
+                dialog.UpdateResults(batch, showAll);
+                Assert.Same(batch[1], Assert.Single(results.Items.Cast<BluetoothService.Candidate>()));
+
+                added.Add(remembered);
+                dialog.UpdateResults(batch, showAll);
+                Assert.Empty(results.Items);
+
+                added.Remove(remembered);
+                dialog.UpdateResults(batch, showAll);
+                Assert.Same(batch[1], Assert.Single(results.Items.Cast<BluetoothService.Candidate>()));
+                done.SetResult();
+            }
+            catch (Exception error) { done.SetException(error); }
+        }) { IsBackground = true };
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        await done.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        static BluetoothService.Candidate Remote(ulong address) => new(0, new BluetoothService.DeviceInfo
+        {
+            Address = address, Name = "Nintendo RVL-CNT-01", Remembered = 1
+        });
+    }
+
     [Theory]
     [InlineData("Nintendo RVL-CNT-01", true, true)]
     [InlineData(" nintendo rvl-cnt-01-tr ", true, true)]

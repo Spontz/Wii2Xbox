@@ -666,7 +666,8 @@ public sealed class MainForm : Form
 
     private void PairDevice()
     {
-        using var dialog = new PairingDialog(WaitForPairedDevice);
+        using var dialog = new PairingDialog(WaitForPairedDevice,
+            address => devices.Items.ContainsKey($"{BluetoothIdPrefix}{address:X12}"));
         ShowOwnedDialog(dialog);
     }
 

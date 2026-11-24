@@ -1,7 +1,7 @@
 param(
     [string]$Dotnet = 'dotnet',
     [string]$OutputDirectory = 'artifacts/win-x64',
-    [string]$Version = '1.2.4'
+    [string]$Version = '1.2.5'
 )
 $ErrorActionPreference = 'Stop'
 
@@ -32,7 +32,7 @@ try {
     & $Dotnet publish src/Wii2Xbox/Wii2Xbox.csproj -c Release -r win-x64 --self-contained true -o $OutputDirectory "-p:Version=$Version" "-p:ViGEmBusInstaller=$installer"
     if ($LASTEXITCODE -ne 0) { throw "No se pudo publicar Wii2Xbox (código $LASTEXITCODE)." }
     Copy-Item README.md -Destination "$OutputDirectory/LEEME.md"
-    Copy-Item -LiteralPath LICENSE, NOTICE -Destination $OutputDirectory
+    Copy-Item -LiteralPath LICENSE, NOTICE, CHANGELOG.md -Destination $OutputDirectory
     New-Item -ItemType Directory -Path "$OutputDirectory/profiles" -Force | Out-Null
     Copy-Item -Path profiles/*.json -Destination "$OutputDirectory/profiles"
     # Remove development tools left by builds that packaged them in this directory.

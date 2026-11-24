@@ -46,3 +46,14 @@ As a release maintainer, I want to build and verify both formats from a single b
 - **SC-001**. A single packaging run produces both artifacts. All application and license files have the same relative paths and SHA-256 hashes in the ZIP and the administrative extraction of the MSI.
 - **SC-002**. On Windows x64 without the SDK, the extracted ZIP launches. The MSI installs, launches from Start, and uninstalls successfully, preserving profiles and the driver.
 - **SC-003**. Upgrading to a later version leaves one entry in Installed apps and retains automatic startup if the user enabled it.
+
+## Release 1.2.5 verification
+
+The development PC already has a per-user Wii2Xbox installation. This release
+uses Windows Installer administrative extraction and compares the extracted
+files against the portable ZIP. The clean-install and uninstall checks in
+SC-002 and the upgrade check in SC-003 remain open.
+
+- [ ] On an isolated Windows x64 system without the SDK, verify the MSI wizard,
+  launch from Start, upgrade from 1.2.4, and uninstall while preserving profiles
+  and the shared ViGEmBus driver.

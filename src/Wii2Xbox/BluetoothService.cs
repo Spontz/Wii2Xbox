@@ -12,13 +12,22 @@ internal static class BluetoothService
     private const int NotFound = 1168;
     private static readonly Guid HidService = new("00001124-0000-1000-8000-00805f9b34fb");
 
+    internal enum DeviceKind { Unknown, Phone, Computer, Display, Headphones, Speaker, Gamepad, Keyboard, Mouse }
+
     internal sealed record Candidate(ulong RadioAddress, DeviceInfo Device)
     {
         public bool CanPair => IsSupportedModel(Device.Name);
         public bool CanTryPair => CanPair || !IsWiiFamily(Device.Name) && IsPossibleController(Device.ClassOfDevice);
-        private string DisplayName => string.IsNullOrWhiteSpace(Device.Name) ? UiText.Get("UnnamedBluetoothDevice") : Device.Name;
-        public override string ToString() =>
-            $"{DisplayName} · {Device.Address:X12}{(!CanTryPair && IsWiiFamily(Device.Name) ? UiText.Get("UnsupportedControllerSuffix") : "")}";
+        public DeviceKind Kind => CanPair ? DeviceKind.Gamepad : ClassifyDevice(Device.ClassOfDevice);
+        public string DisplayName
+        {
+            get
+            {
+                string name = string.IsNullOrWhiteSpace(Device.Name) ? UiText.Get("UnnamedBluetoothDevice") : Device.Name;
+                return !CanTryPair && IsWiiFamily(Device.Name) ? name + UiText.Get("UnsupportedControllerSuffix") : name;
+            }
+        }
+        public override string ToString() => $"{DisplayName} · {Device.Address:X12}";
     }
 
     internal static bool IsSupportedModel(string? name)
@@ -41,6 +50,24 @@ internal static class BluetoothService
         uint minor = (deviceClass >> 2) & 0x3f;
         // Accept uncategorized devices and the peripheral types used by joystick, gamepad, or wand hardware.
         return major is 0 or 0x1f || major == 5 && minor is 0 or 1 or 2 or 3 or 9;
+    }
+
+    private static DeviceKind ClassifyDevice(uint deviceClass)
+    {
+        uint major = (deviceClass >> 8) & 0x1f;
+        uint minor = (deviceClass >> 2) & 0x3f;
+        return (major, minor) switch
+        {
+            (1, _) => DeviceKind.Computer,
+            (2, _) => DeviceKind.Phone,
+            (4, 9 or 14 or 15) => DeviceKind.Display,
+            (4, 1 or 2 or 6) => DeviceKind.Headphones,
+            (4, 5 or 7 or 8 or 10) => DeviceKind.Speaker,
+            (4, 18) or (5, 1 or 2 or 3 or 9) => DeviceKind.Gamepad,
+            (5, _) when (minor & 0x10) != 0 => DeviceKind.Keyboard,
+            (5, _) when (minor & 0x20) != 0 => DeviceKind.Mouse,
+            _ => DeviceKind.Unknown
+        };
     }
 
     public static Candidate[] Find(CancellationToken cancellation, bool showAll = false)
